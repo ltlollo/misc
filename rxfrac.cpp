@@ -1,12 +1,8 @@
 #include <vector>
-#include <stdexcept>
 #include <string>
 #include <iostream>
-#include <fstream>
 #include <thread>
-#include <algorithm>
 #include <regex>
-#include <tuple>
 #include "work/workers.h"
 #include <png++/png.hpp>
 
@@ -71,7 +67,7 @@ public:
         }
         const regex re(restr, regex::optimize);
         function<col(const string*)> f = [re](const string* s) {
-            std::cmatch sm;
+            cmatch sm;
             if (!regex_match(s->c_str(), sm, re)) {
                 return col(255, 255, 255);
             }
@@ -87,7 +83,15 @@ public:
 
 
 int main(int argc, char *argv[]) {
+    auto print_help = [&]() {
+        cerr << "USAGE\t" << argv[0] << " depth regex\n"
+             << "\tdepth<unsigned>: recursion depth of the canvas generator, determines the image size (size: 2^depth, 2^10 is 1024)\n"
+             << "\tregex<string>: self explanatory\n"
+             << "SCOPE: http://www.reddit.com/r/dailyprogrammer/comments/2fkh8u/9052014_challenge_178_hard_regular_expression/\n"
+             << endl;
+    };
     if (argc < 3) {
+        print_help();
         return 1;
     }
     Mat(atoi(argv[1])).apply(argv[2]).save("out.png");
