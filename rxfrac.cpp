@@ -8,6 +8,11 @@
 
 using namespace std;
 using u = size_t;
+using col = png::rgb_pixel;
+using px = uint8_t;
+
+constexpr bool original_solution{true};
+constexpr px defpx{original_solution ? 0 : 255};
 
 void populate(u* mat, u size, u rawsize) noexcept {
     if (size <= 1) {
@@ -26,9 +31,6 @@ void populate(u* mat, u size, u rawsize) noexcept {
     populate(mat+size/2*rawsize,     size/2, rawsize);
     populate(mat+size/2*(rawsize+1), size/2, rawsize);
 }
-
-using col = png::rgb_pixel;
-using px = uint8_t;
 
 class Img {
     vector<col> pxs;
@@ -71,9 +73,9 @@ public:
             if (!regex_match(s->c_str(), sm, re)) {
                 return col(255, 255, 255);
             }
-            px r = (sm.length(1) > 0) ? 255u/s->size()*sm.length(1) : 0;
-            px b = (sm.length(2) > 0) ? 255u/s->size()*sm.length(2) : 0;
-            px g = (sm.length(3) > 0) ? 255u/s->size()*sm.length(3) : 0;
+            px r = (sm.length(1) > 0) ? 255u/s->size()*sm.length(1) : defpx;
+            px b = (sm.length(2) > 0) ? 255u/s->size()*sm.length(2) : defpx;
+            px g = (sm.length(3) > 0) ? 255u/s->size()*sm.length(3) : defpx;
             return col(r, b, g);
         };
         auto res = work::static_work_balancer(d, f, work::Num<4>());
