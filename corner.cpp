@@ -1,16 +1,7 @@
-#include <iostream>
 #include <vector>
-#include <stdexcept>
 #include <string>
-#include <iostream>
-#include <fstream>
-#include <thread>
 #include <algorithm>
 #include <png++/png.hpp>
-#include <png++/image.hpp>
-#include <png++/rgb_pixel.hpp>
-
-using namespace std;
 
 constexpr unsigned w_size{2}, n_features{500}, d_win{1};
 constexpr double ets{5000};
