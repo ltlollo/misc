@@ -51,7 +51,7 @@ mgrad gradient(const png::image<png::gray_pixel>& img) {
     return grad;
 }
 
-inline double patch_interest(const mgrad& grad, unsigned y, unsigned x) {
+inline double patch_eval(const mgrad& grad, unsigned y, unsigned x) noexcept {
     pderiv sum{0, 0, 0};
     for (unsigned k{0}; k < w_size; ++k) {
         for (unsigned z{0}; z < w_size; ++z) {
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     auto grad = gradient(img);
     for (size_t i{d_win}; i < h-w_size-d_win; ++i) {
         for (size_t j{d_win}; j < w-w_size-d_win; ++j) {
-            double e = patch_interest(grad, i, j);
+            double e = patch_eval(grad, i, j);
             if (e > ets) {
                 res.emplace_back(feature{{j+w_size/2,i+w_size/2}, e});
             }
