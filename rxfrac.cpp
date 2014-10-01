@@ -87,9 +87,11 @@ public:
 int main(int argc, char *argv[]) {
     auto print_help = [&]() {
         cerr << "USAGE\t" << argv[0] << " depth regex\n"
-             << "\tdepth<unsigned>: recursion depth of the canvas generator, determines the image size (size: 2^depth, 2^10 is 1024)\n"
+             << "\tdepth<unsigned>: recursion depth of the canvas generator, "
+                "determines the image size (size: 2^depth, 2^10 is 1024)\n"
              << "\tregex<string>: self explanatory\n"
-             << "SCOPE: http://www.reddit.com/r/dailyprogrammer/comments/2fkh8u/9052014_challenge_178_hard_regular_expression/\n"
+             << "SCOPE: http://www.reddit.com/r/dailyprogrammer/comments/"
+                "2fkh8u/9052014_challenge_178_hard_regular_expression/\n"
              << endl;
     };
     if (argc < 3) {
