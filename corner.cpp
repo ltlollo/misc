@@ -105,7 +105,9 @@ int main(int argc, char *argv[]) {
     assert(h > w_size+d_win && w > w_size+d_win);
     GImage out(w, h);
     auto res = features(gradient(img), ets);
-    std::sort(res.begin(), res.end(), [](const feature& f, const feature& s) {
+    std::partial_sort(res.begin(), res.size() > n_features
+                      ? res.begin()+n_features : res.end(), res.end(),
+                      [](const feature& f, const feature& s) {
         return f.e > s.e;
     });
     std::for_each(res.begin(), res.size() > n_features
