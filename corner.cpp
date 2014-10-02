@@ -101,7 +101,6 @@ std::vector<feature> features(const MGrad& grad, double ets = 0) {
 int main(int argc, char *argv[]) {
     assert(argc > 1);
     GImage img(argv[1]);
-    blur(img);
     size_t h{img.get_height()}, w{img.get_width()};
     assert(h > w_size+d_win && w > w_size+d_win);
     GImage out(w, h);
