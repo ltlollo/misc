@@ -2,8 +2,9 @@
 #include <algorithm>
 #include <png++/png.hpp>
 
-constexpr unsigned w_size{2}, n_features{500}, d_win{1};
+constexpr unsigned w_size{2}, n_features{1500}, d_win{1};
 constexpr double ets{5000};
+constexpr int smooth_win{1};
 
 static_assert(d_win > 0, "invalid d_win");
 static_assert(w_size > d_win, "invalid w_size");
@@ -17,11 +18,12 @@ struct pderiv {
     int gxx, gyy, gxy;
 };
 
-using mgrad = std::vector<std::vector<pderiv>>;
+using MGrad = std::vector<std::vector<pderiv>>;
+using GImage = png::image<png::gray_pixel>;
 
-mgrad gradient(const png::image<png::gray_pixel>& img) {
+MGrad gradient(const GImage& img) {
     size_t h{img.get_height()}, w{img.get_width()};
-    mgrad grad(h, std::vector<pderiv>(w, pderiv{0, 0, 0}));
+    MGrad grad(h, std::vector<pderiv>(w, pderiv{0, 0, 0}));
     if (h < 3 || w < 3) {
         return grad;
     }
@@ -41,7 +43,28 @@ mgrad gradient(const png::image<png::gray_pixel>& img) {
     return grad;
 }
 
-inline double patch_eval(const mgrad& grad, unsigned y, unsigned x) noexcept {
+
+void smooth(GImage& img) {
+    size_t h{img.get_height()}, w{img.get_width()};
+    GImage tmp(w, h);
+    for (size_t i{smooth_win}; i < h-smooth_win; ++i) {
+        for (size_t j{smooth_win}; j < w-smooth_win; ++j) {
+            for (int w{-smooth_win}; w < smooth_win+1; ++w) {
+                tmp[i][j] += img[i][j+smooth_win]/((2*smooth_win+1)*(2*smooth_win+1));
+            }
+        }
+    }
+    img = GImage(w, h);
+    for (size_t i{smooth_win}; i < h-smooth_win; ++i) {
+        for (size_t j{smooth_win}; j < w-smooth_win; ++j) {
+            for (int w{-smooth_win}; w < smooth_win+1; ++w) {
+                img[i][j] += tmp[i+smooth_win][j];
+            }
+        }
+    }
+}
+
+inline double patch_eval(const MGrad& grad, unsigned y, unsigned x) noexcept {
     pderiv sum{0, 0, 0};
     for (unsigned k{0}; k < w_size; ++k) {
         for (unsigned z{0}; z < w_size; ++z) {
@@ -50,7 +73,7 @@ inline double patch_eval(const mgrad& grad, unsigned y, unsigned x) noexcept {
             sum.gxy += grad[y+k][x+z].gxy;
         }
     }
-    double tr{sum.gxx+sum.gyy};
+    double tr = sum.gxx+sum.gyy;
     if (!tr) {
         return 0.0;
     }
@@ -58,14 +81,12 @@ inline double patch_eval(const mgrad& grad, unsigned y, unsigned x) noexcept {
     return det/tr;
 }
 
-int main(int argc, char *argv[]) {
-    assert(argc > 1);
-    png::image<png::gray_pixel> img(argv[1]);
-    size_t h{img.get_height()}, w{img.get_width()};
-    assert(h > w_size+d_win && w > w_size+d_win);
+std::vector<feature> features(const MGrad& grad, double ets = 0) {
     std::vector<feature> res;
-    png::image<png::gray_pixel> out(w, h);
-    auto grad = gradient(img);
+    if (grad.empty() || grad[0].empty()) {
+        return res;
+    }
+    size_t h{grad.size()}, w{grad[0].size()};
     for (size_t i{d_win}; i < h-w_size-d_win; ++i) {
         for (size_t j{d_win}; j < w-w_size-d_win; ++j) {
             double e = patch_eval(grad, i, j);
@@ -74,6 +95,18 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+    return res;
+}
+
+int main(int argc, char *argv[]) {
+    assert(argc > 1);
+    GImage img(argv[1]);
+    smooth(img);
+    img.write("smooth.png");
+    size_t h{img.get_height()}, w{img.get_width()};
+    assert(h > w_size+d_win && w > w_size+d_win);
+    GImage out(w, h);
+    auto res = features(gradient(img), ets);
     std::sort(res.begin(), res.end(), [](const feature& f, const feature& s) {
         return f.e > s.e;
     });
