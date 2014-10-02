@@ -2,11 +2,12 @@
 #include <algorithm>
 #include <png++/png.hpp>
 
-constexpr unsigned w_size{2}, n_features{1500}, d_win{1};
-constexpr double ets{5000};
+constexpr unsigned w_size{2}, n_features{1000}, d_win{1};
+constexpr double ets{1000};
 constexpr int smooth_win{1};
 
 static_assert(d_win > 0, "invalid d_win");
+static_assert(smooth_win > 0, "invalid smooth_win");
 static_assert(w_size > d_win, "invalid w_size");
 
 struct feature {
@@ -43,22 +44,21 @@ MGrad gradient(const GImage& img) {
     return grad;
 }
 
-
-void smooth(GImage& img) {
+void blur(GImage& img) {
     size_t h{img.get_height()}, w{img.get_width()};
     GImage tmp(w, h);
     for (size_t i{smooth_win}; i < h-smooth_win; ++i) {
         for (size_t j{smooth_win}; j < w-smooth_win; ++j) {
-            for (int w{-smooth_win}; w < smooth_win+1; ++w) {
-                tmp[i][j] += img[i][j+smooth_win]/((2*smooth_win+1)*(2*smooth_win+1));
+            for (int k{-smooth_win}; k < smooth_win+1; ++k) {
+                tmp[i][j] += img[i][j+k]/double((2*smooth_win+1)*(2*smooth_win+1));
             }
         }
     }
     img = GImage(w, h);
     for (size_t i{smooth_win}; i < h-smooth_win; ++i) {
         for (size_t j{smooth_win}; j < w-smooth_win; ++j) {
-            for (int w{-smooth_win}; w < smooth_win+1; ++w) {
-                img[i][j] += tmp[i+smooth_win][j];
+            for (int k{-smooth_win}; k < smooth_win+1; ++k) {
+                img[i][j] += tmp[i+k][j];
             }
         }
     }
@@ -101,8 +101,7 @@ std::vector<feature> features(const MGrad& grad, double ets = 0) {
 int main(int argc, char *argv[]) {
     assert(argc > 1);
     GImage img(argv[1]);
-    smooth(img);
-    img.write("smooth.png");
+    blur(img);
     size_t h{img.get_height()}, w{img.get_width()};
     assert(h > w_size+d_win && w > w_size+d_win);
     GImage out(w, h);
@@ -114,6 +113,7 @@ int main(int argc, char *argv[]) {
                   ? res.begin()+n_features : res.end(), [&](const feature& fe) {
         out[fe.p.y][fe.p.x] = 255;
     });
+    blur(out);
     out.write(std::string(argv[1])+"-out.png");
     return 0;
 }
