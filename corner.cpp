@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <png++/png.hpp>
 
-constexpr unsigned w_size{2}, n_features{1000}, d_win{1};
+constexpr unsigned w_size{2}, n_features{500}, d_win{1};
 constexpr double ets{1000};
 constexpr int smooth_win{1};
 
@@ -21,12 +21,14 @@ struct pderiv {
     int gxx, gyy, gxy;
 };
 
-using MGrad = std::vector<std::vector<pderiv>>;
+using Features = std::vector<feature>;
+using RGrad = std::vector<pderiv>;
+using MGrad = std::vector<RGrad>;
 using GImage = png::image<png::gray_pixel>;
 
 MGrad gradient(const GImage& img) {
     size_t h{img.get_height()}, w{img.get_width()};
-    MGrad grad(h, std::vector<pderiv>(w, pderiv{0, 0, 0}));
+    MGrad grad(h, RGrad(w, pderiv{0, 0, 0}));
     if (h < 3 || w < 3) {
         return grad;
     }
@@ -83,7 +85,7 @@ inline double patch_eval(const MGrad& grad, unsigned y, unsigned x) noexcept {
     return det/tr;
 }
 
-std::vector<feature> features(const MGrad& grad, double ets = 0) {
+Features features(const MGrad& grad, double ets = 0) {
     std::vector<feature> res;
     if (grad.empty() || grad[0].empty()) {
         return res;
