@@ -54,7 +54,7 @@ void blur(GImage& img) {
     for (size_t i{smooth_win}; i < h-smooth_win; ++i) {
         for (size_t j{smooth_win}; j < w-smooth_win; ++j) {
             for (int k{-smooth_win}; k < smooth_win+1; ++k) {
-                tmp[i][j] += img[i][j+k]/double((2*smooth_win+1)*(2*smooth_win+1));
+                tmp[i][j] += img[i][j+k]/((2*smooth_win+1)*(2*smooth_win+1));
             }
         }
     }
