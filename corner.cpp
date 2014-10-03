@@ -7,8 +7,10 @@ constexpr double ets{1000};
 constexpr int smooth_win{1};
 
 static_assert(d_win > 0, "invalid d_win");
+static_assert(n_features > 0, "invalid n_features");
 static_assert(smooth_win > 0, "invalid smooth_win");
 static_assert(w_size > d_win, "invalid w_size");
+static_assert(ets >= 0, "invalid ets");
 
 struct feature {
     struct pt { size_t x, y;} p;
