@@ -1,6 +1,7 @@
 #include <vector>
 #include <algorithm>
 #include <png++/png.hpp>
+#include <extra/func.h>
 
 constexpr unsigned w_size{2}, n_features{500}, d_win{1};
 constexpr double ets{1000};
@@ -13,8 +14,8 @@ static_assert(w_size > d_win, "invalid w_size");
 static_assert(ets >= 0, "invalid ets");
 
 struct feature {
-    struct pt { size_t x, y;} p;
     double e;
+    struct pt { size_t x, y;} p;
 };
 
 struct pderiv {
@@ -95,7 +96,7 @@ Features features(const MGrad& grad, double ets = 0) {
         for (size_t j{d_win}; j < w-w_size-d_win; ++j) {
             double e = patch_eval(grad, i, j);
             if (e > ets) {
-                res.emplace_back(feature{{j+w_size/2,i+w_size/2}, e});
+                res.emplace_back(feature{e, {j+w_size/2,i+w_size/2}});
             }
         }
     }
@@ -108,17 +109,19 @@ int main(int argc, char *argv[]) {
     size_t h{img.get_height()}, w{img.get_width()};
     assert(h > w_size+d_win && w > w_size+d_win);
     GImage out(w, h);
-    auto res = features(gradient(img), ets);
-    std::partial_sort(res.begin(), res.size() > n_features
-                      ? res.begin()+n_features : res.end(), res.end(),
-                      [](const feature& f, const feature& s) {
-        return f.e > s.e;
+    fun::mesure("processing", [&]() noexcept {
+        auto res = features(gradient(img), ets);
+        std::partial_sort(res.begin(), res.size() > n_features
+                          ? res.begin()+n_features : res.end(), res.end(),
+                        [](const feature& f, const feature& s) {
+            return f.e > s.e;
+        });
+        std::for_each(res.begin(), res.size() > n_features
+                      ? res.begin()+n_features : res.end(), [&](const feature& fe) {
+            out[fe.p.y][fe.p.x] = 255;
+        });
+        blur(out);
     });
-    std::for_each(res.begin(), res.size() > n_features
-                  ? res.begin()+n_features : res.end(), [&](const feature& fe) {
-        out[fe.p.y][fe.p.x] = 255;
-    });
-    blur(out);
     out.write(std::string(argv[1])+"-out.png");
     return 0;
 }
