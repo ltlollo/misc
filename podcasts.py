@@ -47,9 +47,7 @@ def downloadRecent(hpool, podinfo, fetches=0):
     createFolder(folder)
     status, downloaded = 'err', []
     req = hpool.request('GET', podcast)
-    if req.status is not 200:
-        status = 'err'
-    else:
+    if req.status is 200:
         content_xml = minidom.parseString(req.data)
         nodes_url = content_xml.getElementsByTagName('enclosure')
         podcast_urls = [ x.getAttribute('url') for x in nodes_url if x.getAttribute('url') ]
