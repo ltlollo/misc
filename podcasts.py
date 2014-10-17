@@ -2,15 +2,10 @@
 
 import urllib3
 import os
+import json
 from xml.dom import minidom
 
-base = "/home/lorenzo/"
-podcasts = [
-    ("ringcast",        "http://www.gehennainc.com/west/podcasts/ringcast/feed/generateXML.aspx"),
-    ("coderradio",      "http://feeds.feedburner.com/se-radio"),
-    ("YANSS",           "http://feeds.soundcloud.com/users/soundcloud:users:16745745/sounds.rss"),
-    ( "roguelikeradio", "http://feeds.feedsburner.com/RoguelikeRadio")
-]
+setting_file = 'podcasts.json'
 
 def fileName(url):
     return url.rpartition('/')[-1]
@@ -41,9 +36,9 @@ def fetchRecents(hpool, folder, urls, fetches=0):
         else: res.append(fetchFile(hpool, url, filepath))
     return res
 
-def downloadRecent(hpool, podinfo, fetches=0):
+def downloadRecent(hpool, podinfo, basedir='.', fetches=0):
     subfolder, podcast = podinfo
-    folder = os.path.join(base, subfolder)
+    folder = os.path.join(basedir, subfolder)
     createFolder(folder)
     status, downloaded = 'err', []
     req = hpool.request('GET', podcast)
@@ -58,12 +53,13 @@ def downloadRecent(hpool, podinfo, fetches=0):
 
 class PodGet:
     def __init__(self):
+        self.settings = json.load(open(setting_file, 'r'))
         self.hpool = urllib3.PoolManager()
     
-    def download(self, podinfos):
-        for podinfo in podinfos:
-            status, downloaded = downloadRecent(self.hpool, podinfo)
+    def download(self):
+        for podinfo in self.settings['podcasts'].items():
+            status, downloaded = downloadRecent(self.hpool, podinfo, self.settings['folder'])
 
 if __name__ == "__main__":
-    PodGet().download(podcasts)
+    PodGet().download()
 
