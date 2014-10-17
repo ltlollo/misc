@@ -7,12 +7,15 @@ from xml.dom import minidom
 
 setting_file = 'podcasts.json'
 
+
 def validate(url):
     if not url.startswith('http://') or url.count('/') < 3:
         raise RuntimeError(url + ' is not a valid url')
 
+
 def fileName(url):
     return url.rpartition('/')[-1]
+
 
 def createFolder(folder):
     if not os.path.exists(folder):
@@ -20,9 +23,10 @@ def createFolder(folder):
     elif not os.path.isdir(folder):
         raise IOError(folder + " is not a directory")
 
+
 def fetchFile(hpool, url, filepath):
-    """ (err, url) is a fetch problem, 
-        (err, path) is a permission problem """
+    """(err, url) is a fetch problem,
+       (err, path) is a permission problem"""
     res, action = 'err', url
     try:
         req = hpool.request('GET', url)
@@ -35,9 +39,10 @@ def fetchFile(hpool, url, filepath):
         pass
     return (res, action)
 
-def fetchRecents(hpool, folder, urls, fetches=0):
+
+def fetchRecents(hpool, folder, urls, mx=0):
     res = []
-    trim_urls = zip(urls, range(fetches)) if fetches else zip(urls, enumerate(urls))
+    trim_urls = zip(urls, range(mx)) if mx else zip(urls, enumerate(urls))
     for url, _ in trim_urls:
         filename = fileName(url)
         filepath = os.path.join(folder, filename)
@@ -46,6 +51,7 @@ def fetchRecents(hpool, folder, urls, fetches=0):
         else:
             res.append(fetchFile(hpool, url, filepath))
     return res
+
 
 def downloadRecent(hpool, podinfo, basedir='.', fetches=0):
     subfolder, podcast = podinfo
@@ -56,8 +62,10 @@ def downloadRecent(hpool, podinfo, basedir='.', fetches=0):
         req = hpool.request('GET', podcast)
         if req.status is 200:
             content_xml = minidom.parseString(req.data)
-            nodes_url = content_xml.getElementsByTagName('enclosure')
-            podcast_urls = [ x.getAttribute('url') for x in nodes_url if x.getAttribute('url') ]
+            nodes = content_xml.getElementsByTagName('enclosure')
+            podcast_urls = [
+                u.getAttribute('url') for u in nodes if u.getAttribute('url')
+            ]
             downloaded = fetchRecents(hpool, folder, podcast_urls, fetches)
             status = 'ok'
     except:
@@ -70,6 +78,7 @@ class PodGet:
         with open(setting_file, 'r') as f:
             self.settings = json.load(f)
         self.hpool = urllib3.PoolManager()
+
     def download(self):
         basedir = self.settings['folder']
         createFolder(basedir)
@@ -87,4 +96,3 @@ class PodGet:
 
 if __name__ == "__main__":
     PodGet().download()
-
