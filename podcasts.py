@@ -17,13 +17,19 @@ def createFolder(folder):
         raise IOError(folder + " is not a directory")
 
 def fetchFile(hpool, url, filepath):
+    """ (err, url) is a fetch problem, 
+        (err, path) is a permission problem """
     res, action = 'err', url
     req = hpool.request('GET', url)
     if req.status is 200:
-        f = open(filepath, 'wb')
-        f.write(req.data)
-        f.close()
-        res, action = 'ok', filepath
+        try:
+            action = filepath
+            f = open(filepath, 'wb')
+            f.write(req.data)
+            f.close()
+            res = 'ok'
+        except:
+            pass
     return (res, action)
 
 def fetchRecents(hpool, folder, urls, fetches=0):
@@ -32,8 +38,10 @@ def fetchRecents(hpool, folder, urls, fetches=0):
     for url, _ in trim_urls:
         filename = fileName(url)
         filepath = os.path.join(folder, filename)
-        if os.path.exists(filepath): break
-        else: res.append(fetchFile(hpool, url, filepath))
+        if os.path.exists(filepath):
+            break
+        else:
+            res.append(fetchFile(hpool, url, filepath))
     return res
 
 def downloadRecent(hpool, podinfo, basedir='.', fetches=0):
@@ -43,11 +51,14 @@ def downloadRecent(hpool, podinfo, basedir='.', fetches=0):
     status, downloaded = 'err', []
     req = hpool.request('GET', podcast)
     if req.status is 200:
-        content_xml = minidom.parseString(req.data)
-        nodes_url = content_xml.getElementsByTagName('enclosure')
-        podcast_urls = [ x.getAttribute('url') for x in nodes_url if x.getAttribute('url') ]
-        downloaded = fetchRecents(hpool, folder, podcast_urls, fetches)
-        status = 'ok'
+        try:
+            content_xml = minidom.parseString(req.data)
+            nodes_url = content_xml.getElementsByTagName('enclosure')
+            podcast_urls = [ x.getAttribute('url') for x in nodes_url if x.getAttribute('url') ]
+            downloaded = fetchRecents(hpool, folder, podcast_urls, fetches)
+            status = 'ok'
+        except:
+            pass
     return (status, downloaded)
 
 
