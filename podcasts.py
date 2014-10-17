@@ -3,7 +3,7 @@
 import urllib3
 import os
 import json
-from xml.dom import minidom
+import xml
 
 setting_file = 'podcasts.json'
 
@@ -52,7 +52,7 @@ def downloadRecent(hpool, podinfo, basedir='.', fetches=0):
     req = hpool.request('GET', podcast)
     if req.status is 200:
         try:
-            content_xml = minidom.parseString(req.data)
+            content_xml = xml.dom.minidom.parseString(req.data)
             nodes_url = content_xml.getElementsByTagName('enclosure')
             podcast_urls = [ x.getAttribute('url') for x in nodes_url if x.getAttribute('url') ]
             downloaded = fetchRecents(hpool, folder, podcast_urls, fetches)
