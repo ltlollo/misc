@@ -3,9 +3,13 @@
 import urllib3
 import os
 import json
-import xml
+from xml.dom import minidom
 
 setting_file = 'podcasts.json'
+
+def validate(url):
+    if not url.startswith('http://') or url.count('/') < 3:
+        raise RuntimeError(url + ' is not a valid url')
 
 def fileName(url):
     return url.rpartition('/')[-1]
@@ -20,15 +24,15 @@ def fetchFile(hpool, url, filepath):
     """ (err, url) is a fetch problem, 
         (err, path) is a permission problem """
     res, action = 'err', url
-    req = hpool.request('GET', url)
-    if req.status is 200:
-        try:
+    try:
+        req = hpool.request('GET', url)
+        if req.status is 200:
             action = filepath
             with open(filepath, 'wb') as f:
                 f.write(req.data)
             res = 'ok'
-        except:
-            pass
+    except:
+        pass
     return (res, action)
 
 def fetchRecents(hpool, folder, urls, fetches=0):
@@ -48,16 +52,16 @@ def downloadRecent(hpool, podinfo, basedir='.', fetches=0):
     folder = os.path.join(basedir, subfolder)
     createFolder(folder)
     status, downloaded = 'err', []
-    req = hpool.request('GET', podcast)
-    if req.status is 200:
-        try:
-            content_xml = xml.dom.minidom.parseString(req.data)
+    try:
+        req = hpool.request('GET', podcast)
+        if req.status is 200:
+            content_xml = minidom.parseString(req.data)
             nodes_url = content_xml.getElementsByTagName('enclosure')
             podcast_urls = [ x.getAttribute('url') for x in nodes_url if x.getAttribute('url') ]
             downloaded = fetchRecents(hpool, folder, podcast_urls, fetches)
             status = 'ok'
-        except:
-            pass
+    except:
+        pass
     return (status, downloaded)
 
 
@@ -66,12 +70,20 @@ class PodGet:
         with open(setting_file, 'r') as f:
             self.settings = json.load(f)
         self.hpool = urllib3.PoolManager()
-    
     def download(self):
         basedir = self.settings['folder']
         createFolder(basedir)
         for podinfo in self.settings['podcasts'].items():
             status, downloaded = downloadRecent(self.hpool, podinfo, basedir)
+            podcast, _ = podinfo
+            print(podcast)
+            if status is 'err':
+                print('\tstatus: err')
+            else:
+                if downloaded:
+                    print('\tlist:', downloaded)
+                else:
+                    print('\tstatus: No updates')
 
 if __name__ == "__main__":
     PodGet().download()
