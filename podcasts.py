@@ -57,8 +57,10 @@ class PodGet:
         self.hpool = urllib3.PoolManager()
     
     def download(self):
+        basedir = self.settings['folder']
+        createFolder(basedir)
         for podinfo in self.settings['podcasts'].items():
-            status, downloaded = downloadRecent(self.hpool, podinfo, self.settings['folder'])
+            status, downloaded = downloadRecent(self.hpool, podinfo, basedir)
 
 if __name__ == "__main__":
     PodGet().download()
