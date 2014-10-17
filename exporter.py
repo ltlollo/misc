@@ -49,10 +49,9 @@ def write_bookmark(path, name, url, mode):
     while(os.path.exists(sane_name)):
         sane_name = ''.join(['_', sane_name])
 
-    bookmark = open(os.path.join(path, sane_name), 'w')
-    field = gen_field('link', 'URL', url, mode)
-    bookmark.write(field + '\n')
-    bookmark.close()
+    with open(os.path.join(path, sane_name), 'w') as bookmark:
+        field = gen_field('link', 'URL', url, mode)
+        bookmark.write(field + '\n')
 
 
 def populate_directory_tree(dtree, parent, mode):
@@ -159,16 +158,15 @@ def write_contact(path, vcard, mode):
             sane_name = ''.join(['_', sane_name])
             # I hope you are happy now, u'__John Smith'
 
-        contact_file = open(os.path.join(path, sane_name), 'w')
-        for field in fields:
-            contact_file.write(field + '\n')
-        contact_file.close()
+        with open(os.path.join(path, sane_name), 'w') as contact_file:
+            for field in fields:
+                contact_file.write(field + '\n')
 
 
 def export_bookmarks(filename, backup_rootdir, mode=None):
     if os.path.isfile(filename):
-        json_file = open(filename, 'r')
-        json_obj = json.load(json_file)
+        with open(filename, 'r') as json_file:
+            json_obj = json.load(json_file)
         if not os.path.exists(backup_rootdir):
             populate_directory_tree(json_obj, backup_rootdir, mode)
         else:

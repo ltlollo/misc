@@ -24,9 +24,8 @@ def fetchFile(hpool, url, filepath):
     if req.status is 200:
         try:
             action = filepath
-            f = open(filepath, 'wb')
-            f.write(req.data)
-            f.close()
+            with open(filepath, 'wb') as f:
+                f.write(req.data)
             res = 'ok'
         except:
             pass
@@ -64,7 +63,8 @@ def downloadRecent(hpool, podinfo, basedir='.', fetches=0):
 
 class PodGet:
     def __init__(self):
-        self.settings = json.load(open(setting_file, 'r'))
+        with open(setting_file, 'r') as f:
+            self.settings = json.load(f)
         self.hpool = urllib3.PoolManager()
     
     def download(self):
