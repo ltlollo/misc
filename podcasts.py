@@ -5,7 +5,7 @@ import sys
 import urllib3
 import json
 
-from xml.dom import minidom
+from xml.dom import minidom as dom
 from enum import Enum
 
 
@@ -68,8 +68,8 @@ def downloadRecent(hpool, podinfo, basedir='.', mx=0):
     try:
         req = hpool.request('GET', podcast)
         if req.status is 200:
-            content_xml = minidom.parseString(req.data)
-            nodes = content_xml.getElementsByTagName('enclosure')
+            xml = dom.parseString(req.data)
+            nodes = xml.getElementsByTagName('enclosure')
             podcast_urls = [
                 u.getAttribute('url') for u in nodes if u.getAttribute('url')
             ]
