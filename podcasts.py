@@ -5,9 +5,9 @@ import sys
 import urllib3
 import json
 
-from xml.dom import minidom as dom
 from enum import Enum
-from itertools import islice
+from xml.dom import minidom as dom
+from itertools import islice as trim
 
 
 class Result(Enum):
@@ -50,7 +50,7 @@ def fetchFile(hpool, url, filepath):
 
 def fetchRecents(hpool, folder, urls, mx=0):
     res = []
-    trim_urls = islice(urls, 0, mx) if mx else urls
+    trim_urls = trim(urls, 0, mx) if mx else urls
     for url in trim_urls:
         filename = fileName(url)
         filepath = os.path.join(folder, filename)
