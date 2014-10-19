@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import urllib3
 import os
+import sys
+import urllib3
 import json
+
 from xml.dom import minidom
 from enum import Enum
-
-setting_file = 'podcasts.json'
 
 
 class Result(Enum):
@@ -80,10 +80,10 @@ def downloadRecent(hpool, podinfo, basedir='.', mx=0):
 
 
 class PodGet:
-    def __init__(self):
-        with open(setting_file, 'r') as f:
+    def __init__(self, settings_fpath, conn=1):
+        with open(settings_fpath, 'r') as f:
             self.settings = json.load(f)
-        self.hpool = urllib3.PoolManager(8)
+        self.hpool = urllib3.PoolManager(conn)
 
     def download(self):
         basedir = self.settings['folder']
@@ -101,4 +101,8 @@ class PodGet:
                     print('\tstatus: No updates')
 
 if __name__ == "__main__":
-    PodGet().download()
+    if len(sys.argv) != 2:
+        print("USAGE:", sys.argv[0], "settings_filepath")
+        sys.exit(1)
+    PodGet(sys.argv[1]).download()
+    sys.exit(0)
