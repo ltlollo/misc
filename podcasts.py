@@ -31,8 +31,9 @@ def createFolder(folder):
 
 
 def fetchFile(hpool, url, filepath):
-    """(err, url) is a fetch problem,
-       (err, path) is a permission problem"""
+    """Return: (Result.Ok, path), no problem,
+               (Result.Err, url), fetch problem,
+               (Result.Err, path), write problem"""
     res, action = Result.Err, url
     try:
         req = hpool.request('GET', url)
