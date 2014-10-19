@@ -4,8 +4,14 @@ import urllib3
 import os
 import json
 from xml.dom import minidom
+from enum import Enum
 
 setting_file = 'podcasts.json'
+
+
+class Result(Enum):
+    Ok = 0
+    Err = 1
 
 
 def validate(url):
@@ -27,14 +33,14 @@ def createFolder(folder):
 def fetchFile(hpool, url, filepath):
     """(err, url) is a fetch problem,
        (err, path) is a permission problem"""
-    res, action = 'err', url
+    res, action = Result.Err, url
     try:
         req = hpool.request('GET', url)
         if req.status is 200:
             action = filepath
             with open(filepath, 'wb') as f:
                 f.write(req.data)
-            res = 'ok'
+            res = Result.Ok
     except:
         pass
     return (res, action)
@@ -53,11 +59,11 @@ def fetchRecents(hpool, folder, urls, mx=0):
     return res
 
 
-def downloadRecent(hpool, podinfo, basedir='.', fetches=0):
+def downloadRecent(hpool, podinfo, basedir='.', mx=0):
     subfolder, podcast = podinfo
     folder = os.path.join(basedir, subfolder)
     createFolder(folder)
-    status, downloaded = 'err', []
+    status, downloaded = Result.Err, []
     try:
         req = hpool.request('GET', podcast)
         if req.status is 200:
@@ -66,8 +72,8 @@ def downloadRecent(hpool, podinfo, basedir='.', fetches=0):
             podcast_urls = [
                 u.getAttribute('url') for u in nodes if u.getAttribute('url')
             ]
-            downloaded = fetchRecents(hpool, folder, podcast_urls, fetches)
-            status = 'ok'
+            downloaded = fetchRecents(hpool, folder, podcast_urls, mx)
+            status = Result.Ok
     except:
         pass
     return (status, downloaded)
@@ -86,7 +92,7 @@ class PodGet:
             status, downloaded = downloadRecent(self.hpool, podinfo, basedir)
             podcast, _ = podinfo
             print(podcast)
-            if status is 'err':
+            if status is Result.Err:
                 print('\tstatus: err')
             else:
                 if downloaded:
