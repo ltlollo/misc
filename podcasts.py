@@ -7,6 +7,7 @@ import json
 
 from xml.dom import minidom as dom
 from enum import Enum
+from itertools import islice
 
 
 class Result(Enum):
@@ -49,8 +50,8 @@ def fetchFile(hpool, url, filepath):
 
 def fetchRecents(hpool, folder, urls, mx=0):
     res = []
-    trim_urls = zip(urls, range(mx)) if mx else zip(urls, enumerate(urls))
-    for url, _ in trim_urls:
+    trim_urls = islice(urls, 0, mx) if mx else urls
+    for url in trim_urls:
         filename = fileName(url)
         filepath = os.path.join(folder, filename)
         if os.path.exists(filepath):
@@ -70,9 +71,8 @@ def downloadRecent(hpool, podinfo, basedir='.', mx=0):
         if req.status is 200:
             xml = dom.parseString(req.data)
             nodes = xml.getElementsByTagName('enclosure')
-            podcast_urls = [
-                u.getAttribute('url') for u in nodes if u.getAttribute('url')
-            ]
+            maybe_urls = map((lambda u: u.getAttribute('url')), nodes)
+            podcast_urls = filter((lambda u: u), maybe_urls)
             downloaded = fetchRecents(hpool, folder, podcast_urls, mx)
             status = Result.Ok
     except:
