@@ -77,7 +77,7 @@ class PodGet:
     def __init__(self):
         with open(setting_file, 'r') as f:
             self.settings = json.load(f)
-        self.hpool = urllib3.PoolManager()
+        self.hpool = urllib3.PoolManager(8)
 
     def download(self):
         basedir = self.settings['folder']
