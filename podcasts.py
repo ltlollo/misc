@@ -86,20 +86,23 @@ class PodGet:
             self.settings = json.load(f)
         self.hpool = urllib3.PoolManager(conn)
 
+    def showDownloaded(podcast, status, downloads):
+        print(podcast)
+        if status is Result.Err:
+            print('\tstatus: err')
+        else:
+            if downloads:
+                print('\tlist:', downloads)
+            else:
+                print('\tstatus: No updates')
+
     def download(self):
         basedir = self.settings['folder']
         createFolder(basedir)
         for podinfo in self.settings['podcasts'].items():
-            status, downloaded = downloadRecent(self.hpool, podinfo, basedir)
-            podcast, _ = podinfo
-            print(podcast)
-            if status is Result.Err:
-                print('\tstatus: err')
-            else:
-                if downloaded:
-                    print('\tlist:', downloaded)
-                else:
-                    print('\tstatus: No updates')
+            status, downloads = downloadRecent(self.hpool, podinfo, basedir)
+            PodGet.showDownloaded(podinfo[0], status, downloads)
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
