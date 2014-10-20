@@ -68,7 +68,7 @@ public:
             d.emplace_back(&data[i]);
         }
         const regex re(restr, regex::optimize);
-        function<col(const string*)> f = [re](const string* s) {
+        auto f = [re](const string* s) noexcept {
             cmatch sm;
             if (!regex_match(s->c_str(), sm, re)) {
                 return col(255, 255, 255);
