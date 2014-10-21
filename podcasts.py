@@ -50,7 +50,7 @@ def fetchFile(hpool, url, filepath):
 
 def fetchRecents(hpool, folder, urls, mx=0):
     res = []
-    trim_urls = trim(urls, 0, mx) if mx else urls
+    trim_urls = reversed(trim(urls, 0, mx)) if mx else urls
     for url in trim_urls:
         filename = fileName(url)
         filepath = os.path.join(folder, filename)
@@ -61,8 +61,8 @@ def fetchRecents(hpool, folder, urls, mx=0):
     return res
 
 
-def downloadRecent(hpool, podinfo, basedir='.', mx=0):
-    subfolder, podcast = podinfo
+def downloadRecent(hpool, pcinfo, basedir='.', mx=0):
+    subfolder, podcast = pcinfo
     folder = os.path.join(basedir, subfolder)
     createFolder(folder)
     status, downloaded = Result.Err, []
@@ -96,12 +96,12 @@ class PodGet:
             else:
                 print('\tstatus: No updates')
 
-    def download(self):
+    def download(self, mx=0):
         basedir = self.settings['folder']
         createFolder(basedir)
-        for podinfo in self.settings['podcasts'].items():
-            status, downloads = downloadRecent(self.hpool, podinfo, basedir)
-            PodGet.showDownloaded(podinfo[0], status, downloads)
+        for pcinfo in self.settings['podcasts'].items():
+            status, downloads = downloadRecent(self.hpool, pcinfo, basedir, mx)
+            PodGet.showDownloaded(pcinfo[0], status, downloads)
 
 
 if __name__ == "__main__":
