@@ -107,7 +107,7 @@ pub fn dif_slice<T: FloatMath + FromPrimitive>(sig: &mut [Complex<T>]) {
     let n: T = FromPrimitive::from_uint(len).unwrap();
     let r: T = FromPrimitive::from_int(-1).unwrap();
     let mut vec = sig.to_vec();
-    let (first, second) = vec.mut_split_at(len/2);
+    let (first, second) = vec.split_at_mut(len/2);
     for i in range(0, len/2 as uint) {
         let k: T = FromPrimitive::from_uint(i).unwrap();
         let th: T = -k*Float::two_pi()/n;
