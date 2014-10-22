@@ -35,8 +35,7 @@ pub fn dit(sig: &mut Vec<Complex<f64>>) {
     for i in range(0, len/2 as uint) {
         let th: f64 = -(i as f64)*Float::two_pi()/(len as f64);
         let r: f64 = 1f64;
-        let odd_i: Complex<f64>;
-        let even_i: Complex<f64>;
+        let (odd_i, even_i): (Complex<f64>, Complex<f64>);
         unsafe {
             odd_i = *odd.as_ptr().offset(i as int);
             even_i = *even.as_ptr().offset(i as int);
@@ -47,7 +46,6 @@ pub fn dit(sig: &mut Vec<Complex<f64>>) {
     }
 }
 
-#[allow(deprecated)]
 pub fn dif(sig: &mut Vec<Complex<f64>>) {
     let len = sig.len();
     if len <= 1 {
@@ -55,23 +53,36 @@ pub fn dif(sig: &mut Vec<Complex<f64>>) {
     }
     let ref mut first = Vec::from_elem(len/2, Complex::new(0.0f64, 0.0));
     let ref mut second = Vec::from_elem(len/2, Complex::new(0.0f64, 0.0));
-    for i in range(0, len/2 as uint) {
-        first[i] = *sig.get(i);
-        second[i] = *sig.get(i+len/2);
-    }
-    for i in range(0, len/2 as uint) {
-        let th: f64 = -(i as f64)*Float::two_pi()/(len as f64);
-        let r: f64 = -1f64;
-        first[i] = *first.get(i) + *sig.get(i+len/2);
-        second[i] = (*second.get(i) - *sig.get(i))*
-                             Complex::from_polar(&r, &th);
+    {
+        let sig_view: &Vec<Complex<f64>> = sig;
+        for i in range(0, len/2 as uint) {
+            first[i] = sig_view[i];
+            second[i] = sig_view[i+len/2];
+        }
+        for i in range(0, len/2 as uint) {
+            let th: f64 = -(i as f64)*Float::two_pi()/(len as f64);
+            let r: f64 = -1f64;
+            let (first_i, second_i) : (Complex<f64>, Complex<f64>);
+            unsafe {
+                first_i = *first.as_ptr().offset(i as int);
+                second_i = *second.as_ptr().offset(i as int);
+            }
+            first[i] = first_i + sig_view[i+len/2];
+            second[i] = (second_i - sig_view[i])* Complex::from_polar(&r, &th);
+        }
     }
     dif(first);
     dif(second);
     for i in range(0, len/2 as uint) {
-        sig[2*i] = *first.get(i);
-        sig[2*i+1] = *second.get(i);
-    }/* or
+        let (first_i, second_i) : (Complex<f64>, Complex<f64>);
+        unsafe {
+            first_i = *first.as_ptr().offset(i as int);
+            second_i = *second.as_ptr().offset(i as int);
+        }
+        sig[2*i] = first_i;
+        sig[2*i+1] = second_i;
+    }
+    /* or
     *sig.get_mut(0) = *first.get(0);
     *sig.get_mut(1) = *second.get(0);
     let mut i = 1u;
