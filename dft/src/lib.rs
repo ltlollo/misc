@@ -15,7 +15,6 @@ use core::num::Float;
 use test::Bencher;
 use std::ptr;
 
-//#[allow(deprecated)]
 pub fn dit(sig: &mut Vec<Complex<f64>>) {
     let len = sig.len();
     if len <= 1 {
@@ -82,7 +81,7 @@ pub fn dif(sig: &mut Vec<Complex<f64>>) {
         sig[2*i] = first_i;
         sig[2*i+1] = second_i;
     }
-    /* or
+    /* possible opt:
     *sig.get_mut(0) = *first.get(0);
     *sig.get_mut(1) = *second.get(0);
     let mut i = 1u;
