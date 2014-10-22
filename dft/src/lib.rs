@@ -13,8 +13,9 @@ use num::complex::Complex;
 use std::num::FromPrimitive;
 use core::num::Float;
 use test::Bencher;
+use std::ptr;
 
-#[allow(deprecated)]
+//#[allow(deprecated)]
 pub fn dit(sig: &mut Vec<Complex<f64>>) {
     let len = sig.len();
     if len <= 1 {
@@ -22,18 +23,27 @@ pub fn dit(sig: &mut Vec<Complex<f64>>) {
     }
     let ref mut even = Vec::from_elem(len/2, Complex::new(0.0f64, 0.0));
     let ref mut odd = Vec::from_elem(len/2, Complex::new(0.0f64, 0.0));
-    for i in range(0, len/2 as uint) {
-        *even.get_mut(i) = *sig.get(2*i);
-        *odd.get_mut(i) = *sig.get(2*i+1);
+    {
+        let sig_view: &Vec<Complex<f64>> = sig;
+        for i in range(0, len/2 as uint) {
+            even[i] = sig_view[2*i];
+            odd[i] = sig_view[2*i+1];
+        }
     }
     dit(even);
     dit(odd);
     for i in range(0, len/2 as uint) {
         let th: f64 = -(i as f64)*Float::two_pi()/(len as f64);
         let r: f64 = 1f64;
-        *odd.get_mut(i) = *odd.get(i) * Complex::from_polar(&r, &th);
-        *sig.get_mut(i) = *even.get(i) + *odd.get(i);
-        *sig.get_mut(i+len/2) = *even.get(i) - *odd.get(i);
+        let odd_i: Complex<f64>;
+        let even_i: Complex<f64>;
+        unsafe {
+            odd_i = *odd.as_ptr().offset(i as int);
+            even_i = *even.as_ptr().offset(i as int);
+        }
+        odd[i] = odd_i * Complex::from_polar(&r, &th);
+        sig[i] = even_i + odd_i;
+        sig[i+len/2] = even_i - odd_i;
     }
 }
 
@@ -46,21 +56,21 @@ pub fn dif(sig: &mut Vec<Complex<f64>>) {
     let ref mut first = Vec::from_elem(len/2, Complex::new(0.0f64, 0.0));
     let ref mut second = Vec::from_elem(len/2, Complex::new(0.0f64, 0.0));
     for i in range(0, len/2 as uint) {
-        *first.get_mut(i) = *sig.get(i);
-        *second.get_mut(i) = *sig.get(i+len/2);
+        first[i] = *sig.get(i);
+        second[i] = *sig.get(i+len/2);
     }
     for i in range(0, len/2 as uint) {
         let th: f64 = -(i as f64)*Float::two_pi()/(len as f64);
         let r: f64 = -1f64;
-        *first.get_mut(i) = *first.get(i) + *sig.get(i+len/2);
-        *second.get_mut(i) = (*second.get(i) - *sig.get(i))*
+        first[i] = *first.get(i) + *sig.get(i+len/2);
+        second[i] = (*second.get(i) - *sig.get(i))*
                              Complex::from_polar(&r, &th);
     }
     dif(first);
     dif(second);
     for i in range(0, len/2 as uint) {
-        *sig.get_mut(2*i) = *first.get(i);
-        *sig.get_mut(2*i+1) = *second.get(i);
+        sig[2*i] = *first.get(i);
+        sig[2*i+1] = *second.get(i);
     }/* or
     *sig.get_mut(0) = *first.get(0);
     *sig.get_mut(1) = *second.get(0);
