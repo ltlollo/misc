@@ -9,7 +9,7 @@ use num::complex::Complex;
 use std::num::FromPrimitive;
 use core::num::Float;
 
-pub fn dit(sig: &mut Vec<Complex<f64>>) {
+pub fn dit_vec(sig: &mut Vec<Complex<f64>>) {
     let len = sig.len();
     if len <= 1 {
         return;
@@ -23,8 +23,8 @@ pub fn dit(sig: &mut Vec<Complex<f64>>) {
             odd[i] = sig_view[2*i+1];
         }
     }
-    dit(even);
-    dit(odd);
+    dit_vec(even);
+    dit_vec(odd);
     for i in range(0, len/2 as uint) {
         let th: f64 = -(i as f64)*Float::two_pi()/(len as f64);
         let r: f64 = 1f64;
@@ -39,7 +39,7 @@ pub fn dit(sig: &mut Vec<Complex<f64>>) {
     }
 }
 
-pub fn dif(sig: &mut Vec<Complex<f64>>) {
+pub fn dif_vec(sig: &mut Vec<Complex<f64>>) {
     let len = sig.len();
     if len <= 1 {
         return;
@@ -64,8 +64,8 @@ pub fn dif(sig: &mut Vec<Complex<f64>>) {
             second[i] = (second_i - sig_view[i])* Complex::from_polar(&r, &th);
         }
     }
-    dif(first);
-    dif(second);
+    dif_vec(first);
+    dif_vec(second);
     for i in range(0, len/2 as uint) {
         let (first_i, second_i) : (Complex<f64>, Complex<f64>);
         unsafe {
@@ -86,7 +86,7 @@ pub fn dif(sig: &mut Vec<Complex<f64>>) {
     }*/
 }
 
-pub fn dit_slice<T: FloatMath + FromPrimitive>(sig: &mut [Complex<T>]) {
+pub fn dit<T: FloatMath + FromPrimitive>(sig: &mut [Complex<T>]) {
     let len = sig.len();
     if len <= 1 {
         return;
@@ -102,8 +102,8 @@ pub fn dit_slice<T: FloatMath + FromPrimitive>(sig: &mut [Complex<T>]) {
         even[i] = sig[2*i];
         odd[i] = sig[2*i+1];
     }
-    dit_slice(even);
-    dit_slice(odd);
+    dit(even);
+    dit(odd);
     for i in range(0, len/2 as uint) {
         let k: T = FromPrimitive::from_uint(i).unwrap();
         let th: T = -k*Float::two_pi()/n;
@@ -113,7 +113,7 @@ pub fn dit_slice<T: FloatMath + FromPrimitive>(sig: &mut [Complex<T>]) {
     }
 }
 
-pub fn dif_slice<T: FloatMath + FromPrimitive>(sig: &mut [Complex<T>]) {
+pub fn dif<T: FloatMath + FromPrimitive>(sig: &mut [Complex<T>]) {
     let len = sig.len();
     if len <= 1 {
         return;
@@ -128,10 +128,10 @@ pub fn dif_slice<T: FloatMath + FromPrimitive>(sig: &mut [Complex<T>]) {
         first[i] = first[i] + sig[i+len/2];
         second[i] = (second[i]-sig[i])*Complex::from_polar(&r, &th);
     }
-    dif_slice(first);
-    dif_slice(second);
+    dif(first);
+    dif(second);
     for i in range(0, len/2 as uint) {
         sig[2*i] = first[i];
         sig[2*i+1] = second[i];
-    } 
+    }
 }

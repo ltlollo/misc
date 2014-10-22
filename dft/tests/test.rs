@@ -14,18 +14,18 @@ fn calc_dfts() {
     let result = vec![four, zero, zero, zero, four, zero, zero, zero];
     let sig_orig = vec![one, zero, one, zero, one, zero, one, zero];
     let mut sig = sig_orig.clone();
-    dif_slice(sig.as_mut_slice());
-    assert!(sig == result, "testing dif_slice");
+    dif(sig.as_mut_slice());
+    assert!(sig == result, "testing dif");
 
     sig = sig_orig.clone();
-    dit_slice(sig.as_mut_slice());
-    assert!(sig == result, "testing dit_slice");
+    dit(sig.as_mut_slice());
+    assert!(sig == result, "testing dit");
 
     let ref mut sig = sig_orig.clone();
-    dit(sig);
-    assert!(*sig == result, "testing dif");
+    dit_vec(sig);
+    assert!(*sig == result, "testing dif_vec");
 
     let ref mut sig = sig_orig.clone();
-    dif(sig);
-    assert!(*sig == result, "testing dit");
+    dif_vec(sig);
+    assert!(*sig == result, "testing dit_vec");
 }
