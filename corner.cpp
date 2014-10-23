@@ -1,7 +1,7 @@
 #include <vector>
 #include <algorithm>
 #include <png++/png.hpp>
-#include <extra/func.h>
+#include "extra/func.h"
 
 constexpr unsigned w_size{2}, n_features{500}, d_win{1};
 constexpr double ets{1000};
