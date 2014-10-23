@@ -15,19 +15,21 @@ using namespace fun::cond;
 #define def(name, fun, ...) exp(constexpr auto name = lambda(fun, __VA_ARGS__))
 #define rdef(name, fun, ...) def(name, return fun, __VA_ARGS__)
 
-def(printnl, cout<<x<<'\n', auto&& x)
+def(print, cout<<x<<'\n', auto&& x)
 rdef(add, x + y, auto&& x, auto&& y)
 rdef(one, 1)
 rdef(other, add(1, one()))
 rdef(str, to_string(x), auto&& x)
+rdef(hallo, "hallo"s)
 
 set(Cond, False)
+
 exec(
-  printnl(
+  print(
     if Cond do (
       rlambda(1),
         else
-      rlambda(add("hallo"s, str(other())))
+      rlambda(add(hallo(), str(other())))
     )
   )
 )
