@@ -3,22 +3,28 @@
 using namespace std;
 using namespace fun;
 using namespace fun::cond;
-using Cond = cond::True;
+using Cond = cond::False;
 
-#define if If<
-#define then >{}(
-#define else , Else{},
-#define fi )
-
-auto print = [](auto x, auto y) {
-    std::cout << x << ' ' << y << '\n';
+constexpr auto add = [](auto&& x, auto&& y) {
+    return x + y;
 };
 
-int main(int argc, char *argv[]) {
-    if Cond then
-        print, "Hallo", "True"
-    else
-        print, "Hallo", "False"
-    fi;
-    return 0;
-}
+auto printnl = [](auto&& x) {
+    cout << x << '\n';
+};
+
+#define if If<
+#define do >
+#define else Else(),
+#define exec(...) int main(int argc, char *argv[]) { __VA_ARGS__ ; return 0;}
+
+exec(
+  printnl(
+    if Cond do() (
+      add, 2, 3,
+        else
+      add, 2, 2
+    )
+  )
+)
+
