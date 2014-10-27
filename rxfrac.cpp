@@ -4,7 +4,6 @@
 #include <thread>
 #include <regex>
 #include "work/workers.h"
-#include "extra/func.h"
 #include <png++/png.hpp>
 
 using namespace std;

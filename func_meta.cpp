@@ -22,7 +22,7 @@ rdef(other, add(1, one()))
 rdef(str, to_string(x), auto&& x)
 rdef(hallo, "hallo"s)
 
-set(Cond, False)
+set(Cond, True)
 
 exec(
   print(
