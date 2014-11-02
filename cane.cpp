@@ -22,7 +22,6 @@ struct Name{};
 struct Adj{};
 struct Conj{};
 
-#define c(pos, f) case pos: f; break
 #define pc(pos, name) case pos: cout << name << ' '; break
 #define rand std::uniform_int_distribution<>
 #define base(case) \
@@ -115,28 +114,6 @@ template<ui N> struct Word<N, Male<Adj>> {
     }
 };
 
-template<ui N> struct Word<N, Female<Conj>> {
-    void operator()() {
-        cout << "della ";
-        Word<N-1, Female<Name>>()();
-    }
-};
-
-
-template<ui N> struct Word<N, Animal<Conj>> {
-    void operator()() {
-        cout << "del ";
-        Word<N-1, Animal<Name>>()();
-    }
-};
-
-template<ui N> struct Word<N, Male<Conj>> {
-    void operator()() {
-        cout << "di ";
-        Word<N-1, Male<Name>>()();
-    }
-};
-
 template<ui N> struct Word<N, Female<Adj>> {
     void operator()() {
         rand cdist(0, 10);
@@ -160,6 +137,28 @@ template<ui N> struct Word<N, Female<Adj>> {
             case 2: Word<N-1, Male<Conj>>()(); break;
             case 3: Word<N-1, Animal<Conj>>()(); break;
         }
+    }
+};
+
+template<ui N> struct Word<N, Female<Conj>> {
+    void operator()() {
+        cout << "della ";
+        Word<N-1, Female<Name>>()();
+    }
+};
+
+
+template<ui N> struct Word<N, Animal<Conj>> {
+    void operator()() {
+        cout << "del ";
+        Word<N-1, Animal<Name>>()();
+    }
+};
+
+template<ui N> struct Word<N, Male<Conj>> {
+    void operator()() {
+        cout << "di ";
+        Word<N-1, Male<Name>>()();
     }
 };
 
