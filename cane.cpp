@@ -153,9 +153,9 @@ template<ui N> struct Word<N, Female<Adj>> {
             pc(9, "vipera");
             pc(10, "velenosa");
         }
-        rand ndist(0, 3);
+        rand ndist(0, 4);
         switch(ndist(gen)) {
-            case 0: Word<N-1, Female<Adj>>()(); break;
+            default: Word<N-1, Female<Adj>>()(); break;
             case 1: Word<N-1, Female<Conj>>()(); break;
             case 2: Word<N-1, Male<Conj>>()(); break;
             case 3: Word<N-1, Animal<Conj>>()(); break;
