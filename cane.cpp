@@ -6,6 +6,8 @@
 #include <thread>
 #include <algorithm>
 #include <random>
+#define d(...) default: Word<__VA_ARGS__>{}(); break
+#define c(pos,...) case pos: Word<__VA_ARGS__>{}(); break
 #define pc(pos, name) case pos: printf("%s ", name); break
 #define rand std::uniform_int_distribution<>
 #define base(case) \
@@ -38,12 +40,12 @@ struct Conj{};
 
 template<ui N, typename T> struct Word {};
 
-template<ui N> struct Word<N, Root>{
+template<ui N> struct Word<N, Root> {
     void operator()() {
         rand dist(0,1);
         switch(dist(gen)) {
-            case 0: Word<N, Male<Name>>()(); break;
-            case 1: Word<N, Female<Name>>()(); break;
+            c(0, N, Male<Name>);
+            c(1, N, Female<Name>);
         }
     }
 };
@@ -57,11 +59,11 @@ template<ui N> struct Word<N, Male<Name>> {
         }
         rand ndist(0, 5);
         switch(ndist(gen)) {
-            default: Word<N-1, Male<Adj>>()(); break;
-            case 1: Word<N-1, Male<Conj>>()(); break;
-            case 2: Word<N-1, Female<Conj>>()(); break;
-            case 3: Word<N-1, Animal<Conj>>()(); break;
-            case 4: Word<N-1, Animal<Name>>()(); break;
+            d(N-1, Male<Adj>);
+            c(1, N-1, Male<Conj>);
+            c(2, N-1, Female<Conj>);
+            c(3, N-1, Animal<Conj>);
+            c(4, N-1, Animal<Name>);
         }
     }
 };
@@ -76,10 +78,10 @@ template<ui N> struct Word<N, Animal<Name>> {
         }
         rand ndist(0, 4);
         switch(ndist(gen)) {
-            default: Word<N-1, Male<Adj>>()(); break;
-            case 1: Word<N-1, Male<Conj>>()(); break;
-            case 2: Word<N-1, Female<Conj>>()(); break;
-            case 3: Word<N-1, Animal<Conj>>()(); break;
+            d(N-1, Male<Adj>);
+            c(1, N-1, Male<Conj>);
+            c(2, N-1, Female<Conj>);
+            c(3, N-1, Animal<Conj>);
         }
     }
 };
@@ -93,10 +95,10 @@ template<ui N> struct Word<N, Female<Name>> {
         }
         rand ndist(0, 4);
         switch(ndist(gen)) {
-            default: Word<N-1, Female<Adj>>()(); break;
-            case 1: Word<N-1, Male<Conj>>()(); break;
-            case 2: Word<N-1, Animal<Conj>>()(); break;
-            case 3: Word<N-1, Female<Conj>>()(); break;
+            d(N-1, Female<Adj>);
+            c(1, N-1, Male<Conj>);
+            c(2, N-1, Animal<Conj>);
+            c(3, N-1, Female<Conj>);
         }
     }
 };
@@ -113,9 +115,9 @@ template<ui N> struct Word<N, Male<Adj>> {
         }
         rand ndist(0, 3);
         switch(ndist(gen)) {
-            default: Word<N-1, Male<Adj>>()(); break;
-            case 1: Word<N-1, Male<Conj>>()(); break;
-            case 2: Word<N-1, Female<Conj>>()(); break;
+            d(N-1, Male<Adj>);
+            c(1, N-1, Male<Conj>);
+            c(2, N-1, Female<Conj>);
         }
     }
 };
@@ -138,10 +140,10 @@ template<ui N> struct Word<N, Female<Adj>> {
         }
         rand ndist(0, 4);
         switch(ndist(gen)) {
-            default: Word<N-1, Female<Adj>>()(); break;
-            case 1: Word<N-1, Female<Conj>>()(); break;
-            case 2: Word<N-1, Male<Conj>>()(); break;
-            case 3: Word<N-1, Animal<Conj>>()(); break;
+            d(N-1, Female<Adj>);
+            c(1, N-1, Female<Conj>);
+            c(2, N-1, Male<Conj>);
+            c(3, N-1, Animal<Conj>);
         }
     }
 };
