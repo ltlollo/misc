@@ -6,13 +6,26 @@
 #include <thread>
 #include <algorithm>
 #include <random>
+#define pc(pos, name) case pos: printf("%s ", name); break
+#define rand std::uniform_int_distribution<>
+#define base(case) \
+template<>\
+struct Word<0, case> {\
+    void operator()(){ printf("\n"); }\
+}
+#define cont(case) \
+template<>\
+struct Word<1, case> {\
+    void operator()() {\
+        Word<2, case>()();\
+    }\
+}
 
 using namespace std;
 using ui = size_t;
 
 std::random_device rd;
 std::mt19937 gen(rd());
-
 
 struct Root{};
 template<typename T> struct Male{};
@@ -22,25 +35,6 @@ struct Name{};
 struct Adj{};
 struct Conj{};
 
-template<ui N> struct Just { static constexpr value = N; };
-struct Nil{};
-template<ui N> Maybe { using type = Just<N>; };
-template<> Maybe<0> { using type = Nil{}; };
-
-#define pc(pos, name) case pos: cout << name << ' '; break
-#define rand std::uniform_int_distribution<>
-#define base(case) \
-template<>\
-struct Word<0, case> {\
-    void operator()() { cout << endl; }\
-}
-#define cont(case) \
-template<>\
-struct Word<1, case> {\
-    void operator()() {\
-        Word<2, case>()();\
-    }\
-}
 
 template<ui N, typename T> struct Word {};
 
@@ -154,7 +148,7 @@ template<ui N> struct Word<N, Female<Adj>> {
 
 template<ui N> struct Word<N, Female<Conj>> {
     void operator()() {
-        cout << "della ";
+        printf("della ");
         Word<N-1, Female<Name>>()();
     }
 };
@@ -162,14 +156,14 @@ template<ui N> struct Word<N, Female<Conj>> {
 
 template<ui N> struct Word<N, Animal<Conj>> {
     void operator()() {
-        cout << "del ";
+        printf("del ");
         Word<N-1, Animal<Name>>()();
     }
 };
 
 template<ui N> struct Word<N, Male<Conj>> {
     void operator()() {
-        cout << "di ";
+        printf("di ");
         Word<N-1, Male<Name>>()();
     }
 };
@@ -190,7 +184,7 @@ base(Animal<Conj>);
 base(Male<Conj>);
 
 int main(int argc, char *argv[]) {
-    Word<10, Root>()();
+    Word<100, Root>()();
     return 0;
 }
 
