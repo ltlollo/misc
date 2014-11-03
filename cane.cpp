@@ -184,7 +184,7 @@ base(Animal<Conj>);
 base(Male<Conj>);
 
 int main(int argc, char *argv[]) {
-    Word<100, Root>()();
+    Word<10, Root>()();
     return 0;
 }
 
