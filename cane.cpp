@@ -29,6 +29,13 @@ template<>\
 struct Word<0, case> {\
     void operator()() { cout << endl; }\
 }
+#define cont(case) \
+template<>\
+struct Word<1, case> {\
+    void operator()() {\
+        Word<2, case>()();\
+    }\
+}
 
 template<ui N, typename T> struct Word {};
 
@@ -162,38 +169,23 @@ template<ui N> struct Word<N, Male<Conj>> {
     }
 };
 
-template<>
-struct Word<1, Female<Conj>> {
-    void operator()() {
-        Word<2, Female<Conj>>()();
-    }
-};
-
-template<>
-struct Word<1, Male<Conj>> {
-    void operator()() {
-        Word<2, Male<Conj>>()();
-    }
-};
-
-template<>
-struct Word<1, Animal<Conj>> {
-    void operator()() {
-        Word<2, Animal<Conj>>()();
-    }
-};
+cont(Female<Conj>);
+cont(Male<Conj>);
+cont(Animal<Conj>);
+cont(Animal<Name>);
 
 base(Male<Adj>);
 base(Male<Name>);
 base(Female<Name>);
 base(Female<Adj>);
 base(Animal<Name>);
+
 base(Female<Conj>);
 base(Animal<Conj>);
 base(Male<Conj>);
 
 int main(int argc, char *argv[]) {
-    Word<20, Root>()();
+    Word<10, Root>()();
     return 0;
 }
 
