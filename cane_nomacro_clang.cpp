@@ -31,6 +31,7 @@ template<typename T> struct FlipType{};
 template<typename T> struct FlipType<Proper<T>> { using type = Common<T>; };
 template<typename T> struct FlipType<Common<T>> { using type = Proper<T>; };
 template<typename T> using flip_type_of = typename FlipType<T>::type;
+template<typename T> using flip_any_of = flip_type_of<flip_sex_of<T>>;
 
 char pmnames[][6]{
     "Gesù"
@@ -120,13 +121,14 @@ template<typename T, ui N, ui... Ns> struct Word<Name<T>, N, Ns...> {
     void operator()() {
         std::uniform_int_distribution<> cdist(0, Data<Name<T>>::size-1);
         printf("%s ", Data<Name<T>>::words[cdist(gen)]);
-        std::uniform_int_distribution<> ndist(0, 6);
+        std::uniform_int_distribution<> ndist(0, 7);
         switch(ndist(gen)) {
             default: Word<Adj<sex_of<T>>, Ns...>()(); break;
             case 1: Word<Conj<T>, Ns...>()(); break;
             case 2: Word<Conj<flip_sex_of<T>>, Ns...>()(); break;
             case 3: Word<Conj<flip_type_of<T>>, Ns...>()(); break;
-            case 4: Word<Name<Common<sex_of<T>>>, Ns...>()(); break;
+            case 4: Word<Conj<flip_any_of<T>>, Ns...>()(); break;
+            case 5: Word<Name<Common<sex_of<T>>>, Ns...>()(); break;
         }
     }
 };
