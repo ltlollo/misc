@@ -22,6 +22,11 @@ struct Name{};
 struct Adj{};
 struct Conj{};
 
+template<ui N> struct Just { static constexpr value = N; };
+struct Nil{};
+template<ui N> Maybe { using type = Just<N>; };
+template<> Maybe<0> { using type = Nil{}; };
+
 #define pc(pos, name) case pos: cout << name << ' '; break
 #define rand std::uniform_int_distribution<>
 #define base(case) \
