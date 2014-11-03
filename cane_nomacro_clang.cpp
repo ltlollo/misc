@@ -121,7 +121,7 @@ template<typename T, ui N, ui... Ns> struct Word<Name<T>, N, Ns...> {
     void operator()() {
         std::uniform_int_distribution<> cdist(0, Data<Name<T>>::size-1);
         printf("%s ", Data<Name<T>>::words[cdist(gen)]);
-        std::uniform_int_distribution<> ndist(0, 5);
+        std::uniform_int_distribution<> ndist(0, 6);
         switch(ndist(gen)) {
             default: Word<Adj<sex<T>>, Ns...>()(); break;
             case 1: Word<Conj<T>, Ns...>()(); break;

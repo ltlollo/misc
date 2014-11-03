@@ -1,11 +1,5 @@
-#include <vector>
-#include <stdexcept>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <thread>
-#include <algorithm>
 #include <random>
+
 #define d(...) default: Word<__VA_ARGS__>{}(); break
 #define c(pos,...) case pos: Word<__VA_ARGS__>{}(); break
 #define pc(pos, name) case pos: printf("%s ", name); break
