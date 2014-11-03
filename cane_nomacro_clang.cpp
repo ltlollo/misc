@@ -10,10 +10,14 @@ template<unsigned N, unsigned M> constexpr unsigned size(const char (&arr)[N][M]
         return N;
 }
 
-struct Root{}; struct Name{}; struct Adj{}; struct Conj{};
-template<typename T> struct Male{};
-template<typename T> struct Female{};
-template<typename T> struct Animal{};
+struct Root{};
+template<typename T> struct Name{};
+template<typename T> struct Adj{};
+template<typename T> struct Conj{};
+template<typename T> struct Proper{};
+template<typename T> struct Common{};
+struct Male{};
+struct Female{};
 
 char mnames[][6]{
     "Gesù"
@@ -56,100 +60,100 @@ template<ui... Ns> struct Word<Root, Ns...>{
     void operator()() {
         std::uniform_int_distribution<> dist(0,1);
         switch(dist(gen)) {
-            case 0: Word<Male<Name>, Ns...>()(); break;
-            case 1: Word<Female<Name>, Ns...>()(); break;
+            case 0: Word<Name<Proper<Male>>, Ns...>()(); break;
+            case 1: Word<Name<Proper<Female>>, Ns...>()(); break;
         }
     }
 };
 
-template<ui N, ui... Ns> struct Word<Male<Name>, N, Ns...> {
+template<ui N, ui... Ns> struct Word<Name<Proper<Male>>, N, Ns...> {
     void operator()() {
         std::uniform_int_distribution<> cdist(0, size(mnames)-1);
         printf("%s ", mnames[cdist(gen)]);
         std::uniform_int_distribution<> ndist(0, 5);
         switch(ndist(gen)) {
-            default: Word<Male<Adj>, Ns...>()(); break;
-            case 1: Word<Male<Conj>, Ns...>()(); break;
-            case 2: Word<Female<Conj>, Ns...>()(); break;
-            case 3: Word<Animal<Conj>, Ns...>()(); break;
-            case 4: Word<Animal<Name>, Ns...>()(); break;
+            default: Word<Adj<Male>, Ns...>()(); break;
+            case 1: Word<Conj<Male>, Ns...>()(); break;
+            case 2: Word<Conj<Female>, Ns...>()(); break;
+            case 3: Word<Conj<Common<Male>>, Ns...>()(); break;
+            case 4: Word<Name<Common<Male>>, Ns...>()(); break;
         }
     }
 };
 
-template<ui N, ui... Ns> struct Word<Animal<Name>, N, Ns...> {
+template<ui N, ui... Ns> struct Word<Name<Common<Male>>, N, Ns...> {
     void operator()() {
         std::uniform_int_distribution<> cdist(0, size(anames)-1);
         printf("%s ", anames[cdist(gen)]);
         std::uniform_int_distribution<> ndist(0, 4);
         switch(ndist(gen)) {
-            default: Word<Male<Adj>, Ns...>()(); break;
-            case 1: Word<Male<Conj>, Ns...>()(); break;
-            case 2: Word<Female<Conj>, Ns...>()(); break;
-            case 3: Word<Animal<Conj>, Ns...>()(); break;
+            default: Word<Adj<Male>, Ns...>()(); break;
+            case 1: Word<Conj<Male>, Ns...>()(); break;
+            case 2: Word<Conj<Female>, Ns...>()(); break;
+            case 3: Word<Conj<Common<Male>>, Ns...>()(); break;
         }
     }
 };
 
-template<ui N, ui... Ns> struct Word<Female<Name>, N, Ns...> {
+template<ui N, ui... Ns> struct Word<Name<Proper<Female>>, N, Ns...> {
     void operator()() {
         std::uniform_int_distribution<> cdist(0, size(fnames)-1);
         printf("%s ", fnames[cdist(gen)]);
         std::uniform_int_distribution<> ndist(0, 4);
         switch(ndist(gen)) {
-            default: Word<Female<Adj>, Ns...>()(); break;
-            case 1: Word<Male<Conj>, Ns...>()(); break;
-            case 2: Word<Animal<Conj>, Ns...>()(); break;
-            case 3: Word<Female<Conj>, Ns...>()(); break;
+            default: Word<Adj<Female>, Ns...>()(); break;
+            case 1: Word<Conj<Male>, Ns...>()(); break;
+            case 2: Word<Conj<Common<Male>>, Ns...>()(); break;
+            case 3: Word<Conj<Female>, Ns...>()(); break;
         }
     }
 };
 
-template<ui N, ui... Ns> struct Word<Male<Adj>, N, Ns...> {
+template<ui N, ui... Ns> struct Word<Adj<Male>, N, Ns...> {
     void operator()() {
         std::uniform_int_distribution<> cdist(0, size(madj)-1);
         printf("%s ", madj[cdist(gen)]);
         std::uniform_int_distribution<> ndist(0, 3);
         switch(ndist(gen)) {
-            default: Word<Male<Adj>, Ns...>()(); break;
-            case 1: Word<Male<Conj>, Ns...>()(); break;
-            case 2: Word<Female<Conj>, Ns...>()(); break;
+            default: Word<Adj<Male>, Ns...>()(); break;
+            case 1: Word<Conj<Male>, Ns...>()(); break;
+            case 2: Word<Conj<Female>, Ns...>()(); break;
         }
     }
 };
 
-template<ui N, ui... Ns> struct Word<Female<Adj>, N, Ns...> {
+template<ui N, ui... Ns> struct Word<Adj<Female>, N, Ns...> {
     void operator()() {
         std::uniform_int_distribution<> cdist(0, size(fadjs)-1);
         printf("%s ", fadjs[cdist(gen)]);
         std::uniform_int_distribution<> ndist(0, 4);
         switch(ndist(gen)) {
-            default: Word<Female<Adj>, Ns...>()(); break;
-            case 1: Word<Female<Conj>, Ns...>()(); break;
-            case 2: Word<Male<Conj>, Ns...>()(); break;
-            case 3: Word<Animal<Conj>, Ns...>()(); break;
+            default: Word<Adj<Female>, Ns...>()(); break;
+            case 1: Word<Conj<Female>, Ns...>()(); break;
+            case 2: Word<Conj<Male>, Ns...>()(); break;
+            case 3: Word<Conj<Common<Male>>, Ns...>()(); break;
         }
     }
 };
 
-template<ui N, ui... Ns> struct Word<Female<Conj>, N, Ns...> {
-    void operator()() { printf("della "); Word<Female<Name>, Ns...>()(); }
+template<ui N, ui... Ns> struct Word<Conj<Female>, N, Ns...> {
+    void operator()() { printf("della "); Word<Name<Proper<Female>>, Ns...>()(); }
 };
 
 
-template<ui N, ui... Ns> struct Word<Animal<Conj>, N, Ns...> {
-    void operator()() { printf("del "); Word<Animal<Name>, Ns...>()(); }
+template<ui N, ui... Ns> struct Word<Conj<Common<Male>>, N, Ns...> {
+    void operator()() { printf("del "); Word<Name<Common<Male>>, Ns...>()(); }
 };
 
-template<ui N, ui... Ns> struct Word<Male<Conj>, N, Ns...> {
-    void operator()() { printf("di "); Word<Male<Name>, Ns...>()(); }
+template<ui N, ui... Ns> struct Word<Conj<Male>, N, Ns...> {
+    void operator()() { printf("di "); Word<Name<Proper<Male>>, Ns...>()(); }
 };
 
 template<typename N> struct Word<N> { void operator()() { printf("\n"); } };
-template<ui N>struct Word<Female<Conj>, N> { void operator()() { Word<Female<Conj>, N, N>()(); }};
-template<ui N>struct Word<Male<Conj>,   N> { void operator()() { Word<Male<Conj>,   N, N>()(); }};
-template<ui N>struct Word<Animal<Conj>, N> { void operator()() { Word<Animal<Conj>, N, N>()(); }};
-template<ui N>struct Word<Animal<Name>, N> { void operator()() { Word<Animal<Name>, N, N>()(); }};
+template<ui N>struct Word<Conj<Female>, N> { void operator()() { Word<Conj<Female>, N, N>()(); }};
+template<ui N>struct Word<Conj<Male>,   N> { void operator()() { Word<Conj<Male>,   N, N>()(); }};
+template<ui N>struct Word<Conj<Common<Male>>, N> { void operator()() { Word<Conj<Common<Male>>, N, N>()(); }};
+template<ui N>struct Word<Name<Common<Male>>, N> { void operator()() { Word<Name<Common<Male>>, N, N>()(); }};
 
 template<ui... Ns> struct Num {};
 template<ui N, typename T> struct GenGraph {
