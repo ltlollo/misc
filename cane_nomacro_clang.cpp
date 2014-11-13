@@ -34,7 +34,7 @@ template<typename T> using flip_type_of = typename FlipType<T>::type;
 template<typename T> using flip_any_of = flip_type_of<flip_sex_of<T>>;
 
 char pmnames[][6]{
-    "Gesù"
+    "Gesu"
     , "Dio"
 };
 char cmnames[][10]{
@@ -78,6 +78,8 @@ char cfnames[][11]{
     , "vipera"
     , "velenosa"
 };
+
+
 
 template<typename T> struct Data{};
 template<> struct Data<Name<Proper<Male>>>   {

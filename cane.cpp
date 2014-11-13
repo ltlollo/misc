@@ -48,7 +48,7 @@ template<ui N> struct Word<N, Male<Name>> {
     void operator()() {
         rand cdist(0, 1);
         switch(cdist(gen)) {
-            pc(0, "Gesù");
+            pc(0, "Gesu");
             pc(1, "Dio");
         }
         rand ndist(0, 5);
