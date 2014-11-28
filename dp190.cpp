@@ -28,7 +28,7 @@ RangeVec len_map(const DataVec& vd) {
     if (!vd.size()) return vector<Range>{};
 
     usize len = vd[0].str.size();
-    auto res = vector<Range>(len+1, Range{0,0});
+    auto res = vector<Range>(len+1, Range{vd.size(), vd.size()});
     usize pos = 0;
 
     for (usize i = 0; i < vd.size(); ++i) {
