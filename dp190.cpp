@@ -72,7 +72,7 @@ auto op(DataVec& vd, RangeVec& lmap) {
 auto fss(const string& s, DataVec& vd, const RangeVec& lmap) {
     auto res = vector<usize>{};
     if (s.size() < 2 || vd.empty()) return res;
-    auto pos = s.size() >= vd[0].str.size() ? 0 : lmap[s.size()].fst;
+    auto pos = s.size() > vd[0].str.size() ? 0 : lmap[s.size()-1].fst;
     if (sizeof(opt) || delta) {
         for (usize i = pos; i < vd.size(); ++i) {
             vd[i].checked = false;
@@ -89,6 +89,13 @@ auto fss(const string& s, DataVec& vd, const RangeVec& lmap) {
                     }
                 }
             }
+        }
+    }
+    if (s.size() <= vd[0].str.size()) {
+        auto end = begin(vd) + lmap[s.size()].end;
+        if (auto it = find_if(begin(vd) + lmap[s.size()].fst, end,
+                              [&](const auto& v) { return v.str == s ; }) != end) {
+            res.push_back(it);
         }
     }
     return res;
