@@ -41,7 +41,6 @@ RangeVec len_map(const DataVec& vd) {
     return res;
 }
 
-
 auto ccont(Data& p, const DataVec& vd, RangeVec& lmap, usize rpos) {
     for (usize j = rpos; j > 1; --j) {
         for (usize i = lmap[j].fst; i < lmap[j].end; ++i) {
@@ -73,7 +72,7 @@ auto op(DataVec& vd, RangeVec& lmap) {
 auto fss(const string& s, DataVec& vd, const RangeVec& lmap) {
     auto res = vector<usize>{};
     if (s.size() < 2 || vd.empty()) return res;
-    auto pos = s.size() > vd[0].str.size() ? 0 : lmap[s.size()-1].fst;
+    auto pos = s.size() >= vd[0].str.size() ? 0 : lmap[s.size()].fst;
     if (sizeof(opt) || delta) {
         for (usize i = pos; i < vd.size(); ++i) {
             vd[i].checked = false;
