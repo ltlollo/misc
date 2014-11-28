@@ -64,7 +64,7 @@ auto op(DataVec& vd, RangeVec& lmap) {
             for (auto i = lmap[j].fst; i < lmap[j].end; ++i) {
                 ccont(vd[i], vd, lmap, j-1);
             }
-        cout << j << endl;
+        cout << 100 - j*100/l << "%" << endl;
     }
     cout << "ready\n";
 }
@@ -96,7 +96,7 @@ auto fss(const string& s, DataVec& vd, const RangeVec& lmap) {
 
 int main(int argc, char *argv[]) {
     auto help = [&](){
-        cout << "USAGE: " << argv[0] << " file\n"
+        cout << "USAGE: " << argv[0] << " wordlist\n"
             "SCOPE: https://www.reddit.com/r/dailyprogrammer/comments"
             "/2nihz6/20141126_challenge_190_intermediate_words_inside/\n";
     };
@@ -124,8 +124,9 @@ int main(int argc, char *argv[]) {
         cout << "% ";
         cin >> uin;
         transform(begin(uin), end(uin), begin(uin), ::tolower);
-        cout << "looking for: " << uin << endl << "result: ";
+        cout << "looking for: " << uin << endl << "results (";
         auto res = fss(uin, vd, lmap);
+        cout << res.size() << "): ";
         for (const auto& it : res) {
             cout << vd[it].str << " ";
         }
