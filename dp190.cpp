@@ -11,7 +11,7 @@ using usize = size_t;
 
 struct Data {
     string str;
-    bool found;
+    bool checked;
     vector<usize> ss;
 };
 
@@ -76,16 +76,16 @@ auto fss(const string& s, DataVec& vd, const RangeVec& lmap) {
     auto pos = s.size() > vd[0].str.size() ? 0 : lmap[s.size()-1].fst;
     if (sizeof(opt) || delta) {
         for (usize i = pos; i < vd.size(); ++i) {
-            vd[i].found = false;
+            vd[i].checked = false;
         }
     }
     for (auto i = pos; i < vd.size(); ++i) {
-        if (!vd[i].found) {
+        if (!vd[i].checked) {
             if (s.find(vd[i].str) != string::npos) {
                 res.push_back(i);
                 for (auto& it: vd[i].ss) {
-                    if (!vd[it].found) {
-                        vd[it].found = true;
+                    if (!vd[it].checked) {
+                        vd[it].checked = true;
                         res.push_back(it);
                     }
                 }
@@ -124,6 +124,7 @@ int main(int argc, char *argv[]) {
     for(;;) {
         cout << "% ";
         cin >> uin;
+        transform(begin(uin), end(uin), begin(uin), ::tolower);
         cout << "looking for: " << uin << endl << "result: ";
         auto res = fss(uin, vd, lmap);
         for (const auto& it : res) {
