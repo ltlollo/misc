@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <array>
 
 using namespace std;
 
@@ -51,7 +52,7 @@ auto ccont(Data& p, const DataVec& vd, RangeVec& lmap, usize rpos) {
     }
 }
 
-constexpr usize opt[] = {6};
+constexpr array<usize, 1> opt = {6};
 constexpr usize delta = 500;
 
 auto op(DataVec& vd, RangeVec& lmap) {
@@ -73,8 +74,10 @@ auto fss(const string& s, DataVec& vd, const RangeVec& lmap) {
     auto res = vector<usize>{};
     if (s.size() < 2 || vd.empty()) return res;
     auto pos = s.size() > vd[0].str.size() ? 0 : lmap[s.size()-1].fst;
-    for (usize i = pos; i < vd.size(); ++i) {
-        vd[i].found = false;
+    if (sizeof(opt) || delta) {
+        for (usize i = pos; i < vd.size(); ++i) {
+            vd[i].found = false;
+        }
     }
     for (auto i = pos; i < vd.size(); ++i) {
         if (!vd[i].found) {
