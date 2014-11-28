@@ -95,7 +95,6 @@ auto fss(const string& s, DataVec& vd, const RangeVec& lmap) {
     return res;
 }
 
-
 int main(int argc, char *argv[]) {
     auto help = [&](){
         cout << "USAGE: " << argv[0] << " file\n"
@@ -123,8 +122,9 @@ int main(int argc, char *argv[]) {
     op(vd, lmap);
     string uin;
     for(;;) {
-        getline(cin, uin);
-        cout << "lf: " << uin << endl;
+        cout << "% ";
+        cin >> uin;
+        cout << "looking for: " << uin << endl << "result: ";
         auto res = fss(uin, vd, lmap);
         for (const auto& it : res) {
             cout << vd[it].str << " ";
