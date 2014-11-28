@@ -69,18 +69,6 @@ auto op(DataVec& vd, RangeVec& lmap) {
     cout << "ready\n";
 }
 
-auto get_graph(usize node, DataVec& vd) {
-    auto res = vector<usize>{vd[node].ss};
-    if (res.empty()) return res;
-
-    for (const auto& it : vd[node].ss) {
-        vd[it].found = true;
-        auto nodes = get_graph(it, vd);
-        res.insert(end(res), begin(nodes), end(nodes));
-    }
-    return res;
-}
-
 auto fss(const string& s, DataVec& vd, const RangeVec& lmap) {
     auto res = vector<usize>{};
     if (s.size() < 2 || vd.empty()) return res;
