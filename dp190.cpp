@@ -8,21 +8,22 @@
 using namespace std;
 
 using usize = size_t;
-
 struct Data {
     string str;
     bool checked;
     vector<usize> ss;
 };
-
-template<typename T>
-struct range {
+template<typename T> struct range {
     T fst, end;
 };
-
 using DataVec = vector<Data>;
 using Range = range<usize>;
 using RangeVec = vector<Range>;
+constexpr array<usize, 1> opt = {6};
+constexpr usize delta = 500;
+constexpr usize max_words(usize ss, usize mws) {
+    return ss < mws ? 0 : 1 + max_words(ss-mws, mws);
+}
 
 RangeVec len_map(const DataVec& vd) {
     if (!vd.size()) return vector<Range>{};
@@ -51,12 +52,8 @@ auto ccont(Data& p, const DataVec& vd, RangeVec& lmap, usize rpos) {
     }
 }
 
-constexpr array<usize, 1> opt = {6};
-constexpr usize delta = 500;
-
 auto op(DataVec& vd, RangeVec& lmap) {
     if (lmap.size() < 2) return;
-    // ineff : A in B, B in C => A in C
     auto l = lmap.size()-1;
     for (size_t j = l; j > 1; --j) {
         if (find(begin(opt), end(opt), j)!= end(opt) ||
@@ -69,12 +66,19 @@ auto op(DataVec& vd, RangeVec& lmap) {
     cout << "ready\n";
 }
 
+auto rnear(usize ss, const RangeVec& lmap, usize len) {
+    for (usize i = ss-1; i > 1; --i) {
+        if (lmap[i].fst != len) return lmap[i].fst;
+    }
+    return len;
+}
+
 auto fss(const string& s, DataVec& vd, const RangeVec& lmap) {
     auto res = vector<usize>{};
     if (s.size() < 2 || vd.empty()) return res;
-    auto pos = s.size() > vd[0].str.size() ? 0 : lmap[s.size()-1].fst;
+    auto pos = s.size() > vd[0].str.size() ? 0 : rnear(s.size(), lmap, vd.size());
     if (sizeof(opt) || delta) {
-        for (usize i = pos; i < vd.size(); ++i) {
+        for (usize i = pos; i < vd.size() && res.size() != max_words(s.size(), 2); ++i) {
             vd[i].checked = false;
         }
     }
@@ -92,10 +96,11 @@ auto fss(const string& s, DataVec& vd, const RangeVec& lmap) {
         }
     }
     if (s.size() <= vd[0].str.size()) {
-        auto end = begin(vd) + lmap[s.size()].end;
-        if (auto it = find_if(begin(vd) + lmap[s.size()].fst, end,
-                              [&](const auto& v) { return v.str == s ; }) != end) {
-            res.push_back(it);
+        for (auto i = lmap[s.size()].fst; i < lmap[s.size()].end; ++i) {
+            if (s == vd[i].str) {
+                res.push_back(i);
+                break;
+            }
         }
     }
     return res;
@@ -134,7 +139,7 @@ int main(int argc, char *argv[]) {
         cout << "looking for: " << uin << endl << "results (";
         auto res = fss(uin, vd, lmap);
         cout << res.size() << "): ";
-        for (const auto& it : res) {
+        for (const auto& it: res) {
             cout << vd[it].str << " ";
         }
         cout << endl;
