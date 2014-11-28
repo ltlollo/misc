@@ -54,6 +54,7 @@ char madjs[][11]{
     , "beduino"
     , "buco"
     , "laido"
+    , "bastardo"
 };
 char fadjs[][11]{
     "infiammata"
