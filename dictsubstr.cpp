@@ -21,12 +21,12 @@ using Range = mrange<usize>;
 using RangeVec = vector<Range>;
 
 RangeVec len_map(const DataVec& vd) {
-    if (!vd.size()) return vector<Range>{};
+    if (!vd.size()) { return vector<Range>{}; }
     usize len = vd[0].str.size();
     auto res = vector<Range>(len+1, Range{vd.size(), vd.size()});
     usize pos = 0;
     for (usize i = 0; i < vd.size(); ++i) {
-        if (vd[i].str.size() == len) continue;
+        if (vd[i].str.size() == len) { continue; }
         res[len] = Range{pos, i};
         pos = i;
         len = vd[i].str.size();
@@ -37,14 +37,14 @@ RangeVec len_map(const DataVec& vd) {
 
 auto rnear(usize ss, const RangeVec& lmap, usize len) {
     for (usize i = ss-1; i > 1; --i) {
-        if (lmap[i].fst != len) return lmap[i].fst;
+        if (lmap[i].fst != len) { return lmap[i].fst; }
     }
     return len;
 }
 
 auto fmatch(const string& s, DataVec& vd, const RangeVec& lmap) {
     auto res = vector<usize>{};
-    if (s.size() < 2 || vd.empty()) return res;
+    if (s.size() < 2 || vd.empty()) { return res; }
     auto pos = s.size() > vd[0].str.size() ? 0 : rnear(s.size(), lmap, vd.size());
     vector<usize> p(vd.size()-pos);
     iota(p.begin(), p.end(), pos);
@@ -76,9 +76,8 @@ int main(int argc, char *argv[]) {
     ifstream in(argv[1]);
     string line;
     while (in >> line) {
-        if (line.empty()) continue;
-        if(*line.rbegin() == '\r') {
-            line.erase(line.length()-1, 1);
+        if (line.empty()) {
+            continue;
         }
         vd.emplace_back(Data{move(line)});
     }
