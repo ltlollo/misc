@@ -49,8 +49,8 @@ auto fmatch(const string& s, DataVec& vd, const RangeVec& lmap) {
     vector<usize> p(vd.size()-pos);
     iota(p.begin(), p.end(), pos);
     auto ident = [](const usize i) noexcept { return i; };
-    auto filter = [&, s, no = vd.size()](const usize i) noexcept -> bool {
-        return (s.find(vd[i].str) != string::npos);
+    auto filter = [&, s](const usize i) noexcept -> bool {
+        return s.find(vd[i].str) != string::npos;
     };
     res = work::gen_work_balancer(p, ident, filter);
     if (s.size() <= vd[0].str.size()) {
