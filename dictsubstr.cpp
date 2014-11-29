@@ -48,10 +48,11 @@ auto fmatch(const string& s, DataVec& vd, const RangeVec& lmap) {
     auto pos = s.size() > vd[0].str.size() ? 0 : rnear(s.size(), lmap, vd.size());
     vector<usize> p(vd.size()-pos);
     iota(p.begin(), p.end(), pos);
-    auto f = [&, s, no = vd.size()](const usize i) noexcept {
-        return (s.find(vd[i].str) != string::npos) ? i : no;
+    auto ident = [](const usize i) noexcept { return i; };
+    auto filter = [&, s, no = vd.size()](const usize i) noexcept -> bool {
+        return (s.find(vd[i].str) != string::npos);
     };
-    res = work::static_work_balancer(p, f);
+    res = work::gen_work_balancer(p, ident, filter);
     if (s.size() <= vd[0].str.size()) {
         for (auto i = lmap[s.size()].fst; i < lmap[s.size()].end; ++i) {
             if (s == vd[i].str) {
@@ -93,10 +94,8 @@ int main(int argc, char *argv[]) {
         cout << "looking for: " << uin << endl;
         usize count{0};
         for_each(begin(res), end(res), [&](const auto& it){
-            if (it != vd.size()) {
                 cout << vd[it].str << " ";
                 ++count;
-            }
         });
         cout << '(' << count << ')' << endl;
     }
