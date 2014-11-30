@@ -66,10 +66,10 @@ auto fmatch(const string& s, const DataVec& vd, const RangeVec& lmap) {
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         cout << "USAGE: " << argv[0] << " wordlist\n"
-            "SCOPE: i entirelly missed the description of "
+            "SCOPE: i entirelly misread the description of "
             "https://www.reddit.com/r/dailyprogrammer/comments"
             "/2nihz6/20141126_challenge_190_intermediate_words_inside/\n"
-            "now this is a perf test case for mutation vs non mutation";
+            "so now this is a perf test case for mutation vs non mutation, spoiler: non mut wins";
             return 1;
     }
     vector<Data> vd;
