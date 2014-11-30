@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
     size_t h{img.get_height()}, w{img.get_width()};
     assert(h > w_size+d_win && w > w_size+d_win);
     GImage out(w, h);
-    fun::measure("processing", [&]() noexcept {
+    fun::Bencher("processing", [&]() noexcept {
         auto res = features(gradient(img), ets);
         std::partial_sort(res.begin(), res.size() > n_features
                           ? res.begin()+n_features : res.end(), res.end(),
