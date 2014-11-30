@@ -42,17 +42,16 @@ auto rnear(usize ss, const RangeVec& lmap, usize len) {
     return len;
 }
 
-auto fmatch(const string& s, DataVec& vd, const RangeVec& lmap) {
+auto fmatch(const string& s, const DataVec& vd, const RangeVec& lmap) {
     auto res = vector<usize>{};
     if (s.size() < 2 || vd.empty()) { return res; }
     auto pos = s.size() > vd[0].str.size() ? 0 : rnear(s.size(), lmap, vd.size());
-    vector<usize> p(vd.size()-pos);
-    iota(p.begin(), p.end(), pos);
-    auto ident = [](const usize i) noexcept { return i; };
-    auto filter = [&, s](const usize i) noexcept -> bool {
-        return s.find(vd[i].str) != string::npos;
+
+    auto ident = [=](const Data&, size_t i) noexcept { return i; };
+    auto filter = [&, s, pos](const Data& s, size_t i) noexcept -> bool {
+        return  i >= pos && s.find(vd[i].str) != string::npos;
     };
-    res = work::gen_work_balancer(p, ident, filter);
+    res = work::igen_work_balancer(vd, ident, filter);
     if (s.size() <= vd[0].str.size()) {
         for (auto i = lmap[s.size()].fst; i < lmap[s.size()].end; ++i) {
             if (s == vd[i].str) {
