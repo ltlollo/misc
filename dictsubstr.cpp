@@ -49,9 +49,9 @@ auto fmatch(const string& s, const DataVec& vd, const RangeVec& lmap) {
 
     auto nth = [](const Data&, size_t i) noexcept { return i; };
     auto filter = [&, s, pos](const Data& cs, size_t i) noexcept -> bool {
-        return  i >= pos && s.find(cs.str) != string::npos;
+        return !(i < pos || s.find(cs.str) == string::npos);
     };
-    res = work::igen_work_balancer(vd, nth, filter);
+    res = work::exp::gen_work_balancer(vd, nth, filter);
     if (s.size() <= vd[0].str.size()) {
         for (auto i = lmap[s.size()].fst; i < lmap[s.size()].end; ++i) {
             if (s == vd[i].str) {
