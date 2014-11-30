@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
         cout << "% ";
         cin >> uin;
         transform(begin(uin), end(uin), begin(uin), ::tolower);
-        auto res = fun::rmeasure("bench", fmatch, uin, vd, lmap);
+        auto res = fun::Bencher("bench")(fmatch, uin, vd, lmap);
         cout << "looking for: " << uin << endl;
         usize count{0};
         for_each(begin(res), end(res), [&](const auto& it){
