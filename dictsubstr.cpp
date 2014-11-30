@@ -47,11 +47,11 @@ auto fmatch(const string& s, const DataVec& vd, const RangeVec& lmap) {
     if (s.size() < 2 || vd.empty()) { return res; }
     auto pos = s.size() > vd[0].str.size() ? 0 : rnear(s.size(), lmap, vd.size());
 
-    auto ident = [=](const Data&, size_t i) noexcept { return i; };
+    auto nth = [](const Data&, size_t i) noexcept { return i; };
     auto filter = [&, s, pos](const Data& s, size_t i) noexcept -> bool {
         return  i >= pos && s.find(vd[i].str) != string::npos;
     };
-    res = work::igen_work_balancer(vd, ident, filter);
+    res = work::igen_work_balancer(vd, nth, filter);
     if (s.size() <= vd[0].str.size()) {
         for (auto i = lmap[s.size()].fst; i < lmap[s.size()].end; ++i) {
             if (s == vd[i].str) {
