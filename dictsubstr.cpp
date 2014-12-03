@@ -20,8 +20,11 @@ using DataVec = vector<Data>;
 using Range = mrange<usize>;
 using RangeVec = vector<Range>;
 
+constexpr usize minws{1};
+static_assert(minws>0, "minimum world size");
+
 RangeVec len_map(const DataVec& vd) {
-    if (!vd.size()) { return vector<Range>{}; }
+    if (vd.empty()) { return vector<Range>{{0, 0}}; }
     usize len = vd[0].str.size();
     auto res = vector<Range>(len+1, Range{vd.size(), vd.size()});
     usize pos = 0;
@@ -35,8 +38,9 @@ RangeVec len_map(const DataVec& vd) {
     return res;
 }
 
-auto rnear(usize ss, const RangeVec& lmap, usize len) {
-    for (usize i = ss-1; i > 1; --i) {
+auto rnear(usize ss, const RangeVec& lmap) {
+    auto len = lmap[0].end;
+    for (usize i = ss-1; i+1-minws; --i) {
         if (lmap[i].fst != len) { return lmap[i].fst; }
     }
     return len;
@@ -44,11 +48,12 @@ auto rnear(usize ss, const RangeVec& lmap, usize len) {
 
 auto fmatch(const string& s, const DataVec& vd, const RangeVec& lmap) {
     auto res = vector<usize>{};
-    if (s.size() < 2 || vd.empty()) { return res; }
-    auto pos = s.size() > vd[0].str.size() ? 0 : rnear(s.size(), lmap, vd.size());
+    if (s.size() < minws || vd.empty() || lmap.size() < minws+1) { return res; }
+    auto pos = s.size() > vd[0].str.size() ? 0 : rnear(s.size(), lmap);
 
     auto nth = [](const Data&, size_t i) noexcept { return i; };
     auto filter = [&, s, pos](const Data& cs, size_t i) noexcept -> bool {
+        // not filtering words less than minws, as it's ineff.
         return !(i < pos || s.find(cs.str) == string::npos);
     };
     res = work::exp::gen_work_balancer(vd, nth, filter);
@@ -76,9 +81,7 @@ int main(int argc, char *argv[]) {
     ifstream in(argv[1]);
     string line;
     while (in >> line) {
-        if (line.empty()) {
-            continue;
-        }
+        if (line.empty()) { continue; }
         vd.emplace_back(Data{move(line)});
     }
     sort(begin(vd), end(vd), [](const Data& f, const Data& s) {
