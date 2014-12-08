@@ -17,7 +17,7 @@ template<size_t... Ns> struct GenSeq<0, Ns...>{ using type = Seq<Ns...>; };
 template<size_t N> using make_seq_t = typename GenSeq<N>::type;
 template<typename Ret, typename... Args> using fn_t = Ret(*)(Args...);
 template<typename T, size_t... Ns> constexpr auto caller(T* t) {
-    t->r = t->call(Seq<Ns...>{});
+    t->result = t->call(Seq<Ns...>{});
 }
 template<typename T, size_t... Ns> constexpr void vcaller(T* t) {
     t->call(Seq<Ns...>{});
@@ -35,7 +35,7 @@ struct FunStore {
     Fun f;
     std::tuple<Args...> args;
     pthread_t t;
-    Ret r;
+    Ret result;
 
     Ret operator()() {
         return call(make_seq_t<sizeof...(Args)>{});
@@ -131,7 +131,7 @@ auto compute(const vector<T>& vec, Fun fun, Fil filter, std::integer_sequence<un
     auto res = make_tuple(make_function(f, vec, fun, filter, Ns, sizeof...(Ns))...);
     Caller(std::get<Ns>(res)...);
     Foreach([](const auto& t){
-        for (const auto& it: t.r) {
+        for (const auto& it: t.result) {
             cout << it <<' ' ;
         }
         cout << '\n';
