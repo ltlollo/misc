@@ -11,16 +11,16 @@
 
 using namespace std;
 
-template<size_t...> struct Seq{};
+template<size_t... Ns> struct Seq{};
 template<size_t N, size_t... Ns> struct GenSeq : GenSeq<N-1, N-1, Ns...>{};
 template<size_t... Ns> struct GenSeq<0, Ns...>{ using type = Seq<Ns...>; };
 template<size_t N> using make_seq_t = typename GenSeq<N>::type;
 template<typename Ret, typename... Args> using fn_t = Ret(*)(Args...);
-template<typename T, size_t... N> const constexpr auto caller(T* t) {
-    t->r = t->call(Seq<N...>{});
+template<typename T, size_t... Ns> constexpr auto caller(T* t) {
+    t->r = t->call(Seq<Ns...>{});
 }
-template<typename T, size_t... N> const constexpr void vcaller(T* t) {
-    t->call(Seq<N...>{});
+template<typename T, size_t... Ns> constexpr void vcaller(T* t) {
+    t->call(Seq<Ns...>{});
 }
 
 template<typename T> struct Function : public Function<decltype(&T::operator())>{};
@@ -85,7 +85,7 @@ template<typename Fun, typename... Args>
 const constexpr auto make_function(Fun f, Args... args) {
     using fun_t = typename Function<decltype(f)>::ptr_t;
     using ret_t = typename Function<decltype(f)>::return_t;
-    return FunStore<ret_t, fun_t, Args...>{(fun_t)f, make_tuple(args...)};
+    return FunStore<ret_t, fun_t, Args...>{(fun_t)f, make_tuple(args...), (pthread_t)0, {}};
 }
 
 template<typename T, typename Fun, typename Fil>
@@ -112,7 +112,15 @@ struct Caller {
         Caller(tt...);
         t.join();
     }
-    Caller(){};
+    template<typename T> Caller(T& t) { t.async(); t.join(); }
+};
+
+struct Foreach {
+    template<typename F, typename T, typename... TT> Foreach(F f, T& t, TT&... tt) {
+        f(t);
+        Foreach(f, tt...);
+    }
+    template<typename F, typename T> Foreach(F f, T& t) { f(t); }
 };
 
 template<typename T, typename Fun, typename Fil, unsigned... Ns>
@@ -122,18 +130,19 @@ auto compute(const vector<T>& vec, Fun fun, Fil filter, std::integer_sequence<un
     };
     auto res = make_tuple(make_function(f, vec, fun, filter, Ns, sizeof...(Ns))...);
     Caller(std::get<Ns>(res)...);
-};
+    Foreach([](const auto& t){
+        for (const auto& it: t.r) {
+            cout << it <<' ' ;
+        }
+        cout << '\n';
+    }, std::get<Ns>(res)...);
+}
 
-int main(int argc, char *argv[]) {
-    vector<int> vec{0,0,0,0,0,0,0,0,0,0,
-                    0,0,0,0,0,0,0,0,0,0,
-                    0,0,0,0,0,0,0,0,0,0,
-                    0,0,0,0,0,0,0,0,0,0
-    };
+int main(int, char *[]) {
+    vector<int> vec(40, 0);
     compute(vec,
             [](const auto& it){ return it+1; },
             [](const auto&){ return true; },
             std::make_integer_sequence<unsigned, 4>{});
     return 0;
 }
-
