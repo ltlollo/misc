@@ -88,20 +88,52 @@ const constexpr auto make_function(Fun f, Args... args) {
     return FunStore<ret_t, fun_t, Args...>{(fun_t)f, make_tuple(args...)};
 }
 
-struct Some { string s; void print() {  while(true) cout << s << endl;} };
+template<typename T, typename Fun, typename Fil>
+auto split(const vector<T>& vec, Fun fun, Fil filter, unsigned Nth, unsigned N) {
+    auto range_beg = vec.size()*(Nth)/N;
+    auto range_end = vec.size()*(Nth+1)/N;
+    auto len = range_end - range_beg;
+    vector<std::result_of_t<Fun(T)>> res;
+    if (!len) {
+        return res;
+    }
+    res.reserve(len);
+    for (size_t i = range_beg; i < range_end; ++i) {
+        if (filter(i)) {
+            res.emplace_back(fun(vec[i]));
+        }
+    }
+    return res;
+}
+
+struct Caller {
+    template<typename T, typename... TT> Caller(T& t, TT&... tt) {
+        t.async();
+        Caller(tt...);
+        t.join();
+    }
+    Caller(){};
+};
+
+template<typename T, typename Fun, typename Fil, unsigned... Ns>
+auto compute(const vector<T>& vec, Fun fun, Fil filter, std::integer_sequence<unsigned, Ns...>) {
+    auto f = [](const vector<T>& vec, Fun fun, Fil filter, unsigned nth, unsigned of) {
+        return split(vec, fun, filter, nth, of);
+    };
+    auto res = make_tuple(make_function(f, vec, fun, filter, Ns, sizeof...(Ns))...);
+    Caller(std::get<Ns>(res)...);
+};
 
 int main(int argc, char *argv[]) {
-    Some a1{"first"}, a2{"second"}, a3{"third"};
-    auto f = [](Some& i) {i.print(); };
-    auto t1 = make_function(f, a1);
-    auto t2 = make_function(f, a2);
-    auto t3 = make_function(f, a3);
-
-    t1.async();
-    t2.async();
-    t3.async();
-
-    t1.join();
+    vector<int> vec{0,0,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0
+    };
+    compute(vec,
+            [](const auto& it){ return it+1; },
+            [](const auto&){ return true; },
+            std::make_integer_sequence<unsigned, 4>{});
     return 0;
 }
 
