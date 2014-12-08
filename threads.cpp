@@ -30,9 +30,9 @@ struct Function<Ret(T::*)(Args...) const> {
     using ptr_t = fn_t<Ret, Args...>;
 };
 
-template<typename Ret, typename F, typename... Args>
+template<typename Ret, typename Fun, typename... Args>
 struct FunStore {
-    F f;
+    Fun f;
     std::tuple<Args...> args;
     pthread_t t;
     Ret r;
@@ -45,7 +45,7 @@ struct FunStore {
     }
     template<size_t... Ns> void call_async(Seq<Ns...>) {
         pthread_create(&t, nullptr,
-            (fn_t<void*, void*>)caller<FunStore<Ret, F, Args...>, Ns...>,
+            (fn_t<void*, void*>)caller<FunStore<Ret, Fun, Args...>, Ns...>,
             (void*)this);
     }
     void async() {
@@ -56,9 +56,9 @@ struct FunStore {
     }
 };
 
-template<typename F, typename... Args>
-struct FunStore<void, F, Args...> {
-    F f;
+template<typename Fun, typename... Args>
+struct FunStore<void, Fun, Args...> {
+    Fun f;
     std::tuple<Args...> args;
     pthread_t t;
 
@@ -70,7 +70,7 @@ struct FunStore<void, F, Args...> {
     }
     template<size_t... Ns> void call_async(Seq<Ns...>) {
         pthread_create(&t, nullptr,
-            (fn_t<void*, void*>)vcaller<FunStore<void, F, Args...>, Ns...>,
+            (fn_t<void*, void*>)vcaller<FunStore<void, Fun, Args...>, Ns...>,
             (void*)this);
     }
     void async() {
@@ -81,8 +81,8 @@ struct FunStore<void, F, Args...> {
     }
 };
 
-template<typename F, typename... Args>
-const constexpr auto make_function(F f, Args... args) {
+template<typename Fun, typename... Args>
+const constexpr auto make_function(Fun f, Args... args) {
     using fun_t = typename Function<decltype(f)>::ptr_t;
     using ret_t = typename Function<decltype(f)>::return_t;
     return FunStore<ret_t, fun_t, Args...>{(fun_t)f, make_tuple(args...)};
