@@ -100,15 +100,6 @@ auto split(const std::vector<T>& vec, Fun fun, Fil filter, unsigned Nth, unsigne
     return res;
 }
 
-struct Caller {
-    template<typename T, typename... TT> Caller(T& t, TT&... tt) {
-        t.async();
-        Caller(tt...);
-        t.join();
-    }
-    template<typename T> Caller(T& t) { t.async(); t.join(); }
-};
-
 struct Foreach {
     template<typename F, typename T, typename... TT> Foreach(F&& f, T& t, TT&... tt) {
         f(t);
@@ -117,25 +108,24 @@ struct Foreach {
     template<typename F, typename T> Foreach(F&& f, T& t) { f(t); }
 };
 
-using namespace std;
-
 template<typename T, typename Fun, typename Fil, unsigned... Ns>
-auto compute(const vector<T>& vec, Fun fun, Fil filter, std::integer_sequence<unsigned, Ns...>) {
-    auto f = [](const vector<T>& vec, Fun fun, Fil filter, unsigned nth, unsigned of) {
+auto compute(const std::vector<T>& vec, Fun fun, Fil filter, std::integer_sequence<unsigned, Ns...>) {
+    auto f = [](const std::vector<T>& vec, Fun fun, Fil filter, unsigned nth, unsigned of) {
         return split(vec, fun, filter, nth, of);
     };
-    auto res = make_tuple(make_function(f, vec, fun, filter, Ns, sizeof...(Ns))...);
-    Caller(std::get<Ns>(res)...);
+    auto res = std::make_tuple(make_function(f, vec, fun, filter, Ns, sizeof...(Ns))...);
+    Foreach([](auto& t){ t.async(); }, std::get<Ns>(res)...);
+    Foreach([](auto& t){ t.join(); }, std::get<Ns>(res)...);
     Foreach([](const auto& t){
         for (const auto& it: t.result) {
-            cout << it << ' ';
+        std::cout << it << ' ';
         }
-        cout << '\n';
+        std::cout << '\n';
     }, std::get<Ns>(res)...);
 }
 
 int main(int, char *[]) {
-    vector<int> vec(40, 0);
+    std::vector<int> vec(40, 0);
     compute(vec,
             [](const auto& it){ return it+1; },
             [](const auto&){ return true; },
