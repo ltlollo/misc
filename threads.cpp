@@ -1,13 +1,7 @@
 #include <vector>
-#include <stdexcept>
-#include <string>
 #include <iostream>
-#include <fstream>
-#include <thread>
-#include <algorithm>
 #include <tuple>
 #include <pthread.h>
-#include <unistd.h>
 
 using namespace std;
 
@@ -46,7 +40,8 @@ struct FunStore {
     template<size_t... Ns> void call_async(Seq<Ns...>) {
         pthread_create(&t, nullptr,
             (fn_t<void*, void*>)caller<FunStore<Ret, Fun, Args...>, Ns...>,
-            (void*)this);
+            (void*)this
+        );
     }
     void async() {
         return call_async(make_seq_t<sizeof...(Args)>{});
@@ -71,7 +66,8 @@ struct FunStore<void, Fun, Args...> {
     template<size_t... Ns> void call_async(Seq<Ns...>) {
         pthread_create(&t, nullptr,
             (fn_t<void*, void*>)vcaller<FunStore<void, Fun, Args...>, Ns...>,
-            (void*)this);
+            (void*)this
+        );
     }
     void async() {
         return call_async(make_seq_t<sizeof...(Args)>{});
@@ -132,7 +128,7 @@ auto compute(const vector<T>& vec, Fun fun, Fil filter, std::integer_sequence<un
     Caller(std::get<Ns>(res)...);
     Foreach([](const auto& t){
         for (const auto& it: t.result) {
-            cout << it <<' ' ;
+            cout << it << ' ';
         }
         cout << '\n';
     }, std::get<Ns>(res)...);
