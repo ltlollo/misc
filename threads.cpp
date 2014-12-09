@@ -116,11 +116,11 @@ struct Caller {
 };
 
 struct Foreach {
-    template<typename F, typename T, typename... TT> Foreach(F f, T& t, TT&... tt) {
+    template<typename F, typename T, typename... TT> Foreach(F&& f, T& t, TT&... tt) {
         f(t);
-        Foreach(f, tt...);
+        Foreach(std::forward<F>(f), tt...);
     }
-    template<typename F, typename T> Foreach(F f, T& t) { f(t); }
+    template<typename F, typename T> Foreach(F&& f, T& t) { f(t); }
 };
 
 template<typename T, typename Fun, typename Fil, unsigned... Ns>
