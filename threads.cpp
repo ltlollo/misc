@@ -3,8 +3,6 @@
 #include <tuple>
 #include <pthread.h>
 
-using namespace std;
-
 template<size_t... Ns> struct Seq{};
 template<size_t N, size_t... Ns> struct GenSeq : GenSeq<N-1, N-1, Ns...>{};
 template<size_t... Ns> struct GenSeq<0, Ns...>{ using type = Seq<Ns...>; };
@@ -85,11 +83,11 @@ const constexpr auto make_function(Fun f, Args... args) {
 }
 
 template<typename T, typename Fun, typename Fil>
-auto split(const vector<T>& vec, Fun fun, Fil filter, unsigned Nth, unsigned N) {
+auto split(const std::vector<T>& vec, Fun fun, Fil filter, unsigned Nth, unsigned N) {
     auto range_beg = vec.size()*(Nth)/N;
     auto range_end = vec.size()*(Nth+1)/N;
     auto len = range_end - range_beg;
-    vector<std::result_of_t<Fun(T)>> res;
+    std::vector<std::result_of_t<Fun(T)>> res;
     if (!len) {
         return res;
     }
@@ -118,6 +116,8 @@ struct Foreach {
     }
     template<typename F, typename T> Foreach(F&& f, T& t) { f(t); }
 };
+
+using namespace std;
 
 template<typename T, typename Fun, typename Fil, unsigned... Ns>
 auto compute(const vector<T>& vec, Fun fun, Fil filter, std::integer_sequence<unsigned, Ns...>) {
