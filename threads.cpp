@@ -79,7 +79,7 @@ template<typename Fun, typename... Args>
 const constexpr auto make_function(Fun f, Args... args) {
     using fun_t = typename Function<decltype(f)>::ptr_t;
     using ret_t = typename Function<decltype(f)>::return_t;
-    return FunStore<ret_t, fun_t, Args...>{(fun_t)f, make_tuple(args...), (pthread_t)0, {}};
+    return FunStore<ret_t, fun_t, Args...>{(fun_t)f, std::make_tuple(args...), (pthread_t)0};
 }
 
 template<typename T, typename Fun, typename Fil>
@@ -118,7 +118,7 @@ auto compute(const std::vector<T>& vec, Fun fun, Fil filter, std::integer_sequen
     Foreach([](auto& t){ t.join(); }, std::get<Ns>(res)...);
     Foreach([](const auto& t){
         for (const auto& it: t.result) {
-        std::cout << it << ' ';
+            std::cout << it << ' ';
         }
         std::cout << '\n';
     }, std::get<Ns>(res)...);
