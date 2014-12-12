@@ -3,6 +3,7 @@
 #include <tuple>
 #include <pthread.h>
 
+namespace task {
 template<size_t... Ns> struct Seq{};
 template<size_t N, size_t... Ns> struct GenSeq : GenSeq<N-1, N-1, Ns...>{};
 template<size_t... Ns> struct GenSeq<0, Ns...>{ using type = Seq<Ns...>; };
@@ -14,6 +15,7 @@ template<typename T, size_t... Ns> constexpr auto caller(T* t) {
 template<typename T, size_t... Ns> constexpr void vcaller(T* t) {
     t->call(Seq<Ns...>{});
 }
+template<unsigned N> using Threads = std::make_integer_sequence<unsigned, N>;
 
 template<typename T> struct Function : public Function<decltype(&T::operator())>{};
 template<typename T, typename Ret, typename... Args>
@@ -123,12 +125,13 @@ auto compute(const std::vector<T>& vec, Fun fun, Fil filter, std::integer_sequen
         std::cout << '\n';
     }, std::get<Ns>(res)...);
 }
+}
 
 int main(int, char *[]) {
     std::vector<int> vec(40, 0);
-    compute(vec,
+    task::compute(vec,
             [](const auto& it){ return it+1; },
             [](const auto&){ return true; },
-            std::make_integer_sequence<unsigned, 4>{});
+            task::Threads<4>{});
     return 0;
 }
