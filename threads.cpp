@@ -49,6 +49,9 @@ struct FunStore {
     void join() {
         pthread_join(t, nullptr);
     }
+    void cancel() {
+        pthread_cancel(t);
+    }
 };
 
 template<typename Fun, typename... Args>
@@ -74,6 +77,9 @@ struct FunStore<void, Fun, Args...> {
     }
     void join() {
         pthread_join(t, nullptr);
+    }
+    void cancel() {
+        pthread_cancel(t);
     }
 };
 
