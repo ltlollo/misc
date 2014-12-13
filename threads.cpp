@@ -95,14 +95,14 @@ auto split(const std::vector<T>& vec, Fun fun, Fil filter, unsigned Nth, unsigne
     auto range_beg = vec.size()*(Nth)/N;
     auto range_end = vec.size()*(Nth+1)/N;
     auto len = range_end - range_beg;
-    std::vector<std::result_of_t<Fun(T)>> res;
+    std::vector<std::result_of_t<Fun(T, size_t&)>> res;
     if (!len) {
         return res;
     }
     res.reserve(len);
     for (size_t i = range_beg; i < range_end; ++i) {
-        if (filter(i)) {
-            res.emplace_back(fun(vec[i]));
+        if (filter(vec[i], i)) {
+            res.emplace_back(fun(vec[i], i));
         }
     }
     return res;
@@ -136,8 +136,8 @@ auto compute(const std::vector<T>& vec, Fun fun, Fil filter, std::integer_sequen
 int main(int, char *[]) {
     std::vector<int> vec(40, 0);
     task::compute(vec,
-            [](const auto& it){ return it+1; },
-            [](const auto&){ return true; },
+            [](const auto& it, ...){ return it+1; },
+            [](const auto&, ...){ return true; },
             task::Threads<4>{});
     return 0;
 }
