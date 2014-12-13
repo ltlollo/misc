@@ -140,17 +140,11 @@ auto compute(const std::vector<T>& vec, Fun fun, Fil filter, std::integer_sequen
     auto res = std::make_tuple(make_function(f, &vec, fun, filter, Ns, sizeof...(Ns))...);
     Foreach([](auto& t){ t.async(); }, std::get<Ns>(res)...);
     Foreach([](auto& t){ t.join(); }, std::get<Ns>(res)...);
-    Foreach([](const auto& t){
-        for (const auto& it: t.result) {
-            std::cout << it << ' ';
-        }
-        std::cout << '\n';
-    }, std::get<Ns>(res)...);
 }
 }
 
 int main(int, char *[]) {
-    std::vector<int> vec(40, 0);
+    std::vector<int> vec(100000000, 0);
     task::compute(vec,
             [](const auto& it, ...){ return it+1; },
             [](const auto&, ...){ return true; },
