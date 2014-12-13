@@ -36,9 +36,8 @@ struct FunStore {
     Ret result;
     Err err{Ok};
 
-    FunStore(Fun&& f, std::tuple<Args...>&& args) :
-        f{std::forward<Fun>(f)},
-        args{std::forward<std::tuple<Args...>>(args)} {
+    FunStore(Fun f, const std::tuple<Args...>& args) :
+        f{f}, args{args} {
     }
     Ret operator()() {
         return call(make_seq_t<sizeof...(Args)>{});
@@ -71,9 +70,8 @@ struct FunStore<void, Fun, Args...> {
     pthread_t t;
     Err err{Ok};
 
-    FunStore(Fun&& f, std::tuple<Args...>&& args) :
-        f{std::forward<Fun>(f)},
-        args{std::forward<std::tuple<Args...>>(args)} {
+    FunStore(Fun f, const std::tuple<Args...>& args) :
+        f{f}, args{args} {
     }
     void operator()() {
         call(make_seq_t<sizeof...(Args)>{});
@@ -125,11 +123,11 @@ auto split(const std::vector<T>* vec, Fun fun, Fil filter, unsigned Nth, unsigne
 }
 
 struct Foreach {
-    template<typename F, typename T, typename... TT> Foreach(F&& f, T& t, TT&... tt) {
+    template<typename F, typename T, typename... TT> Foreach(F f, T& t, TT&... tt) {
         f(t);
-        Foreach(std::forward<F>(f), tt...);
+        Foreach(f, tt...);
     }
-    template<typename F, typename T> Foreach(F&& f, T& t) { f(t); }
+    template<typename F, typename T> Foreach(F f, T& t) { f(t); }
 };
 
 template<typename T, typename Fun, typename Fil, unsigned... Ns>
