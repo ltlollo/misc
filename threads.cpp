@@ -1,5 +1,4 @@
 #include <vector>
-#include <iostream>
 #include <tuple>
 #include <pthread.h>
 
@@ -56,10 +55,10 @@ struct FunStore {
         return call_async(make_seq_t<sizeof...(Args)>{});
     }
     void join() {
-        if ( err != Ok && pthread_join(t, nullptr) < 0) { err = Join; }
+        if ( err == Ok && pthread_join(t, nullptr) < 0) { err = Join; }
     }
     void cancel() {
-        if ( err != Ok && pthread_cancel(t) < 0) { err = Cancel; }
+        if ( err == Ok && pthread_cancel(t) < 0) { err = Cancel; }
     }
 };
 
@@ -90,10 +89,10 @@ struct FunStore<void, Fun, Args...> {
         return call_async(make_seq_t<sizeof...(Args)>{});
     }
     void join() {
-        if ( err != Ok && pthread_join(t, nullptr) < 0) { err = Join; }
+        if ( err == Ok && pthread_join(t, nullptr) < 0) { err = Join; }
     }
     void cancel() {
-        if ( err != Ok && pthread_cancel(t) < 0) { err = Cancel; }
+        if ( err == Ok && pthread_cancel(t) < 0) { err = Cancel; }
     }
 };
 
