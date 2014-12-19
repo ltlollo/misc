@@ -3,19 +3,18 @@
 #include <pthread.h>
 
 namespace task {
-enum Err { Ok, Create, Join, Except, Cancel };
+enum Status { Running, Ok, ECreate, EJoin, ECancel };
 template<size_t... Ns> struct Seq{};
 template<size_t N, size_t... Ns> struct GenSeq : GenSeq<N-1, N-1, Ns...>{};
 template<size_t... Ns> struct GenSeq<0, Ns...>{ using type = Seq<Ns...>; };
 template<size_t N> using make_seq_t = typename GenSeq<N>::type;
 template<typename Ret, typename... Args> using fn_t = Ret(*)(Args...);
 template<typename T, size_t... Ns> constexpr auto caller(T* t) {
-    t->err = Except;
     t->result = t->call(Seq<Ns...>{});
     t->err = Ok;
 }
+
 template<typename T, size_t... Ns> constexpr void vcaller(T* t) {
-    t->err = Except;
     t->call(Seq<Ns...>{});
     t->err = Ok;
 }
@@ -33,7 +32,7 @@ struct FunStore {
     std::tuple<Args...> args;
     pthread_t t;
     Ret result;
-    Err err{Ok};
+    Status err{Ok};
 
     FunStore(Fun f, const std::tuple<Args...>& args) :
         f{f}, args{args} {
@@ -45,21 +44,30 @@ struct FunStore {
         return f(std::get<Ns>(args)...);
     }
     template<size_t... Ns> void call_async(Seq<Ns...>) {
-        auto e = pthread_create(&t, nullptr,
+        if (pthread_create(&t, nullptr,
             (fn_t<void*, void*>)caller<FunStore<Ret, Fun, Args...>, Ns...>,
-            (void*)this
-        );
-        if (e < 0) { err = Create; }
+            (void*)this)) {
+            err = ECreate;
+        }
     }
     void async() {
         return call_async(make_seq_t<sizeof...(Args)>{});
     }
     void join() {
-        if ( err == Ok && pthread_join(t, nullptr) < 0) { err = Join; }
+        if ( err == Ok || err == Running) {
+            if (pthread_join(t, nullptr)) {
+                err = EJoin;
+            }
+        }
     }
     void cancel() {
-        if ( err == Ok && pthread_cancel(t) < 0) { err = Cancel; }
+        if ( err == Ok || err == Running) {
+            if (pthread_cancel(t)) {
+                err = ECancel;
+            }
+        }
     }
+
 };
 
 template<typename Fun, typename... Args>
@@ -67,7 +75,7 @@ struct FunStore<void, Fun, Args...> {
     Fun f;
     std::tuple<Args...> args;
     pthread_t t;
-    Err err{Ok};
+    Status err{Ok};
 
     FunStore(Fun f, const std::tuple<Args...>& args) :
         f{f}, args{args} {
@@ -79,20 +87,29 @@ struct FunStore<void, Fun, Args...> {
         f(std::get<Ns>(args)...);
     }
     template<size_t... Ns> void call_async(Seq<Ns...>) {
-        auto e = pthread_create(&t, nullptr,
+        err = Running;
+        if (pthread_create(&t, nullptr,
             (fn_t<void*, void*>)vcaller<FunStore<void, Fun, Args...>, Ns...>,
-            (void*)this
-        );
-        if (err < 0) { err = Create; }
+            (void*)this)) {
+            err = ECreate;
+        }
     }
     void async() {
         return call_async(make_seq_t<sizeof...(Args)>{});
     }
     void join() {
-        if ( err == Ok && pthread_join(t, nullptr) < 0) { err = Join; }
+        if ( err == Ok || err == Running) {
+            if (pthread_join(t, nullptr)) {
+                err = EJoin;
+            }
+        }
     }
     void cancel() {
-        if ( err == Ok && pthread_cancel(t) < 0) { err = Cancel; }
+        if ( err == Ok || err == Running) {
+            if (pthread_cancel(t)) {
+                err = ECancel;
+            }
+        }
     }
 };
 
@@ -137,6 +154,7 @@ auto compute(const std::vector<T>& vec, Fun fun, Fil filter, std::integer_sequen
     auto res = std::make_tuple(make_function(f, &vec, fun, filter, Ns, sizeof...(Ns))...);
     Foreach([](auto& t){ t.async(); }, std::get<Ns>(res)...);
     Foreach([](auto& t){ t.join(); }, std::get<Ns>(res)...);
+    return res;
 }
 }
 
