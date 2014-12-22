@@ -160,9 +160,9 @@ auto compute(const std::vector<T>& vec, Fun fun, Fil filter, std::integer_sequen
 
 int main(int, char *[]) {
     std::vector<int> vec(100000000, 0);
-    task::compute(vec,
-            [](const auto& it, ...){ return it+1; },
-            [](const auto&, ...){ return true; },
+    auto ele = [](const auto& it, ...){ return it+1; };
+    auto fil = [](const auto&, ...){ return true; };
+    task::compute(vec, ele, fil,
             task::Threads<4>{});
     return 0;
 }
