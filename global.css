@@ -22,7 +22,7 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     }
     /*SOLID BG*/
     html, body, li ul, ul li, table, header, article, section, nav, menu,
-    aside, a,
+    aside,
     [class*="clearfix"],
     [class*="nav"],
     [class*="open"],
@@ -40,18 +40,11 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     div[style*="visibility: visible"] {
         background-color: #272822 !important;
     }
-    [id*="Bar"], [id*="Button"], [id*="page"], ::after {
+    ::before, ::after, div {
         background-image: none !important;
     }
-    body > div {
-        background-image: none !important;
-    }
-    table table {
-        background-color: #4c4c4c !important;
-        background: none !important;
-    }
-    th, td, caption, body {
-        background-color: #4c4c4c !important;
+    th, td, caption, body, table table, section, div[class*="primary"],
+    a[class*="control"], h2 > a, div[id*="header"] {
         background: none !important;
     }
     td > img {
@@ -97,7 +90,6 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     }
     a:hover {
         color: #FF4867 !important;
-        background-color: #363037 !important;
     }
     a:active {
         color: #FFAE00 !important;
