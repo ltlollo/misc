@@ -1,0 +1,148 @@
+/*inspired by Midnight Surfing*/
+@-moz-document url-prefix(http://), url-prefix(https://), url-prefix(ftp://),
+url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
+    /*ALL*/
+    *, ::before, ::after  {
+        background-color: transparent !important;
+        color: #fff !important;
+        text-shadow: none !important;
+        box-shadow: none !important;
+        border-radius: 0px !important;
+        border-color: #4c4c4c !important;
+        outline: none !important;
+        outline-color: #4c4c4c !important;
+        border: none !important;
+    }
+    html * {
+       color: inherit !important;
+    }
+    /*HIGHLIGHT*/
+    ::-moz-selection {
+       background-color: #4c4c4c !important;
+    }
+    /*SOLID BG*/
+    html, body, li ul, ul li, table, header, article, section, nav, menu,
+    aside, a,
+    [class*="clearfix"],
+    [class*="nav"],
+    [class*="open"],
+    [id*="ropdown"],
+    [class*="ropdown"], 
+    div[class*="menu"],
+    [class*="tooltip"],
+    div[class*="popup"], 
+    div[id*="popup"],
+    div[class*="note"], span[class*="note"],
+    div[id*="detail"],div[class*="detail"],
+    div[class*="description"],
+    div[class*="content"], div[class*="container"],
+    div[style*="display: block"], 
+    div[style*="visibility: visible"] {
+        background-color: #272822 !important;
+    }
+    [id*="Bar"], [id*="Button"], [id*="page"], ::after {
+        background-image: none !important;
+    }
+    body > div {
+        background-image: none !important;
+    }
+    /*INPUT*/
+    input, textarea, button, select, option, optgroup {
+        color: #DDD !important;
+        background: none #3e3d32 !important;
+        -moz-appearance: none !important; 
+    }
+    input, textarea, button {
+       border-color: #000 !important; 
+       border-width: 0px !important;
+    }
+    /*BUTTON*/
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"],
+    button {
+        background: #6c6a64 !important;
+    }
+    /*BUTTON:hover*/
+    input[type="button"]:hover,
+    input[type="submit"]:hover,
+    input[type="reset"]:hover,
+    button:hover {
+        color: #fff !important;
+        background: #888 !important;
+    }
+    /*LINKS*/
+    a {
+        color: #FF4867 !important; 
+        background-color: #272822 !important;
+        opacity: 1 !important; 
+        text-indent: 0px !important;
+    }
+    a:link {
+        color: #8f9d6a !important;
+    }
+    a:visited {
+        color: #cf6a4b !important;
+    }
+    a:hover {
+        color: #FF4867 !important;
+        background-color: #363037 !important;
+    }
+    a:active {
+        color: #FFAE00 !important;
+    }
+    body > div {
+        background-color: inherit !important;
+    }
+    img.tex {
+        background: #fff !important;
+    }
+}
+
+@-moz-document url(about:newtab), url(about:privatebrowsing) {
+    *, ::before, ::after  {
+        background-color: transparent !important;
+        color: #fff !important;
+        text-shadow: none !important;
+        box-shadow: none !important;
+        border-radius: 0px !important;
+        border-color: #4c4c4c !important;
+        outline: 0px !important;
+        outline-color: #4c4c4c !important;
+    }
+    html * {
+       color: inherit !important;
+    }
+    html * {
+       color: inherit !important;
+    }
+    html, body, window {
+        background-color: #272822 !important;
+        background: #272822 !important;
+        color: #fff ! important
+    }
+    #newtab-search-submit {
+        background-image: none !important;
+        background: #666 !important;
+        border: 0px !important;
+    }
+    #newtab-scrollbox {
+        background: transparent none !important;
+    }
+    #newtab-margin-bottom {
+        background-color: #272822 !important;
+    }
+    .newtab-title {
+        background-color: rgba(0,0,0,.75) !important; 
+        color: #eee !important;
+    }
+}
+
+/*
+    a:link {
+        color: #46927E !important;
+    }
+    a:visited {
+        color: #B38DFF !important;
+    }
+*/
