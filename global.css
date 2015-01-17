@@ -46,6 +46,17 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     body > div {
         background-image: none !important;
     }
+    table table {
+        background-color: #4c4c4c !important;
+        background: none !important;
+    }
+    th, td, caption, body {
+        background-color: #4c4c4c !important;
+        background: none !important;
+    }
+    td > img {
+        opacity: 0 !important;
+    }
     /*INPUT*/
     input, textarea, button, select, option, optgroup {
         color: #DDD !important;
