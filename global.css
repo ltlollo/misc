@@ -21,7 +21,7 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
        background-color: #4c4c4c !important;
     }
     /*SOLID BG*/
-    html, body, li ul, ul li, table, header, article, section, nav, menu,
+    html, li ul, ul li, table, header, article, nav, menu,
     aside,
     [class*="clearfix"],
     [class*="nav"],
@@ -44,7 +44,7 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
         background-image: none !important;
     }
     th, td, caption, body, table table, section, div[class*="primary"],
-    a[class*="control"], h2 > a, div[id*="header"] {
+    a[class*="control"], h2 > a, [id*="header"] {
         background: none !important;
     }
     td > img {
@@ -103,7 +103,7 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
 }
 
 @-moz-document url(about:newtab), url(about:privatebrowsing) {
-    *, ::before, ::after  {
+    * {
         background-color: transparent !important;
         color: #fff !important;
         text-shadow: none !important;
@@ -112,22 +112,18 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
         border-color: #4c4c4c !important;
         outline: 0px !important;
         outline-color: #4c4c4c !important;
+        border: none !important;
     }
-    html * {
-       color: inherit !important;
-    }
-    html * {
-       color: inherit !important;
+    input[id="newtab-search-text"] {
+        color: #DDD !important;
+        background: none #3e3d32 !important;
     }
     html, body, window {
-        background-color: #272822 !important;
         background: #272822 !important;
         color: #fff ! important
     }
     #newtab-search-submit {
-        background-image: none !important;
         background: #666 !important;
-        border: 0px !important;
     }
     #newtab-scrollbox {
         background: transparent none !important;
@@ -137,15 +133,5 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     }
     .newtab-title {
         background-color: rgba(0,0,0,.75) !important; 
-        color: #eee !important;
     }
 }
-
-/*
-    a:link {
-        color: #46927E !important;
-    }
-    a:visited {
-        color: #B38DFF !important;
-    }
-*/
