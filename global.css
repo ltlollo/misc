@@ -21,15 +21,14 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
        background-color: #4c4c4c !important;
     }
     /*SOLID BG*/
-    html, li ul, ul li, table, header, article, nav, menu,
-    aside,
-    [class*="clearfix"],
+    html, li ul, ul li, table, header, article, menu, aside,
+    [class*="clear"],
     [class*="nav"],
     [class*="open"],
     [id*="ropdown"],
     [class*="ropdown"], 
-    div[class*="menu"],
     [class*="tooltip"],
+    div[class*="menu"],
     div[class*="popup"], 
     div[id*="popup"],
     div[class*="note"], span[class*="note"],
@@ -37,28 +36,29 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     div[class*="description"],
     div[class*="content"], div[class*="container"],
     div[style*="display: block"], 
-    div[style*="visibility: visible"] {
+    div[style*="visibility: visible"],
+    #main {
         background-color: #272822 !important;
     }
-    ::before, ::after, div {
+    ::before, ::after, nav {
         background-image: none !important;
     }
-    th, td, caption, body, table table, section, div[class*="primary"],
-    a[class*="control"], h2 > a, [id*="header"] {
+    th, td, caption, body, table table, section, footer,
+    div[class*="primary"],
+    a[class*="control"],
+    [id*="header"],
+    [id*="logo"] > a,
+    h2 > a, div[style] {
         background: none !important;
     }
     td > img {
         opacity: 0 !important;
     }
     /*INPUT*/
-    input, textarea, button, select, option, optgroup {
+    input, textarea, button, select, option, optgroup, div[class*="Input"] {
         color: #DDD !important;
-        background: none #3e3d32 !important;
-        -moz-appearance: none !important; 
-    }
-    input, textarea, button {
-       border-color: #000 !important; 
-       border-width: 0px !important;
+        background: #3e3d32 !important;
+        -moz-appearance: none !important;
     }
     /*BUTTON*/
     input[type="button"],
@@ -99,6 +99,9 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     }
     img.tex {
         background: #fff !important;
+    }
+    p {
+        max-width: 800px;
     }
 }
 
