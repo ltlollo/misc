@@ -1,10 +1,12 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <cmath>
 #include <algorithm>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
-#include <math.h>
+
+/* gpp lsys.cpp $(pkg-config --libs sfml-all) */
 
 using namespace std;
 
@@ -115,7 +117,7 @@ int main() {
                        {'F', to_vec("G+F+G")}
                       ,{'G', to_vec("F-G-F")}
                    },
-                   Config{5, 60}, 6);
+                   Config{5, 60}, 7);
     drawGraph(window, sys);
 
     while(window.isOpen()) {
@@ -125,11 +127,11 @@ int main() {
             }
             else if (event.type == sf::Event::KeyPressed)
                 switch (event.key.code) {
-                case sf::Keyboard::Q: // Quit the program
+                case sf::Keyboard::Q:
                 case sf::Keyboard::Escape:
                     window.close();
                     break;
-                default: // Do nothing
+                default:
                     break;
                 }
         }
