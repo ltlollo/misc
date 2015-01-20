@@ -4,7 +4,6 @@
 url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     /*ALL*/
     *, ::before, ::after {
-        background-color: transparent !important;
         color: #fff !important;
         text-shadow: none !important;
         box-shadow: none !important;
@@ -23,10 +22,12 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
        border: none !important;
     }
     /*SOLID BG*/
-    html, body > *, div > :not(a):not(button):not(input):not([class*="yt"]):not([class*="html5"]) {
+    html, body > *, tr, td,
+    ul, li, nav, section, li > *,
+    div > :not(a):not(button):not(input):not([class*="ytp"]):not([class*="html5"]) {
         background: #272822 !important;
     }
-    body {
+    body, h1 > a, h2 > a, h3 > a {
         background: none !important;
     }
     td > img {
