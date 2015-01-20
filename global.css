@@ -1,8 +1,9 @@
 /*inspired by Midnight Surfing*/
+
 @-moz-document url-prefix(http://), url-prefix(https://), url-prefix(ftp://),
 url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     /*ALL*/
-    *, ::before, ::after  {
+    *, ::before, ::after {
         background-color: transparent !important;
         color: #fff !important;
         text-shadow: none !important;
@@ -19,38 +20,13 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     /*HIGHLIGHT*/
     ::-moz-selection {
        background-color: #4c4c4c !important;
+       border: none !important;
     }
     /*SOLID BG*/
-    html, li ul, ul li, table, header, article, menu, aside,
-    [class*="clear"],
-    [class*="nav"],
-    [class*="open"],
-    [id*="ropdown"],
-    [class*="ropdown"], 
-    [class*="tooltip"],
-    div[class*="menu"],
-    div[class*="popup"], 
-    div[id*="popup"],
-    div[class*="note"], span[class*="note"],
-    div[id*="detail"], div[class*="detail"],
-    div[class*="description"],
-    div[class*="content"], div[class*="container"],
-    div[style*="display: block"], 
-    div[style*="visibility: visible"],
-    div[id*="head"],
-    #main {
-        background-color: #272822 !important;
+    html, body > *, div > :not(a):not(button):not(input):not([class*="yt"]):not([class*="html5"]) {
+        background: #272822 !important;
     }
-    ::before, ::after, nav {
-        background-image: none !important;
-    }
-    th, td, caption, body, table table, section, footer,
-    div[class*="primary"],
-    a[class*="control"],
-    [id*="header"],
-    [id*="Bar"],
-    [id*="logo"] > a,
-    h2 > a, div[style], html > div {
+    body {
         background: none !important;
     }
     td > img {
@@ -115,7 +91,7 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
         box-shadow: none !important;
         border-radius: 0px !important;
         border-color: #4c4c4c !important;
-        outline: 0px !important;
+        outline: none !important;
         outline-color: #4c4c4c !important;
         border: none !important;
     }
