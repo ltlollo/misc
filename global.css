@@ -22,7 +22,7 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
        border: none !important;
     }
     /*SOLID BG*/
-    html, body > *, tr, td,
+    html, body > *, tr, td, table,
     ul, li, nav, section, li > *,
     div > :not(a):not(button):not(input):not([class*="ytp"]):not([class*="html5"]) {
         background: #272822 !important;
