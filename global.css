@@ -13,6 +13,9 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
         outline-color: #4c4c4c !important;
         border: none !important;
     }
+    div:after {
+        background-color: #272822 !important;
+    }
     html * {
        color: inherit !important;
     }
@@ -27,7 +30,7 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     div > :not(a):not(button):not(input):not([class*="ytp"]):not([class*="html5"]) {
         background: #272822 !important;
     }
-    body, h1 > a, h2 > a, h3 > a {
+    body, h1 > a, h2 > a, h3 > a, div:not([class*="ytp"]):not([class*="html5"]) {
         background: none !important;
     }
     td > img {
