@@ -39,18 +39,29 @@ State next(const State& state, const vector<Rule>& rules) {
     return nstate;
 }
 
+enum AngT{ Rad, Grad };
+template<AngT> struct Angle {
+    float value;
+    constexpr Angle(float value) : value{value} {}
+};
+
+constexpr Angle<Rad> to_rad(Angle<Grad> ang) {
+    return Angle<Rad>(ang.value*pi/180);
+}
+
 struct Config {
     float len;
-    float ang;
+    Angle<Rad> ang;
+    constexpr Config(float len, Angle<Rad> ang)
+    : len{len}, ang{ang} {}
 };
 
 struct System {
     State state;
     Config conf;
-    System(const State& start, const vector<Rule>& rules, const Config& conf,
-           uint depth)
-        : state{start} {
-        this->conf = conf;
+    System(const State& start, const vector<Rule>& rules,
+           const Config& conf, uint depth)
+        : state{start}, conf{conf} {
         for (uint i = 0; i < depth; ++i) {
             state = next(state, rules);
         }
@@ -75,10 +86,10 @@ void mutate(Sym sym, GraphState& state, const Config& conf) {
         state.line[0] = state.line[1];
         break;
     case '-':
-        state.angle -= conf.ang*pi/180.0;
+        state.angle -= conf.ang.value;
         break;
     case '+':
-        state.angle += conf.ang*pi/180.0;
+        state.angle += conf.ang.value;
         break;
     default:
         break;
@@ -117,7 +128,8 @@ int main() {
                        {'F', to_vec("G+F+G")}
                       ,{'G', to_vec("F-G-F")}
                    },
-                   Config{5, 60}, 7);
+                   Config{5, to_rad(Angle<Grad>{60.0})},
+                   7);
     drawGraph(window, sys);
 
     while(window.isOpen()) {
