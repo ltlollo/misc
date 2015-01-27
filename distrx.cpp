@@ -15,20 +15,21 @@ using namespace std;
 using u = size_t;
 using col = png::rgb_pixel;
 using px = uint8_t;
-using pxg = px[3];
+using rgb_t = px[3];
+using grad_t = rgb_t[2];
 
-constexpr pxg fst_c{0, 100, 50}, snd_c{255, 50, 70};
+constexpr grad_t grad{{0, 100, 50}, {255, 50, 70}};
 
-col translate(const pxg& snd, const pxg& fst, double norm_m) {
+col to_col(const grad_t& grad, double norm_m) {
     auto comp = [](double norm, px snd, px fst){
         if(fst > snd) {
             norm = 1 - norm;
         }
         return min(snd, fst) + norm * abs(snd - fst);
     };
-    return col(comp(norm_m, snd[0], fst[0]),
-               comp(norm_m, snd[1], fst[1]),
-               comp(norm_m, snd[2], fst[2]));
+    return col(comp(norm_m, grad[0][0], grad[1][0]),
+               comp(norm_m, grad[0][1], grad[1][1]),
+               comp(norm_m, grad[0][2], grad[1][2]));
 }
 
 void populate(u* mat, u size, u rawsize) noexcept {
@@ -61,7 +62,7 @@ unsigned distance(u fst, u snd) {
     return dist;
 }
 
-auto morph(u px, const vector<u>& matches, unsigned depth) {
+auto min_distance(u px, const vector<u>& matches, unsigned depth) {
     unsigned min = depth;
 
     for (const auto& it: matches) {
@@ -120,8 +121,8 @@ public:
         auto res = vector<col>{};
         res.reserve(data.size());
         for (const auto& it: data) {
-            auto m = morph(it, pres, depth)/double(depth);
-            res.emplace_back(translate(snd_c, fst_c,  m));
+            auto m = min_distance(it, pres, depth)/double(depth);
+            res.emplace_back(to_col(grad,  m));
         }
         return Img(move(res));
     }
