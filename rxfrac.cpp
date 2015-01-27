@@ -4,6 +4,7 @@
 #include <thread>
 #include <regex>
 #include "work/workers.h"
+#include <extra/task.h>
 #include <png++/png.hpp>
 
 using namespace std;
@@ -62,23 +63,24 @@ public:
         }
     }
     Img apply(const string& restr) {
-        vector<const string*> d;
-        d.reserve(data.size());
-        for (u i{0}; i < data.size(); ++i) {
-            d.emplace_back(&data[i]);
-        }
         const regex re(restr, regex::optimize);
-        auto f = [re](const string* s) noexcept {
+        auto f = [re](const string& s) noexcept {
             cmatch sm;
-            if (!regex_match(s->c_str(), sm, re)) {
+            if (!regex_match(s.c_str(), sm, re)) {
                 return col(255, 255, 255);
             }
-            px r = (sm.length(1) > 0) ? 255u/s->size()*sm.length(1) : defpx;
-            px b = (sm.length(2) > 0) ? 255u/s->size()*sm.length(2) : defpx;
-            px g = (sm.length(3) > 0) ? 255u/s->size()*sm.length(3) : defpx;
+            px r = (sm.length(1) > 0) ? 255u/s.size()*sm.length(1) : defpx;
+            px b = (sm.length(2) > 0) ? 255u/s.size()*sm.length(2) : defpx;
+            px g = (sm.length(3) > 0) ? 255u/s.size()*sm.length(3) : defpx;
             return col(r, b, g);
         };
-        auto res = work::static_work_balancer(d, f, work::Num<4>());
+        auto res = vector<col>{};
+        task::map_reduce(data, f, [&](auto& it){
+            res.insert(end(res),
+                       make_move_iterator(begin(it.result)),
+                       make_move_iterator(end(it.result))
+                      );
+        }, task::Threads<4>());
         return Img(move(res));
     }
 };
