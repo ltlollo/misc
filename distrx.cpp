@@ -68,7 +68,7 @@ auto min_distance(u px, const vector<u>& matches, unsigned depth) {
     for (const auto& it: matches) {
         auto matching = depth - distance(it, px);
         if (matching == 0) {
-            break;
+            return 0u;
         } else if (matching < min) {
             min = matching;
         }
