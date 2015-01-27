@@ -61,7 +61,7 @@ unsigned distance(u fst, u snd) {
     return dist;
 }
 
-auto morph(u px, const vector<u> matches, unsigned depth) {
+auto morph(u px, const vector<u>& matches, unsigned depth) {
     unsigned min = depth;
 
     for (const auto& it: matches) {
