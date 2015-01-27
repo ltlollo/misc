@@ -50,7 +50,7 @@ void populate(u* mat, u size, u rawsize) noexcept {
     populate(mat+size/2*(rawsize+1), size/2, rawsize);
 }
 
-unsigned distance(u fst, u snd) {
+unsigned n_edits(u fst, u snd) {
     unsigned dist = 0;
     while(fst) {
         if (fst%10 == snd%10) {
@@ -66,11 +66,11 @@ auto min_distance(u px, const vector<u>& matches, unsigned depth) {
     unsigned min = depth;
 
     for (const auto& it: matches) {
-        auto matching = depth - distance(it, px);
-        if (matching == 0) {
+        auto distance = depth - n_edits(it, px);
+        if (distance == 0) {
             return 0u;
-        } else if (matching < min) {
-            min = matching;
+        } else if (distance < min) {
+            min = distance;
         }
     }
     return min;
@@ -92,8 +92,6 @@ public:
     }
 };
 
-
-
 class Mat {
     u size;
     vector<u> data;
@@ -106,14 +104,14 @@ public:
     }
     Img apply(const string& restr) {
         const regex re(restr, regex::optimize);
-        auto f = [re](const u& val) noexcept {
+        auto filt = [re](const u& val) noexcept {
             cmatch sm;
             string s{to_string(val)};
             return regex_match(s.c_str(), sm, re);
         };
 
         auto pres = vector<u>{};
-        task::map_reduce(data, [](auto it) { return it; }, f, [&](auto& it){
+        task::map_reduce(data, [](auto it) { return it; }, filt, [&](auto& it){
                     pres.insert(end(pres),                                                
                        make_move_iterator(begin(it.result)),                    
                        make_move_iterator(end(it.result))                       
