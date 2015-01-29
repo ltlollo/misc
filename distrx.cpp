@@ -5,6 +5,7 @@
 #include <regex>
 #include <png++/png.hpp>
 #include <extra/task.h>
+#include <stdlib.h>
 
 /* comp: gpp distrx -lpng
  * use: ./distrx 10 "2*3?(4+1)+"
@@ -17,8 +18,6 @@ using col = png::rgb_pixel;
 using px = uint8_t;
 using rgb_t = px[3];
 using grad_t = rgb_t[2];
-
-constexpr grad_t grad{{0, 100, 50}, {255, 50, 70}};
 
 col to_col(const grad_t& grad, double norm_m) {
     auto comp = [](double norm, px snd, px fst){
@@ -40,7 +39,7 @@ void populate(u* mat, u size, u rawsize) noexcept {
         for (u j{0}; j < size; ++j) {
             *(mat + j + i*rawsize) *= 10;
             *(mat + j + i*rawsize) +=
-                    (i < size/2) ? ((j < size/2) ? 2 : 1)
+                    (i < size/2) ? ((j < size/2) ? 1 : 2)
                                  : ((j < size/2) ? 3 : 4);
         }
     }
@@ -102,24 +101,25 @@ public:
         data(size*size, 0) {
         populate(&data[0], size, size);
     }
-    Img apply(const string& restr) {
+    Img apply(const string& restr, const grad_t& grad) {
         const regex re(restr, regex::optimize);
-        auto filt = [re](const u& val) noexcept {
+        auto s_priv = string(depth, '0');
+        auto filter = [s_priv, re](const u& val) mutable noexcept {
+            s_priv = to_string(val);
             cmatch sm;
-            string s{to_string(val)};
-            return regex_match(s.c_str(), sm, re);
+            return regex_match(s_priv.c_str(), sm, re);
         };
-
-        auto pres = vector<u>{};
-        task::map_reduce(data, [](auto it) { return it; }, filt, [&](auto& it){
-                    pres.insert(end(pres),                                                
+        auto identity = [](auto it) { return it; };
+        auto dzero = vector<u>{};
+        task::map_reduce(data, identity, filter, [&](auto& it){
+                    dzero.insert(end(dzero),
                        make_move_iterator(begin(it.result)),                    
                        make_move_iterator(end(it.result))                       
                       );}, task::Threads<4>());
         auto res = vector<col>{};
         res.reserve(data.size());
         for (const auto& it: data) {
-            auto m = min_distance(it, pres, depth)/double(depth);
+            auto m = min_distance(it, dzero, depth)/double(depth);
             res.emplace_back(to_col(grad,  m));
         }
         return Img(move(res));
@@ -128,7 +128,7 @@ public:
 
 int main(int argc, char *argv[]) {
     auto print_help = [&]() {
-        cerr << "USAGE\t" << argv[0] << " depth regex\n"
+        cerr << "USAGE\t" << argv[0] << " depth regex [grad_params]\n"
              << "\tdepth<unsigned>: recursion depth of the canvas generator, "
                 "determines the image size (size: 2^depth, 2^10 is 1024)\n"
              << "\tregex<string>: self explanatory\n"
@@ -140,6 +140,17 @@ int main(int argc, char *argv[]) {
         print_help();
         return 1;
     }
-    Mat(atoi(argv[1])).apply(argv[2]).save("out.png");
+    auto depth = atoi(argv[1]);
+    auto rx = argv[2];
+    grad_t grad{{0x0, 0x0, 0x0}, {0xFF, 0xFF, 0xFF}};
+    if (argc == 9) {
+        grad[0][0] = atoi(argv[3]);
+        grad[0][1] = atoi(argv[4]);
+        grad[0][2] = atoi(argv[5]);
+        grad[1][0] = atoi(argv[6]);
+        grad[1][1] = atoi(argv[7]);
+        grad[1][2] = atoi(argv[8]);
+    }
+    Mat(depth).apply(rx, grad).save("out.png");
     return 0;
 }
