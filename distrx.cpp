@@ -17,6 +17,7 @@ using namespace std;
 using u = size_t;
 using col = png::rgb_pixel;
 using px = uint8_t;
+using depth_t = uint8_t;
 using rgb_t = px[3];
 using grad_t = rgb_t[2];
 
@@ -50,8 +51,8 @@ void populate(u* mat, u size, u rawsize) noexcept {
     populate(mat+size/2*(rawsize+1), size/2, rawsize);
 }
 
-unsigned n_edits(u fst, u snd) {
-    unsigned dist = 0;
+depth_t n_edits(u fst, u snd) {
+    depth_t dist = 0;
     while(fst) {
         if (fst%10 == snd%10) {
             dist++;
@@ -62,12 +63,12 @@ unsigned n_edits(u fst, u snd) {
     return dist;
 }
 
-auto min_distance(u px, const vector<u>& matches, unsigned depth) {
-    unsigned min = depth;
+auto min_distance(u px, const vector<u>& matches, depth_t depth) {
+    depth_t min = depth;
     for (const auto& it: matches) {
         auto distance = depth - n_edits(it, px);
         if (distance == 0) {
-            return 0u;
+            return depth_t(0);
         } else if (distance < min) {
             min = distance;
         }
@@ -94,10 +95,10 @@ public:
 class Mat {
     u size;
     vector<u> data;
-    unsigned depth;
+    depth_t depth;
 
 public:
-    Mat(uint8_t n) : depth{n}, size{(u)pow(2, n)},
+    Mat(depth_t n) : depth{n}, size{(u)pow(2, n)},
         data(size*size, 0) {
         populate(&data[0], size, size);
     }
@@ -132,7 +133,7 @@ public:
 
 int main(int argc, char *argv[]) {
     auto print_help = [&]() {
-        cerr << "USAGE\t" << argv[0] << " depth regex [grad_params]\n"
+        cerr << "USAGE\t" << argv[0] << "file depth regex [grad_params]\n"
              << "\tdepth<unsigned>: recursion depth of the canvas generator, "
                 "determines the image size (size: 2^depth, 2^10 is 1024)\n"
              << "\tregex<string>: self explanatory\n"
@@ -140,21 +141,23 @@ int main(int argc, char *argv[]) {
              "-images-from-regular-expressions/\n"
              << endl;
     };
-    if (argc < 3) {
+    if (argc < 4) {
         print_help();
         return 1;
     }
-    auto depth = atoi(argv[1]);
-    auto rx = argv[2];
+    auto fname = argv[1];
+    auto depth = atoi(argv[2]);
+    auto rx = argv[3];
+
     grad_t grad{{0x0, 0x0, 0x0}, {0xFF, 0xFF, 0xFF}};
-    if (argc == 9) {
-        grad[0][0] = atoi(argv[3]);
-        grad[0][1] = atoi(argv[4]);
-        grad[0][2] = atoi(argv[5]);
-        grad[1][0] = atoi(argv[6]);
-        grad[1][1] = atoi(argv[7]);
-        grad[1][2] = atoi(argv[8]);
+    if (argc == 10) {
+        grad[0][0] = atoi(argv[4]);
+        grad[0][1] = atoi(argv[5]);
+        grad[0][2] = atoi(argv[6]);
+        grad[1][0] = atoi(argv[7]);
+        grad[1][1] = atoi(argv[8]);
+        grad[1][2] = atoi(argv[9]);
     }
-    Mat(depth).apply(rx, grad).save("out.png");
+    Mat(depth).apply(rx, grad).save(fname);
     return 0;
 }
