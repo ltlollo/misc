@@ -110,23 +110,13 @@ public:
             cmatch sm;
             return regex_match(s_priv.c_str(), sm, re);
         };
-        auto identity = [](auto it) { return it; };
-        auto dzero = vector<u>{};
-        task::map_reduce(data, identity, filter, [&](auto& it){
-                    dzero.insert(end(dzero),
-                       make_move_iterator(begin(it.result)),                    
-                       make_move_iterator(end(it.result))                       
-                      );}, task::Threads<4>());
-        auto res = vector<col>{};
+        auto id = [](auto it) { return it; };
+        auto dzero = task::collect(data, id, filter, task::Threads<4>());
         auto px_to_col = [&](u it) noexcept {
             return d_to_col(grad,
                     min_distance(it, dzero, depth)/double(depth));
         };
-        task::map_reduce(data, px_to_col, [&](auto& it){
-                    res.insert(end(res),                                    
-                       make_move_iterator(begin(it.result)),                    
-                       make_move_iterator(end(it.result))                       
-                      );}, task::Threads<4>()); 
+        auto res = task::collect(data, px_to_col, task::Threads<4>()); 
         return Img(move(res));
     }
 };
