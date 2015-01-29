@@ -6,6 +6,7 @@
 #include <png++/png.hpp>
 #include <extra/task.h>
 #include <stdlib.h>
+#include <extra/utils.h>
 
 /* comp: gpp distrx -lpng
  * use: ./distrx 10 "2*3?(4+1)+"
@@ -63,7 +64,6 @@ unsigned n_edits(u fst, u snd) {
 
 auto min_distance(u px, const vector<u>& matches, unsigned depth) {
     unsigned min = depth;
-
     for (const auto& it: matches) {
         auto distance = depth - n_edits(it, px);
         if (distance == 0) {
@@ -117,11 +117,13 @@ public:
                        make_move_iterator(end(it.result))                       
                       );}, task::Threads<4>());
         auto res = vector<col>{};
-        res.reserve(data.size());
-        for (const auto& it: data) {
-            auto m = min_distance(it, dzero, depth)/double(depth);
-            res.emplace_back(to_col(grad,  m));
-        }
+        task::map_reduce(data,
+            [&](u it) { return to_col(grad, min_distance(it, dzero, depth)/double(depth)); },
+            [&](auto& it){                 
+                    res.insert(end(res),                                    
+                       make_move_iterator(begin(it.result)),                    
+                       make_move_iterator(end(it.result))                       
+                      );}, task::Threads<4>()); 
         return Img(move(res));
     }
 };
