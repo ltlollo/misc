@@ -20,16 +20,16 @@ using px = uint8_t;
 using rgb_t = px[3];
 using grad_t = rgb_t[2];
 
-col to_col(const grad_t& grad, double norm_m) {
+col d_to_col(const grad_t& grad, double norm_d) {
     auto comp = [](double norm, px snd, px fst){
         if(fst > snd) {
             norm = 1 - norm;
         }
         return min(snd, fst) + norm * abs(snd - fst);
     };
-    return col(comp(norm_m, grad[0][0], grad[1][0]),
-               comp(norm_m, grad[0][1], grad[1][1]),
-               comp(norm_m, grad[0][2], grad[1][2]));
+    return col(comp(norm_d, grad[0][0], grad[1][0]),
+               comp(norm_d, grad[0][1], grad[1][1]),
+               comp(norm_d, grad[0][2], grad[1][2]));
 }
 
 void populate(u* mat, u size, u rawsize) noexcept {
@@ -117,9 +117,11 @@ public:
                        make_move_iterator(end(it.result))                       
                       );}, task::Threads<4>());
         auto res = vector<col>{};
-        task::map_reduce(data,
-            [&](u it) { return to_col(grad, min_distance(it, dzero, depth)/double(depth)); },
-            [&](auto& it){                 
+        auto px_to_col = [&](u it) noexcept {
+            return d_to_col(grad,
+                    min_distance(it, dzero, depth)/double(depth));
+        };
+        task::map_reduce(data, px_to_col, [&](auto& it){
                     res.insert(end(res),                                    
                        make_move_iterator(begin(it.result)),                    
                        make_move_iterator(end(it.result))                       
