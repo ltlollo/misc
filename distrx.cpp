@@ -9,7 +9,7 @@
 #include <extra/utils.h>
 
 /* comp: gpp distrx -lpng
- * use: ./distrx 10 "2*3?(4+1)+"
+ * use: ./distrx out.png 10 "2*3?(4+1)+"
  */
 
 using namespace std;
@@ -54,8 +54,8 @@ void populate(u* mat, u size, u rawsize) noexcept {
 depth_t n_edits(u fst, u snd) {
     depth_t dist = 0;
     while(fst) {
-        if (fst%10 == snd%10) {
-            dist++;
+        if (fst%10 != snd%10) {
+            ++dist;
         }
         fst /= 10;
         snd /= 10;
@@ -66,7 +66,7 @@ depth_t n_edits(u fst, u snd) {
 auto min_distance(u px, const vector<u>& matches, depth_t depth) {
     depth_t min = depth;
     for (const auto& it: matches) {
-        auto distance = depth - n_edits(it, px);
+        auto distance = n_edits(it, px);
         if (distance == 0) {
             return depth_t(0);
         } else if (distance < min) {
