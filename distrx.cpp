@@ -111,11 +111,11 @@ public:
             return regex_match(s_priv.c_str(), sm, re);
         };
         auto id = [](auto it) { return it; };
-        auto d0 = task::collect(data, id, filter, task::Threads<4>());
+        auto d0 = task::Parallel<4>::collect(data, id, filter);
         auto px_to_col = [&](u it) noexcept {
             return d_to_col(grad, min_distance(it, d0, depth)/double(depth));
         };
-        auto res = task::collect(data, px_to_col, task::Threads<4>()); 
+        auto res = task::Parallel<4>::collect(data, px_to_col); 
         return Img(move(res));
     }
 };
