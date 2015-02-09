@@ -136,8 +136,7 @@ int main() {
     auto sys = System(
                    State{to_vec("F")},
                    Rules{
-                       {'F', to_vec("++I[+++++F][-----F]")}
-                      ,{'I', to_vec("Gs")}
+                       {'F', to_vec("++++++++++++++++++++Gs[+F][-F]")}
                    },
                    Config{130, to_rad(Angle<Grad>{0.0})},
                    15);
@@ -151,10 +150,10 @@ int main() {
             else if (event.type == sf::Event::KeyPressed)
                 switch (event.key.code) {
                 case sf::Keyboard::M:
-                    speed *= 10;
+                    speed *= 5;
                     break;
                 case sf::Keyboard::N:
-                    speed /= 10;
+                    speed /= 5;
                     break;
                 case sf::Keyboard::Q:
                 case sf::Keyboard::Escape:
