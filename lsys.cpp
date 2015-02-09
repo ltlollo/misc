@@ -117,10 +117,11 @@ void consumer(const System& sys, auto& it, GraphState state) {
     }
 }
 
-void drawGraph(sf::RenderWindow& win, const System& sys) {
+void drawGraph(sf::RenderWindow& win, const System& sys,
+        float x = 0.5, float y = 0.5) {
     auto it = sys.state.cbegin();
-    auto startPos = sf::Vertex(sf::Vector2f(win.getSize().x * 0.5,
-                                            win.getSize().y * 0.5));
+    auto startPos = sf::Vertex(sf::Vector2f(win.getSize().x * x,
+                                            win.getSize().y * y));
     consumer(sys, it,
             GraphState{{startPos, startPos}, pi/2, sys.conf.len, win});
 }
@@ -132,15 +133,15 @@ auto to_vec(const string& str) {
 int main() {
     sf::RenderWindow window{{ww, wh}, "graph"};
     sf::Event event;
-    float speed = 0.001f;
+    float speed = 0.001f, size = 130.0f, x = 0.5f, y = 0.5f;
     auto sys = System(
                    State{to_vec("F")},
                    Rules{
                        {'F', to_vec("++++++++++++++++++++Gs[+F][-F]")}
                    },
-                   Config{130, to_rad(Angle<Grad>{0.0})},
-                   15);
-    drawGraph(window, sys);
+                   Config{size, to_rad(Angle<Grad>{0.0})},
+                   16);
+    drawGraph(window, sys, x, y);
 
     while(window.isOpen()) {
         while (window.pollEvent(event)) {
@@ -149,13 +150,33 @@ int main() {
             }
             else if (event.type == sf::Event::KeyPressed)
                 switch (event.key.code) {
-                case sf::Keyboard::M:
-                    speed *= 5;
+                case sf::Keyboard::W:
+                    y += 0.1;
                     break;
-                case sf::Keyboard::N:
-                    speed /= 5;
+                case sf::Keyboard::S:
+                    y -= 0.1;
+                    break;
+                case sf::Keyboard::A:
+                    x += 0.1;
+                    break;
+                case sf::Keyboard::D:
+                    x -= 0.1;
+                    break;
+                case sf::Keyboard::E:
+                    sys.conf.len += 5;
                     break;
                 case sf::Keyboard::Q:
+                    sys.conf.len -= 5;
+                    break;
+                case sf::Keyboard::X:
+                    speed *= 5;
+                    break;
+                case sf::Keyboard::Z:
+                    speed /= 5;
+                    break;
+                case sf::Keyboard::B:
+                    speed *= (-1);
+                    break;
                 case sf::Keyboard::Escape:
                     window.close();
                     break;
@@ -165,7 +186,7 @@ int main() {
         }
         sys.conf.ang.value += speed;
         window.clear();
-        drawGraph(window, sys);
+        drawGraph(window, sys, x, y);
         window.display();
     }
     return 0;
