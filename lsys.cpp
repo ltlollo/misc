@@ -25,7 +25,7 @@ using uint  = unsigned;
 using Rules = vector<Rule>;
 using Position = sf::Vector2f;
 
-State next(const State& state, const vector<Rule>& rules) {
+State next(const State& state, const Rules& rules) {
     State nstate;
     for (const auto& sym: state) {
         auto it = find_if(begin(rules), end(rules),
@@ -140,7 +140,7 @@ int main() {
                        {'F', to_vec("++++++++++++++++++++Gs[+F][-F]")}
                    },
                    Config{size, to_rad(Angle<Grad>{0.0})},
-                   16);
+                   15);
     drawGraph(window, sys, x, y);
 
     while(window.isOpen()) {
