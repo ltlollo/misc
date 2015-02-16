@@ -13,15 +13,15 @@ using namespace std;
 constexpr unsigned wh{900}, ww{1600};
 constexpr float pi = 3.141592653589793;
 
-using State = vector<char>;
+using uint  = unsigned;
 using Sym = char;
+using State = vector<Sym>;
 
 struct Rule {
     Sym sym;
     State expand;
 };
 
-using uint  = unsigned;
 using Rules = vector<Rule>;
 using Position = sf::Vector2f;
 
@@ -110,7 +110,8 @@ void consumer(const System& sys, auto& it, GraphState state) {
         if (*it == '[') {
             consumer(sys, ++it, state);
         } else if (*it == ']') {
-            ++it; break;
+            ++it;
+            break;
         } else {
             mutate(*it++, state, sys.conf);
         }
@@ -122,8 +123,8 @@ void drawGraph(sf::RenderWindow& win, const System& sys,
     auto it = sys.state.cbegin();
     auto startPos = sf::Vertex(sf::Vector2f(win.getSize().x * x,
                                             win.getSize().y * y));
-    consumer(sys, it,
-            GraphState{{startPos, startPos}, pi/2, sys.conf.len, win});
+    consumer(sys, it, GraphState{{startPos, startPos}, pi/2, sys.conf.len,
+            win});
 }
 
 auto to_vec(const string& str) {

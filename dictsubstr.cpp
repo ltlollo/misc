@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <extra/utils.h>
-#include <work/workers.h>
+#include <extra/task.h>
 
 using namespace std;
 
@@ -52,7 +52,7 @@ auto fmatch(const string& s, const DataVec& vd, const RangeVec& lmap) {
     auto filter = [&, s, pos](const Data& cs, size_t i) noexcept -> bool {
         return !(i < pos || s.find(cs.str) == string::npos);
     };
-    res = work::exp::gen_work_balancer(vd, nth, filter);
+    res = task::Parallel<4>::collect_indexed(vd, nth, filter);
     if (s.size() <= vd[0].str.size()) {
         for (auto i = lmap[s.size()].fst; i < lmap[s.size()].end; ++i) {
             if (s == vd[i].str) {
@@ -70,7 +70,8 @@ int main(int argc, char *argv[]) {
             "SCOPE: i entirelly misread the description of "
             "https://www.reddit.com/r/dailyprogrammer/comments"
             "/2nihz6/20141126_challenge_190_intermediate_words_inside/\n"
-            "so now this is a perf test case for mutation vs non mutation, spoiler: non mut wins";
+            "so now this is a perf test case for mutation vs non mutation, "
+            "spoiler: non mut wins\n";
             return 1;
     }
     vector<Data> vd;
