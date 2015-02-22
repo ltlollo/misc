@@ -3,7 +3,6 @@
 #include <iostream>
 #include <thread>
 #include <regex>
-#include "work/workers.h"
 #include <extra/task.h>
 #include <png++/png.hpp>
 
@@ -74,13 +73,7 @@ public:
             px g = (sm.length(3) > 0) ? 255u/s.size()*sm.length(3) : defpx;
             return col(r, b, g);
         };
-        auto res = vector<col>{};
-        task::map_reduce(data, f, [&](auto& it){
-            res.insert(end(res),
-                       make_move_iterator(begin(it.result)),
-                       make_move_iterator(end(it.result))
-                      );
-        }, task::Threads<4>());
+        auto res = task::Parallel<4>::collect(data, f);
         return Img(move(res));
     }
 };

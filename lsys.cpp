@@ -10,7 +10,7 @@
 
 using namespace std;
 
-constexpr unsigned wh{900}, ww{1600};
+constexpr unsigned wh{900}, ww{900};
 constexpr float pi = 3.141592653589793;
 
 using uint  = unsigned;
@@ -134,14 +134,15 @@ auto to_vec(const string& str) {
 int main() {
     sf::RenderWindow window{{ww, wh}, "graph"};
     sf::Event event;
-    float speed = 0.001f, size = 130.0f, x = 0.5f, y = 0.5f;
+    float speed = 0.002f, size = 10.0f, x = 0.5f, y = 0.5f;
     auto sys = System(
-                   State{to_vec("F")},
+                   State{to_vec("[F][G]")},
                    Rules{
-                       {'F', to_vec("++++++++++++++++++++Gs[+F][-F]")}
+                       {'F', to_vec("+G+F-F+G")}
+                       ,{'G', to_vec("-F-G+G-F")}
                    },
                    Config{size, to_rad(Angle<Grad>{0.0})},
-                   15);
+                   7);
     drawGraph(window, sys, x, y);
 
     while(window.isOpen()) {
