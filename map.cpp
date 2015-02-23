@@ -3,7 +3,7 @@
 #include <cstdio>
 
 int main(int argc, char *argv[]) {
-    auto args = argv+1;
+    auto it_arg = argv + 1;
     auto args_size = argc - 1;
 
     if (args_size < 2) {
@@ -14,13 +14,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    int ret;
-    auto cmd = args[0];
+    auto ret = int(0);
+    auto cmd = it_arg[0];
     std::string cmdline;
-    for(auto arg_end = (args++) + args_size; args != arg_end; ++args) {
+    for(auto arg_end = (it_arg++) + args_size; it_arg != arg_end; ++it_arg) {
         cmdline = cmd;
         cmdline.push_back(' ');
-        cmdline.insert(cmdline.size(), *args);
+        cmdline.insert(cmdline.size(), *it_arg);
         ret = std::system(cmdline.c_str());
         if (ret != 0) {
             fprintf(stderr, "fail: %s\n", cmdline.c_str());
