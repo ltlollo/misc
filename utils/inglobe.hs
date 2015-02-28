@@ -10,8 +10,7 @@ readFiles :: [FilePath] -> IO [String]
 readFiles = mapM SIO.readFile
 
 uniqueLines :: [String] -> String
-uniqueLines files = let contents = concat $ map lines files
-    in (unlines . toList) $ fromList contents
+uniqueLines = unlines . toList . fromList . concat . (map lines)
 
 main = do
     args <- getArgs
