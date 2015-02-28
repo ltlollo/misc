@@ -30,12 +30,15 @@ var handleKey = function(event) {
   }
 }
 
+window.addEventListener("load", function() {
+  document.addEventListener("keypress", handleKey, false)
+}, false)
+
 window.addEventListener("play", function() {
   Array.prototype.forEach.call(
     document.getElementsByTagName("video"),
     function(vEle) {
         setSpeed(vEle, fastSpeed);
     });
-  document.addEventListener("keypress", handleKey, false)
 }, true)
 
