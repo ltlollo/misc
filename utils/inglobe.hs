@@ -15,6 +15,6 @@ uniqueLines = unlines . toList . fromList . concat . (map lines)
 main = do
     args <- getArgs
     when (null args) $ fail usage
-    files <- readFiles $ args
+    files <- readFiles args
     let origFile = head args
     writeFile origFile $ uniqueLines files
