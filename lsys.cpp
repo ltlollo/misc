@@ -127,22 +127,22 @@ void drawGraph(sf::RenderWindow& win, const System& sys,
             win});
 }
 
-auto to_vec(const string& str) {
-    return vector<Sym>(begin(str), end(str));
+State to_vec(const string& str) {
+    return State(begin(str), end(str));
 }
 
 int main() {
     sf::RenderWindow window{{ww, wh}, "graph"};
     sf::Event event;
-    float speed = 0.002f, size = 10.0f, x = 0.5f, y = 0.5f;
+    float speed = 0.0001f, size = 10.0f, x = 0.5f, y = 0.5f;
     auto sys = System(
-                   State{to_vec("[F][G]")},
+                   State{to_vec("F")},
                    Rules{
-                       {'F', to_vec("+G+F-F+G")}
-                       ,{'G', to_vec("-F-G+G-F")}
+                       {'F', to_vec("-G+G+G+G")}
+                       ,{'G', to_vec("F-F+F-F+")}
                    },
                    Config{size, to_rad(Angle<Grad>{0.0})},
-                   7);
+                   6);
     drawGraph(window, sys, x, y);
 
     while(window.isOpen()) {
