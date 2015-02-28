@@ -34,7 +34,7 @@ window.addEventListener("load", function() {
   document.addEventListener("keypress", handleKey, false)
 }, false)
 
-window.addEventListener("play", function() {
+window.addEventListener("canplay", function() {
   Array.prototype.forEach.call(
     document.getElementsByTagName("video"),
     function(vEle) {
