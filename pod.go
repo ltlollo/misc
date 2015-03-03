@@ -54,10 +54,12 @@ func urlToLocalPath(base string, pod Podcast) string {
     return audioPath
 }
 
-func getAudioSources(base string, setting Podcast, res chan Podcast) {
+func getAudioSources(base string, setting Podcast, res chan Podcast,
+status chan string) {
     resp, err := http.Get(setting.Url)
     if err != nil {
-        panic(err)
+        status <- "error getting: " + setting.Url
+        return
     }
     defer resp.Body.Close()
     body, err := ioutil.ReadAll(resp.Body)
@@ -67,7 +69,8 @@ func getAudioSources(base string, setting Podcast, res chan Podcast) {
     var feed RSS
     err = xml.Unmarshal([]byte(body), &feed)
     if err != nil {
-        panic(err)
+        status <- "error parsing: " + setting.Url
+        return
     }
     for _, item := range feed.Items.ItemList {
         pod := Podcast{setting.Folder, item.Enclosure.Url}
@@ -78,16 +81,18 @@ func getAudioSources(base string, setting Podcast, res chan Podcast) {
         } else if os.IsNotExist(err) {
             res <-pod
         } else {
-            panic(err)
+            status <- "error permissions: " + audioPath
+            return
         }
     }
 }
 
-func parseRSS(pods Podchan, data chan Podcast, done chan bool) {
+func parseRSS(pods Podchan, data chan Podcast, done chan bool,
+status chan string) {
     for {
         select {
         case msg := <-pods.data:
-            getAudioSources(pods.base, msg, data)
+            getAudioSources(pods.base, msg, data, status)
         case <-pods.done:
             done <-true
             return
@@ -95,7 +100,7 @@ func parseRSS(pods Podchan, data chan Podcast, done chan bool) {
     }
 }
 
-func saveFile(base string, pod Podcast) {
+func saveFile(base string, pod Podcast, status chan string) {
     path := urlToLocalPath(base, pod)
     fmt.Println(path)
     file, err := os.Create(path)
@@ -105,7 +110,7 @@ func saveFile(base string, pod Podcast) {
     defer file.Close()
     res, err := http.Get(pod.Url)
     if err != nil {
-        panic(err)
+        status <-"error fetching: " + pod.Url
     }
     defer res.Body.Close()
     content, err := ioutil.ReadAll(res.Body)
@@ -118,21 +123,17 @@ func saveFile(base string, pod Podcast) {
     }
 }
 
-func downloadPods(files Podchan) <-chan bool {
-    done := make(chan bool)
-    go func() {
-        for {
-            select {
-            case msg := <-files.data:
-                 fmt.Println(msg)
-                 saveFile(files.base, msg)
-            case <-files.done:
-                done <-true
-                return
-            }
+func downloadPods(files Podchan, done chan bool, status chan string) {
+    for {
+        select {
+        case msg := <-files.data:
+            status <-"getting: " + msg.Url
+             saveFile(files.base, msg, status)
+        case <-files.done:
+            done <-true
+            return
         }
-    }()
-    return done
+    }
 }
 
 func readSettings(path string) Json {
@@ -157,6 +158,18 @@ func newPodchan(settings Json, max int) Podchan {
     return Podchan{ settings.Folder, make(chan Podcast), make(chan bool, max) }
 }
 
+func createDirs(settings Json) {
+    for _, item := range settings.Podcasts {
+        os.Mkdir(settings.Folder + "/" + item.Folder, 0666)
+    }
+}
+
+func displayErrors(err chan string) {
+    for {
+        fmt.Println(<-err)
+    }
+}
+
 const max = 8
 
 /*
@@ -171,14 +184,17 @@ func main() {
         panic("USAGE: " + os.Args[0] + " settings.json")
     }
     settings := readSettings(os.Args[1])
+    createDirs(settings)
     ioUrls := newPodchan(settings, max)
     ioFiles := newPodchan(settings, max)
-    var readyFiles [max] <-chan bool
     doneFetching := make(chan bool, max)
+    readyFiles := make(chan bool, max)
+    status := make(chan string)
 
+    go displayErrors(status)
     for i := 0; i < max; i++ {
-        go parseRSS(ioUrls, ioFiles.data, doneFetching)
-        readyFiles[i] = downloadPods(ioFiles)
+        go parseRSS(ioUrls, ioFiles.data, doneFetching, status)
+        go downloadPods(ioFiles, readyFiles, status)
     }
     for _, pod := range settings.Podcasts {
         ioUrls.data <-pod
@@ -189,7 +205,7 @@ func main() {
         ioFiles.done <-true
     }
     for i := 0; i < max; i++ {
-        <-readyFiles[i]
+        <-readyFiles
     }
 }
 
