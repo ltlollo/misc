@@ -2,10 +2,11 @@ package main
 
 import (
     "os"
+    "io"
     "fmt"
     "strings"
+    "bufio"
     "net/http"
-    "io/ioutil"
     "encoding/xml"
     "encoding/json"
 )
@@ -111,15 +112,15 @@ func saveFile(base string, pod Podcast, status chan string) {
         return
     }
     defer res.Body.Close()
-    content, err := ioutil.ReadAll(res.Body)
-    if err != nil {
-        panic(err)
-    }
-    _, err = file.Write(content)
+    dst := bufio.NewWriter(file)
+    src := bufio.NewReader(res.Body)
+    defer dst.Flush()
+    _, err = io.Copy(dst, src)
     if err != nil {
         status <- "Error writing: " + path
         return
     }
+    status <-"Saved: " + path
 }
 
 func downloadPods(files Podchan, done chan bool, status chan string) {
@@ -155,7 +156,7 @@ func newPodchan(settings Json, max int) Podchan {
 
 func createDirs(settings Json) {
     for _, item := range settings.Podcasts {
-        os.Mkdir(settings.Folder + "/" + item.Folder, 0666)
+        os.Mkdir(settings.Folder + "/" + item.Folder, 0644)
     }
 }
 
@@ -171,7 +172,6 @@ const max = 8
 first go program, fatal errors, poor structure, just toying
 setting schema:
 {"podcasts": [{"folder": "", "url": ""},], "folder": "/home/user/localdir"}
-TODO: create local dirs, show err/status \ fatal , bufio
 */
 
 func main() {
