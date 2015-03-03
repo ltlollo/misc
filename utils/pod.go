@@ -168,11 +168,10 @@ func displayErrors(err chan string) {
 
 const max = 8
 
-/*
-first go program, fatal errors, poor structure, just toying
-setting schema:
-{"podcasts": [{"folder": "", "url": ""},], "folder": "/home/user/localdir"}
-*/
+/* first go program, fatal errors, poor structure, just toying
+ * setting schema:
+ * {"podcasts": [{"folder": "", "url": ""},], "folder": "/home/user/localdir"}
+ */
 
 func main() {
     if len(os.Args) != 2 {
@@ -204,5 +203,3 @@ func main() {
         <-readyFiles
     }
 }
-
-
