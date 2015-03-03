@@ -57,11 +57,11 @@ func urlToLocalPath(base string, pod Podcast) string {
 func getAudioSources(base string, setting Podcast, res chan Podcast,
 status chan string) {
     resp, err := http.Get(setting.Url)
-    defer resp.Body.Close()
     if err != nil {
         status <- "Error getting: " + setting.Url
         return
     }
+    defer resp.Body.Close()
     var feed RSS
     err = xml.NewDecoder(resp.Body).Decode(&feed)
     if err != nil {
@@ -137,10 +137,10 @@ func downloadPods(files Podchan, done chan bool, status chan string) {
 
 func readSettings(path string) Json {
     file, err := os.Open(path)
-    defer file.Close()
     if err != nil {
       panic(err)
     }
+    defer file.Close()
     var settings Json
     err = json.NewDecoder(file).Decode(&settings)
     if err != nil {
