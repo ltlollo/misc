@@ -111,6 +111,7 @@ func saveFile(base string, pod Podcast, status chan string) {
     res, err := http.Get(pod.Url)
     if err != nil {
         status <-"error fetching: " + pod.Url
+        return
     }
     defer res.Body.Close()
     content, err := ioutil.ReadAll(res.Body)
@@ -128,7 +129,7 @@ func downloadPods(files Podchan, done chan bool, status chan string) {
         select {
         case msg := <-files.data:
             status <-"getting: " + msg.Url
-             saveFile(files.base, msg, status)
+            saveFile(files.base, msg, status)
         case <-files.done:
             done <-true
             return
