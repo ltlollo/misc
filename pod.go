@@ -76,7 +76,7 @@ func getAudioSources(base string, setting Podcast, res chan Podcast) {
         if err == nil {
             return
         } else if os.IsNotExist(err) {
-            res <-Podcast{setting.Folder, item.Enclosure.Url}
+            res <-pod
         } else {
             panic(err)
         }
