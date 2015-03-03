@@ -58,18 +58,13 @@ func getAudioSources(base string, setting Podcast, res chan Podcast,
 status chan string) {
     resp, err := http.Get(setting.Url)
     if err != nil {
-        status <- "error getting: " + setting.Url
+        status <- "Error getting: " + setting.Url
         return
     }
-    defer resp.Body.Close()
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        panic(err)
-    }
     var feed RSS
-    err = xml.Unmarshal([]byte(body), &feed)
+    err = xml.NewDecoder(resp.Body).Decode(&feed)
     if err != nil {
-        status <- "error parsing: " + setting.Url
+        status <- "Error parsing: " + setting.Url
         return
     }
     for _, item := range feed.Items.ItemList {
@@ -77,11 +72,12 @@ status chan string) {
         audioPath := urlToLocalPath(base, pod)
         _, err := os.Stat(audioPath)
         if err == nil {
+            status <-"Finished fetching: " + setting.Folder
             return
         } else if os.IsNotExist(err) {
             res <-pod
         } else {
-            status <- "error permissions: " + audioPath
+            status <- "Error permissions: " + audioPath
             return
         }
     }
@@ -102,15 +98,15 @@ status chan string) {
 
 func saveFile(base string, pod Podcast, status chan string) {
     path := urlToLocalPath(base, pod)
-    fmt.Println(path)
     file, err := os.Create(path)
     if err != nil {
-        panic(err)
+        status <-"Error creating: " + path
+        return
     }
     defer file.Close()
     res, err := http.Get(pod.Url)
     if err != nil {
-        status <-"error fetching: " + pod.Url
+        status <-"Error fetching: " + pod.Url
         return
     }
     defer res.Body.Close()
@@ -120,7 +116,8 @@ func saveFile(base string, pod Podcast, status chan string) {
     }
     _, err = file.Write(content)
     if err != nil {
-        panic(err)
+        status <- "Error writing: " + path
+        return
     }
 }
 
@@ -128,7 +125,7 @@ func downloadPods(files Podchan, done chan bool, status chan string) {
     for {
         select {
         case msg := <-files.data:
-            status <-"getting: " + msg.Url
+            status <-"Getting: " + msg.Url
             saveFile(files.base, msg, status)
         case <-files.done:
             done <-true
@@ -142,13 +139,8 @@ func readSettings(path string) Json {
     if err != nil {
       panic(err)
     }
-    defer file.Close()
-    content, err := ioutil.ReadAll(file)
-    if err != nil {
-        panic(err)
-    }
     var settings Json
-    err = json.Unmarshal([]byte(content), &settings)
+    err = json.NewDecoder(file).Decode(&settings)
     if err != nil {
         panic(err)
     }
@@ -182,7 +174,8 @@ TODO: create local dirs, show err/status \ fatal , bufio
 
 func main() {
     if len(os.Args) != 2 {
-        panic("USAGE: " + os.Args[0] + " settings.json")
+        fmt.Println("Usage: " + os.Args[0] + " settings.json")
+        os.Exit(1)
     }
     settings := readSettings(os.Args[1])
     createDirs(settings)
