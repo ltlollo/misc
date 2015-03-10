@@ -9,7 +9,7 @@
 
 // gpp shape-sys.cpp $(pkg-config --libs sfml-all) && ./shape-sys
 
-constexpr unsigned wh{600}, ww{800};
+constexpr unsigned wh{1200}, ww{1200};
 
 using namespace std;
 
@@ -230,17 +230,19 @@ int main(int argc, char *argv[]) {
     sf::RenderWindow window{{ww, wh}, "shapes"};
     sf::Event event;
     auto g = Grammar{{
-        Parser("AaBbcCde>ABC,abcde")
-        ,Parser("AaBbCcDdEe>Aae,Bab,bCc,cDd,dEe")
+         Parser("AaBbCcDd>abcd,aAb,bBc,cCd,dDa")
+        ,Parser("AabBcCd>abcd")
     }};
     auto first = Shapes{{
-        {{330., 100.}, sf::Color::Red}
-        ,{{100.,400.}, sf::Color::Green}
-        ,{{600.,400.}, sf::Color::Blue}
-
+         {{10., 10.}, sf::Color::Red}
+        ,{{1010.,10.}, sf::Color::Yellow}
+        ,{{1010.,1010.}, sf::Color::Blue}
+        ,{{10.,1010.}, sf::Color::Green}
     }};
-    auto shapes = g.iterate(first, 9);
+    auto shapes = g.iterate(first, 10);
 
+    window.clear();
+    drawShapes(window, shapes);
     while(window.isOpen()) {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
@@ -255,8 +257,6 @@ int main(int argc, char *argv[]) {
                     break;
                 }
         }
-        window.clear();
-        drawShapes(window, shapes);
         window.display();
     }
     return 0;
