@@ -100,12 +100,20 @@ void drawShapes(sf::RenderWindow& win, const Shapes& shapes) {
     for(const auto& shape: shapes) {
         for (unsigned i = 0; i < shape.size() - 1; ++i) {
             win.draw(&shape[i], 2, sf::Lines);
-        } if (shape.type() > PolyT::Point) {
+        } if (shape.type() > PolyT::Line) {
             auto last = Shape{shape[shape.size()-1], shape[0]};
             win.draw(&last[0], 2, sf::Lines);
         }
     }
 }
+
+/*   A_e_B
+ * h_|   | _f
+ *   |_ _|
+ *   D g C
+ * How could a grammr rule be introduced: LHS "}A{e}B{f}C{g}D{h" -> RHS "Adf,Bde,Cef,.."
+ */
+
 
 int main(int argc, char *argv[]) {
     sf::RenderWindow window{{ww, wh}, "shapes"};
