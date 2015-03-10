@@ -48,8 +48,10 @@ struct Parser {
     vector<string> vrhs;
     std::map<char, sf::Vertex> vmap;
     Parser() : do_nothing{true} {
-        // the identity parser p().apply(shape) is shape -> [shape]
-        // used my map<?, Parser> when ? is not in the map
+        // the identity parser p().apply(shape) is \shape -> [shape]
+        // used by Grammar::map<?, Parser> when ? is not in the map
+        // this means that if there's no parser associated to the shape
+        // shape is retuned in the form of [shape].
     }
 
     Parser(const string& rule) {
