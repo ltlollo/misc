@@ -33,13 +33,6 @@ void drawShapes(sf::RenderWindow& win, const Shapes& shapes) {
     }
 }
 
-/*   A_e_B
- * h_|   | _f
- *   |_ _|
- *   D g C
- * How could a grammr rule be introduced: LHS "AeBfCgDh" -> RHS "Adf,Bde,Cef,.."
- */
-
 bool is_vertex(char it) {
     return (it >= 'A' && it <= 'Z');
 }
@@ -55,8 +48,8 @@ struct Parser {
     vector<string> vrhs;
     std::map<char, sf::Vertex> vmap;
     Parser() : do_nothing{true} {
-        // the identity parser p().apply(shape) -> [shape]
-        // used my map<?, Parser>
+        // the identity parser p().apply(shape) is shape -> [shape]
+        // used my map<?, Parser> when ? is not in the map
     }
 
     Parser(const string& rule) {
