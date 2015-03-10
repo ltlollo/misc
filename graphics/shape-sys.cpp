@@ -177,6 +177,14 @@ struct Grammar {
     }
 };
 
+/* TODO: explain the grammar
+ * AbCdEf>??? means: I want to introduce bdf vertices in a ACE polygon
+ * ???>aBc    means: I want to form a new polygon with the old vertices and the
+ * ones recently introduced
+ * old vertices must be uppercase, new ones lowercase
+ */
+
+
 int main(int argc, char *argv[]) {
     sf::RenderWindow window{{ww, wh}, "shapes"};
     sf::Event event;
