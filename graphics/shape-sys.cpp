@@ -111,7 +111,8 @@ struct Parser {
             if (!is_vertex(lhs[0])) {
                 throw std::runtime_error("Must start with a vertex");
             }
-            lhs.push_back(lhs[0]); // this is a microopt, see(*)
+            // this is a microopt, see(*)
+            lhs.push_back(lhs[0]);
         }
     }
     Shapes apply(const Shape& shape);
@@ -120,6 +121,8 @@ struct Parser {
 
 void Parser::calc_mids() {
     if (opt_noadjmids) {
+        // optimized mid point calculation, if there's only one
+        // it's halfway between the adjacent vertices
         for(auto it = begin(lhs); it != end(lhs); ++it) {
             if (is_mid(*it)) {
                 vmap[*it] = mid(vmap[*(it-1)], vmap[*(it+1)]);
@@ -214,9 +217,9 @@ struct Grammar {
  *      LHS := [:alpha:]
  *      RHS := "" | [:alpha:] | RHS ',' RHS
  * ex: AbCdEf>ACE,bdf
- *      - AbCdEf>??? instructs the parser to match an ACE shaped plygon,
+ *      - AbCdEf>? instructs the parser to match an ACE shaped plygon,
  *        introducing b,d,f points between it's vertices
- *      - ???>aBc instucts the parser to form a new aBc polygon with using the
+ *      - ?>aBc instucts the parser to form a new aBc polygon with using the
  *        vertices introduced in LHS
  *      - Old vertices must be uppercase, new ones lowercase.
  *      - The LHS definition wraps arownd, therfore in "ABCd", d is considered
