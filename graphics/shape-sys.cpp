@@ -95,7 +95,7 @@ struct Parser {
             return it.empty();
         }), end(vrhs));
 
-        if (!lhs.empty()) { // this is a microopt and should be explained
+        if (!lhs.empty()) { // this is a microopt, see(*)
             lhs.push_back(lhs[0]);
         }
     }
@@ -183,7 +183,7 @@ struct Grammar {
  *        vertices introduced in LHS
  *      - Old vertices must be uppercase, new ones lowercase.
  *      - The LHS definition wraps arownd, therfore in "ABCd", d is considered
- *        between A and B
+ *        between A and B (*)
  * def: RULES := RULE | RULE, RULES
  *      - rules LHS must match unique polygons
  *        ( ex: "ABC>", "AdBC>" is not allowed )
