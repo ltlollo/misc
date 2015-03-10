@@ -175,14 +175,16 @@ struct Grammar {
  *      LHS := [:alpha:]
  *      RHS := "" | [:alpha:] | RHS ',' RHS
  * ex: AbCdEf>ACE,bdf
- *      - AbCdEf>??? means: I want to introduce bdf vertices in a ACE polygon
- *      - ???>aBc    means: I want to form a new polygon with the old vertices and the
- *        ones recently introduced
+ *      - AbCdEf>??? instructs the parser to match an ACE shaped plygon,
+ *        introducing b,d,f points between it's vertices
+ *      - ???>aBc instucts the parser to form a new aBc polygon with using the
+ *        vertices introduced in LHS
  *      - Old vertices must be uppercase, new ones lowercase.
  *      - The LHS definition wraps arownd, therfore in "ABCd", d is considered
  *        between A and B
  * def: RULES := RULE | RULE, RULES
- *      - rules LHS must match unique polygons ( ex: "ABC>", "AdBC>" is not allowed )
+ *      - rules LHS must match unique polygons
+ *        ( ex: "ABC>", "AdBC>" is not allowed )
  */
 
 int main(int argc, char *argv[]) {
