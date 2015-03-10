@@ -5,6 +5,7 @@
 #include <iterator>
 #include <iostream>
 #include <map>
+#include <cmath>
 
 // gpp shape-sys.cpp $(pkg-config --libs sfml-all) && ./shape-sys
 
@@ -19,6 +20,18 @@ sf::Vertex mid(const sf::Vertex& fst, const sf::Vertex& snd) {
     return {{
          (fst.position.x+snd.position.x)/2.f
         ,(fst.position.y+snd.position.y)/2.f
+    }};
+}
+
+sf::Vertex divseg(const sf::Vertex& fst, const sf::Vertex& snd,
+        float of = 1.f, float n = 2.f) {
+    float mx = std::min(fst.position.x, snd.position.x)
+        ,Mx = std::max(fst.position.x, snd.position.x)
+        ,my = std::min(fst.position.y, snd.position.y)
+        ,My = std::max(fst.position.y, snd.position.y);
+    return {{
+          fst.position.x == mx ? (Mx-mx)*of/n + mx : (Mx-mx)*(n-of)/n + mx
+         ,fst.position.y == my ? (My-my)*of/n + my : (My-my)*(n-of)/n + my
     }};
 }
 
@@ -42,7 +55,7 @@ bool is_mid(char it) {
 }
 
 struct Parser {
-    bool do_nothing{false};
+    bool do_nothing{false}, opt_noadjmids{true};
     unsigned type{0};
     string lhs;
     vector<string> vrhs;
@@ -75,8 +88,7 @@ struct Parser {
             return is_mid(f) && is_mid(s);
         });
         if (adj_mids != end(lhs)) {
-            throw std::runtime_error("Adjacent middle-points: " +
-            string(adj_mids, adj_mids+2) + "\nHint: ([A-Z][a-z]?)*");
+            this->opt_noadjmids = false;
         }
         if (type < 2 && lhs.size() != type) {
             throw std::runtime_error("Points cannot be devided");
@@ -95,43 +107,68 @@ struct Parser {
             return it.empty();
         }), end(vrhs));
 
-        if (!lhs.empty()) { // this is a microopt, see(*)
-            lhs.push_back(lhs[0]);
+        if (!lhs.empty()) {
+            if (!is_vertex(lhs[0])) {
+                throw std::runtime_error("Must start with a vertex");
+            }
+            lhs.push_back(lhs[0]); // this is a microopt, see(*)
         }
     }
-    Shapes apply(const Shape& shape) {
-        if (do_nothing) {
-            return {shape};
-        }
-        auto res = Shapes{};
-        if (vrhs.empty()) {
-            return res;
-        }
-        res.reserve(vrhs.size());
-        unsigned i = 0;
-        for(const auto& it: shape) {
-            while(!is_vertex(lhs[i])) {
-                ++i;
-            }
-            vmap[lhs[i]] = it;
-            ++i;
-        }
+    Shapes apply(const Shape& shape);
+    void calc_mids();
+};
+
+void Parser::calc_mids() {
+    if (opt_noadjmids) {
         for(auto it = begin(lhs); it != end(lhs); ++it) {
             if (is_mid(*it)) {
                 vmap[*it] = mid(vmap[*(it-1)], vmap[*(it+1)]);
             }
         }
-        for (const auto& it: vrhs) {
-            auto curr_shape = Shape{};
-            curr_shape.reserve(it.size());
-            for (const auto& sv: it) {
-                curr_shape.push_back(vmap[sv]);
+    } else {
+        for(auto it = begin(lhs); it != end(lhs); ++it) {
+            auto it_mb = it;
+            while (is_mid(*it)) {
+                ++it;
             }
-            res.push_back(move(curr_shape));
+            unsigned n_mids = std::distance(it_mb, it);
+            for (unsigned i = 0; i < n_mids; ++i) {
+                vmap[*(it_mb+i)] = divseg(vmap[*(it_mb-1)], vmap[*(it)], (i+1),
+                        (n_mids+1));
+            }
+
         }
+    }
+}
+
+Shapes Parser::apply(const Shape& shape) {
+    if (do_nothing) {
+        return {shape};
+    }
+    auto res = Shapes{};
+    if (vrhs.empty()) {
         return res;
     }
-};
+    res.reserve(vrhs.size());
+    unsigned i = 0;
+    for(const auto& it: shape) {
+        while(!is_vertex(lhs[i])) {
+            ++i;
+        }
+        vmap[lhs[i]] = it;
+        ++i;
+    }
+    calc_mids();
+    for (const auto& it: vrhs) {
+        auto curr_shape = Shape{};
+        curr_shape.reserve(it.size());
+        for (const auto& sv: it) {
+            curr_shape.push_back(vmap[sv]);
+        }
+        res.push_back(move(curr_shape));
+    }
+    return res;
+}
 
 struct Grammar {
     std::map<unsigned, Parser> pmap;
@@ -193,12 +230,16 @@ int main(int argc, char *argv[]) {
     sf::RenderWindow window{{ww, wh}, "shapes"};
     sf::Event event;
     auto g = Grammar{{
-        Parser("AaBcCd>Aad,Bac,Ccd")
+        Parser("AaBbcCde>ABC,abcde")
+        ,Parser("AaBbCcDdEe>Aae,Bab,bCc,cDd,dEe")
     }};
     auto first = Shapes{{
-        {{300.,100.}}, {{600.,400.}}, {{100.,400.}}
+        {{330., 100.}, sf::Color::Red}
+        ,{{100.,400.}, sf::Color::Green}
+        ,{{600.,400.}, sf::Color::Blue}
+
     }};
-    auto shapes = g.iterate(first, 10);
+    auto shapes = g.iterate(first, 9);
 
     while(window.isOpen()) {
         while (window.pollEvent(event)) {
