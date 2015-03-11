@@ -214,7 +214,7 @@ struct Grammar {
 
 /* grammar explanation
  * def: RULE := LHS '>' RHS
- *      LHS := [:alpha:]
+ *      LHS := [A-Z][:alpha:]
  *      RHS := "" | [:alpha:] | RHS ',' RHS
  * ex: AbCdEf>ACE,bdf
  *      - AbCdEf>? instructs the parser to match an ACE shaped plygon,
