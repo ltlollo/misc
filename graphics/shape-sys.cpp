@@ -9,7 +9,8 @@
 
 // gpp shape-sys.cpp $(pkg-config --libs sfml-all) && ./shape-sys
 
-constexpr unsigned wh{1200}, ww{1200};
+constexpr float off {10.f};
+constexpr unsigned wh{1020}, ww{1020};
 
 using namespace std;
 
@@ -65,20 +66,21 @@ bool is_mid(char it) {
     return (it >= 'a' && it <= 'z');
 }
 
-struct Parser {
+struct Rule {
     bool identity{false}, opt_noadjmids{true}, opt_nocenter{true};
     unsigned type{0};
     string lhs;
     vector<string> vrhs;
     std::map<char, sf::Vertex> vmap;
-    Parser() : identity{true} {
-        // the identity parser p().apply(shape) is \shape -> [shape]
-        // used by Grammar::map<?, Parser> when ? is not in the map
-        // this means that if there's no parser associated to the shape
-        // shape is retuned in the form of [shape].
+    Rule() : identity{true} {
+        /* The identity rule Rule().apply(shape) is \shape -> [shape]
+         * used by Grammar::map<?, Rule> when ? is not in the map
+         * this means that if there's no parser associated to the shape
+         * shape is retuned in the form of [shape].
+         */
     }
 
-    Parser(const string& rulecp) {
+    Rule(const string& rulecp) {
         string rule = rulecp;
         rule.erase(std::remove_if(begin(rule), end(rule), [](const auto& it){
             return it == ' ';
@@ -140,7 +142,7 @@ struct Parser {
     void calc_mids();
 };
 
-void Parser::calc_mids() {
+void Rule::calc_mids() {
     if (opt_noadjmids) {
         // optimized mid point calculation, if there's only one
         // it's halfway between the adjacent vertices
@@ -165,7 +167,7 @@ void Parser::calc_mids() {
     }
 }
 
-Shapes Parser::apply(const Shape& shape) {
+Shapes Rule::apply(const Shape& shape) {
     if (identity) {
         return {shape};
     }
@@ -198,8 +200,8 @@ Shapes Parser::apply(const Shape& shape) {
 }
 
 struct Grammar {
-    std::map<unsigned, Parser> pmap;
-    Grammar(const vector<Parser>& rules) {
+    std::map<unsigned, Rule> pmap;
+    Grammar(const vector<Rule>& rules) {
         for (auto it_f = begin(rules); it_f != end(rules); ++it_f) {
             for (auto it_s = it_f+1; it_s != end(rules); ++it_s) {
                 if (it_f->type == it_s->type) {
@@ -258,31 +260,19 @@ int main(int argc, char *argv[]) {
     sf::RenderWindow window{{ww, wh}, "shapes"};
     sf::Event event;
     auto g = Grammar{{
-        // {"AabcdBCefghD>ABCD,abghh,cdeff"}
-        //,{"ABabcdCDEefgh>abgh,cdef"}
-        // {"ABCDEF>ABCDEF,.AB,.BC,.CD,.DE,.EF,.FA"}
-        //,{"AaBbCc>Aabc"}
-        //,{"AaBbCcDd>aBbcDd"}
          {{"AabBcdCefDgh>ABCD,hABcc,AafDD,bBCee,dCDgg"}}
         ,{{"ABabCDEcd>ABad,cbCE,dabc"}}
     }};
-    float off = 10.f;
     auto first = Shapes{{
-        // {{290., 10.}}
-        //,{{710.,10.}}
-        //,{{1010., 505.}}
-        //,{{710.,1010.}}
-        //,{{290.,1010.}}
-        //,{{10.,505.}}
          {{0.f   +off,0.f   +off}}
         ,{{0.f   +off,1000.f+off}}
         ,{{1000.f+off,1000.f+off}}
         ,{{1000.f+off,0.f   +off}}
     }};
-    auto shapes_ = g.iterate(first, 10);
-    auto shapes = Grammar{{
+    auto shapes = g.iterate(first, 10);
+    shapes = Grammar{{
         {{"ABCDE>"}}
-    }}.iterate(shapes_, 1);
+    }}.iterate(shapes, 1);
 
     window.clear();
     drawShapes(window, shapes);
