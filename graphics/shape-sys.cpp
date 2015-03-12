@@ -66,6 +66,14 @@ bool is_mid(char it) {
     return (it >= 'a' && it <= 'z');
 }
 
+auto remove_spaces(const string& str) {
+        string res = str;
+        res.erase(std::remove_if(begin(res), end(res), [](const auto& it){
+            return it == ' ';
+        }), end(res));
+        return res;
+}
+
 struct Rule {
     bool identity{false}, opt_noadjmids{true}, opt_nocenter{true};
     unsigned type{0};
@@ -80,12 +88,8 @@ struct Rule {
          */
     }
 
-    Rule(const string& rulecp) {
-        string rule = rulecp;
-        rule.erase(std::remove_if(begin(rule), end(rule), [](const auto& it){
-            return it == ' ';
-        }), end(rule));
-        string rhs;
+    Rule(const string& rule_copy) {
+        string rule = remove_spaces(rule_copy);
         auto it = std::find(begin(rule), end(rule), '>');
         if (it > end(rule)-1) {
             throw std::runtime_error("No sparator\nHint: lhs>[rhs]");
@@ -249,7 +253,7 @@ struct Grammar {
  *        vertices introduced in LHS
  *      - Old vertices must be uppercase, new ones lowercase.
  *      - The LHS definition wraps arownd, therfore in "ABCd", d is considered
- *        between A and B (*)
+ *        between A and C (*)
  *      - '.' introduces the center of the polygon
  * def: RULES := RULE | RULE, RULES
  *      - rules LHS must match unique polygons
