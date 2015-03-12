@@ -36,7 +36,7 @@ sf::Vertex divseg(const sf::Vertex& fst, const sf::Vertex& snd,
 }
 
 void drawShapes(sf::RenderWindow& win, const Shapes& shapes) {
-    for(const auto& shape: shapes) {
+    for (const auto& shape: shapes) {
         for (unsigned i = 0; i < shape.size() - 1; ++i) {
             win.draw(&shape[i], 2, sf::Lines);
         } if (shape.size() > 2) {
@@ -55,7 +55,7 @@ bool is_mid(char it) {
 }
 
 struct Parser {
-    bool do_nothing{false}, opt_noadjmids{true};
+    bool do_nothing{false}, opt_noadjmids{true}, opt_nocenter{true};
     unsigned type{0};
     string lhs;
     vector<string> vrhs;
@@ -67,7 +67,11 @@ struct Parser {
         // shape is retuned in the form of [shape].
     }
 
-    Parser(const string& rule) {
+    Parser(const string& rulecp) {
+        string rule = rulecp;
+        rule.erase(std::remove_if(begin(rule), end(rule), [](const auto& it){
+            return it == ' ';
+        }), end(rule));
         string rhs;
         auto it = std::find(begin(rule), end(rule), '>');
         if (it > end(rule)-1) {
@@ -78,9 +82,12 @@ struct Parser {
         type = std::count_if(begin(lhs), end(lhs), is_vertex);
         for (const auto& it: rhs) {
             if (std::none_of(begin(lhs), end(lhs), [&](const auto& s){
-                return (s == it) || it == ',';
+                return (s == it) || it == ',' || it == '.';
             })) {
                 throw std::runtime_error("Unknown symbol: " + string{it});
+            }
+            if (it == '.') {
+                opt_nocenter = false;
             }
         }
         auto adj_mids = std::adjacent_find(begin(lhs), end(lhs),
@@ -92,6 +99,9 @@ struct Parser {
         }
         if (type < 2 && lhs.size() != type) {
             throw std::runtime_error("Points cannot be devided");
+        }
+        if (!type && !opt_nocenter) {
+            throw std::runtime_error("Center can't be calculated");
         }
         string curr;
         for (auto it = begin(rhs); it != end(rhs); ++it) {
@@ -117,19 +127,20 @@ struct Parser {
     }
     Shapes apply(const Shape& shape);
     void calc_mids();
+    void calc_center(const Shape& shape);
 };
 
 void Parser::calc_mids() {
     if (opt_noadjmids) {
         // optimized mid point calculation, if there's only one
         // it's halfway between the adjacent vertices
-        for(auto it = begin(lhs); it != end(lhs); ++it) {
+        for (auto it = begin(lhs); it != end(lhs); ++it) {
             if (is_mid(*it)) {
                 vmap[*it] = mid(vmap[*(it-1)], vmap[*(it+1)]);
             }
         }
     } else {
-        for(auto it = begin(lhs); it != end(lhs); ++it) {
+        for (auto it = begin(lhs); it != end(lhs); ++it) {
             auto it_mb = it;
             while (is_mid(*it)) {
                 ++it;
@@ -144,6 +155,17 @@ void Parser::calc_mids() {
     }
 }
 
+void Parser::calc_center(const Shape& shape) {
+    sf::Vector2f c{0.f, 0.f};
+    for (const auto& it: shape) {
+        c.x += it.position.x;
+        c.y += it.position.y;
+    }
+    c.x /= float(shape.size());
+    c.y /= float(shape.size());
+    vmap['.'] = {c};
+}
+
 Shapes Parser::apply(const Shape& shape) {
     if (do_nothing) {
         return {shape};
@@ -154,7 +176,7 @@ Shapes Parser::apply(const Shape& shape) {
     }
     res.reserve(vrhs.size());
     unsigned i = 0;
-    for(const auto& it: shape) {
+    for (const auto& it: shape) {
         while(!is_vertex(lhs[i])) {
             ++i;
         }
@@ -162,6 +184,9 @@ Shapes Parser::apply(const Shape& shape) {
         ++i;
     }
     calc_mids();
+    if (!opt_nocenter) {
+        calc_center(shape);
+    }
     for (const auto& it: vrhs) {
         auto curr_shape = Shape{};
         curr_shape.reserve(it.size());
@@ -215,7 +240,7 @@ struct Grammar {
 /* grammar explanation
  * def: RULE := LHS '>' RHS
  *      LHS := [A-Z][:alpha:]
- *      RHS := "" | [:alpha:] | RHS ',' RHS
+ *      RHS := "" | [:alpha:] | "." | RHS ',' RHS
  * ex: AbCdEf>ACE,bdf
  *      - AbCdEf>? instructs the parser to match an ACE shaped plygon,
  *        introducing b,d,f points between it's vertices
@@ -224,6 +249,7 @@ struct Grammar {
  *      - Old vertices must be uppercase, new ones lowercase.
  *      - The LHS definition wraps arownd, therfore in "ABCd", d is considered
  *        between A and B (*)
+ *      - '.' introduces the center of the polygon
  * def: RULES := RULE | RULE, RULES
  *      - rules LHS must match unique polygons
  *        ( ex: "ABC>", "AdBC>" is not allowed )
@@ -233,16 +259,23 @@ int main(int argc, char *argv[]) {
     sf::RenderWindow window{{ww, wh}, "shapes"};
     sf::Event event;
     auto g = Grammar{{
-         Parser("AaBbCcDd>abcd,aAb,bBc,cCd,dDa")
-        ,Parser("AabBcCd>abcd")
+        // {"ABCDEF>.AB,.BC,.CD,.DE,.EF,.FA"}
+        //,{"AabBcdCef>abcdef"}
+         {"AaBbCcDd>abcd,,BC."} ,{"AabBcCd>bcda"}
     }};
     auto first = Shapes{{
-         {{10., 10.}, sf::Color::Red}
-        ,{{1010.,10.}, sf::Color::Yellow}
-        ,{{1010.,1010.}, sf::Color::Blue}
-        ,{{10.,1010.}, sf::Color::Green}
+        //{{290., 10.}, sf::Color::Red}
+        //,{{710.,10.}, sf::Color::Yellow}
+        //,{{1010., 505.}, sf::Color::Red}
+        //,{{710.,1010.}, sf::Color::Blue}
+        //,{{290.,1010.}, sf::Color::Green}
+        //,{{10.,505.}, sf::Color::Yellow}
+         {{0.,0.}, sf::Color::Yellow}
+        ,{{0.,1000.}, sf::Color::Yellow}
+        ,{{1000.,1000.}, sf::Color::Yellow}
+        ,{{1000.,0.}, sf::Color::Yellow}
     }};
-    auto shapes = g.iterate(first, 10);
+    auto shapes = g.iterate(first, 15);
 
     window.clear();
     drawShapes(window, shapes);
