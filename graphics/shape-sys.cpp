@@ -46,6 +46,17 @@ void drawShapes(sf::RenderWindow& win, const Shapes& shapes) {
     }
 }
 
+sf::Vertex calc_center(const Shape& shape) {
+    sf::Vector2f c{0.f, 0.f};
+    for (const auto& it: shape) {
+        c.x += it.position.x;
+        c.y += it.position.y;
+    }
+    c.x /= float(shape.size());
+    c.y /= float(shape.size());
+    return {c};
+}
+
 bool is_vertex(char it) {
     return (it >= 'A' && it <= 'Z');
 }
@@ -55,12 +66,12 @@ bool is_mid(char it) {
 }
 
 struct Parser {
-    bool do_nothing{false}, opt_noadjmids{true}, opt_nocenter{true};
+    bool identity{false}, opt_noadjmids{true}, opt_nocenter{true};
     unsigned type{0};
     string lhs;
     vector<string> vrhs;
     std::map<char, sf::Vertex> vmap;
-    Parser() : do_nothing{true} {
+    Parser() : identity{true} {
         // the identity parser p().apply(shape) is \shape -> [shape]
         // used by Grammar::map<?, Parser> when ? is not in the map
         // this means that if there's no parser associated to the shape
@@ -127,7 +138,6 @@ struct Parser {
     }
     Shapes apply(const Shape& shape);
     void calc_mids();
-    void calc_center(const Shape& shape);
 };
 
 void Parser::calc_mids() {
@@ -155,19 +165,8 @@ void Parser::calc_mids() {
     }
 }
 
-void Parser::calc_center(const Shape& shape) {
-    sf::Vector2f c{0.f, 0.f};
-    for (const auto& it: shape) {
-        c.x += it.position.x;
-        c.y += it.position.y;
-    }
-    c.x /= float(shape.size());
-    c.y /= float(shape.size());
-    vmap['.'] = {c};
-}
-
 Shapes Parser::apply(const Shape& shape) {
-    if (do_nothing) {
+    if (identity) {
         return {shape};
     }
     auto res = Shapes{};
@@ -185,7 +184,7 @@ Shapes Parser::apply(const Shape& shape) {
     }
     calc_mids();
     if (!opt_nocenter) {
-        calc_center(shape);
+        vmap['.'] = calc_center(shape);
     }
     for (const auto& it: vrhs) {
         auto curr_shape = Shape{};
@@ -259,23 +258,31 @@ int main(int argc, char *argv[]) {
     sf::RenderWindow window{{ww, wh}, "shapes"};
     sf::Event event;
     auto g = Grammar{{
-        // {"ABCDEF>.AB,.BC,.CD,.DE,.EF,.FA"}
-        //,{"AabBcdCef>abcdef"}
-         {"AaBbCcDd>abcd,,BC."} ,{"AabBcCd>bcda"}
+        // {"AabcdBCefghD>ABCD,abghh,cdeff"}
+        //,{"ABabcdCDEefgh>abgh,cdef"}
+        // {"ABCDEF>ABCDEF,.AB,.BC,.CD,.DE,.EF,.FA"}
+        //,{"AaBbCc>Aabc"}
+        //,{"AaBbCcDd>aBbcDd"}
+         {{"AabBcdCefDgh>ABCD,hABcc,AafDD,bBCee,dCDgg"}}
+        ,{{"ABabCDEcd>ABad,cbCE,dabc"}}
     }};
+    float off = 10.f;
     auto first = Shapes{{
-        //{{290., 10.}, sf::Color::Red}
-        //,{{710.,10.}, sf::Color::Yellow}
-        //,{{1010., 505.}, sf::Color::Red}
-        //,{{710.,1010.}, sf::Color::Blue}
-        //,{{290.,1010.}, sf::Color::Green}
-        //,{{10.,505.}, sf::Color::Yellow}
-         {{0.,0.}, sf::Color::Yellow}
-        ,{{0.,1000.}, sf::Color::Yellow}
-        ,{{1000.,1000.}, sf::Color::Yellow}
-        ,{{1000.,0.}, sf::Color::Yellow}
+        // {{290., 10.}}
+        //,{{710.,10.}}
+        //,{{1010., 505.}}
+        //,{{710.,1010.}}
+        //,{{290.,1010.}}
+        //,{{10.,505.}}
+         {{0.f   +off,0.f   +off}}
+        ,{{0.f   +off,1000.f+off}}
+        ,{{1000.f+off,1000.f+off}}
+        ,{{1000.f+off,0.f   +off}}
     }};
-    auto shapes = g.iterate(first, 15);
+    auto shapes_ = g.iterate(first, 10);
+    auto shapes = Grammar{{
+        {{"ABCDE>"}}
+    }}.iterate(shapes_, 1);
 
     window.clear();
     drawShapes(window, shapes);
