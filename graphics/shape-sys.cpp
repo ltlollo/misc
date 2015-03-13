@@ -94,8 +94,8 @@ struct Rule {
         if (it > end(rule)-1) {
             throw std::runtime_error("No sparator\nHint: lhs>[rhs]");
         }
+        string rhs = {it+1, end(rule)};
         lhs = {begin(rule), it};
-        rhs = {it+1, end(rule)};
         type = std::count_if(begin(lhs), end(lhs), is_vertex);
         for (const auto& it: rhs) {
             if (std::none_of(begin(lhs), end(lhs), [&](const auto& s){
@@ -273,10 +273,10 @@ int main(int argc, char *argv[]) {
         ,{{1000.f+off,1000.f+off}}
         ,{{1000.f+off,0.f   +off}}
     }};
-    auto shapes = g.iterate(first, 10);
-    shapes = Grammar{{
+    auto shapes = g.iterate(first, 8);
+    shapes =  Grammar{{
         {{"ABCDE>"}}
-    }}.iterate(shapes, 1);
+    }}.iterate(shapes);
 
     window.clear();
     drawShapes(window, shapes);

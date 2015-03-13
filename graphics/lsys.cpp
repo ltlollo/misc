@@ -134,15 +134,15 @@ State to_vec(const string& str) {
 int main() {
     sf::RenderWindow window{{ww, wh}, "graph"};
     sf::Event event;
-    float speed = 0.0001f, size = 10.0f, x = 0.5f, y = 0.5f;
+    float speed = 0.0001f, size = 70.0f, x = 0.5f, y = 0.5f;
     auto sys = System(
                    State{to_vec("F")},
                    Rules{
-                       {'F', to_vec("-G+G+G+G")}
-                       ,{'G', to_vec("F-F+F-F+")}
+                       {'F', to_vec("GFs[+F][-F]")}
+                       ,{'G', to_vec("+")}
                    },
-                   Config{size, to_rad(Angle<Grad>{0.0})},
-                   6);
+                   Config{size, to_rad(Angle<Grad>{60.0})},
+                   9);
     drawGraph(window, sys, x, y);
 
     while(window.isOpen()) {
