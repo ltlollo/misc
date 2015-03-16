@@ -139,6 +139,7 @@ struct Rule {
                 throw std::runtime_error("Must start with a vertex");
             }
             // this is a microopt, see(*)
+            lhs.reserve(lhs.size()+1);
             lhs.push_back(lhs[0]);
         }
     }
