@@ -1,11 +1,9 @@
 #include <vector>
 #include <stdexcept>
-#include <string>
-#include <iostream>
 #include <fstream>
-#include <thread>
-#include <algorithm>
 #include <curses.h>
+
+// gpp yougits.cpp -lcurses
 
 using namespace std;
 
@@ -21,8 +19,8 @@ void initterm() {
 
 int main(int argc, char *argv[]) {
     if (argc - 1 < 1) {
-        cerr << "USAGE" << argv[0] << " file\n"
-             << "SCOPE: not much\n";
+        printf("USAGE: %s file\nSCOPE: Ghost in the shell typing sim\n",
+                argv[0]);
         return 1;
     }
     ifstream f(argv[1], ios::in|ios::binary|ios::ate);
