@@ -2,9 +2,7 @@
 #include <stdexcept>
 #include <string>
 #include <iostream>
-#include <fstream>
-#include <thread>
-#include <algorithm>
+#include <random>
 #include <unistd.h>
 #include <limits.h>
 #include <png++/png.hpp>

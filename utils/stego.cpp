@@ -2,14 +2,12 @@
 #include <stdexcept>
 #include <string>
 #include <iostream>
-#include <fstream>
-#include <thread>
-#include <algorithm>
-
+#include <random>
 #include <unistd.h>
 #include <limits.h>
 #include <png++/png.hpp>
 
+// gpp stego.cpp -lpng
 
 using namespace std;
 using namespace png;
@@ -26,7 +24,7 @@ template<typename T> auto make_mat(const png_t& img, const T& ele) {
 }
 
 struct changes_t {
-    int red, blue, green;
+    uint8_t red, blue, green;
 };
 
 vector<bool> to_bitstream(const vector<char>& in) {
