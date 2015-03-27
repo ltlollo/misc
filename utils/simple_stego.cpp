@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <png++/png.hpp>
 
+// gpp simple_stego.cpp -lpng
+
 using namespace std;
 using namespace png;
 
@@ -65,7 +67,7 @@ auto enc(const vector<bool> msg, png_t& img_f, png_t& img_s) {
         return count;
     }
     random_device rd;
-    mt19937 gen(rd());
+    default_random_engine gen(rd());
     discrete_distribution<> d({50, 50});
     size_t min_r = min(img_f.get_height(), img_s.get_height()),
            min_c = min(img_f.get_width(), img_s.get_width());
