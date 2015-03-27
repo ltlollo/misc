@@ -157,9 +157,10 @@ int main(int argc, char *argv[]) {
         vector<char> in;
         copy(istreambuf_iterator<char>{cin}, {}, back_inserter(in));
         auto msg = to_bitstream(in);
-        enc(msg, img_f, img_s);
+        auto esize = enc(msg, img_f, img_s);
         img_f.write(string(ifname_f) + ".enc.png"s);
         img_s.write(string(ifname_s) + ".enc.png"s);
+        cerr << "[I]: bits encoded " << esize << endl;
     } else if (op == Dec) {
         auto msg = dec(img_f, img_s);
         copy(begin(msg), end(msg), ostreambuf_iterator<char>{cout});
