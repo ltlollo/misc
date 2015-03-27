@@ -105,12 +105,6 @@ void check_sizes(const auto& img) {
     }
 }
 
-/*
- * The original implementation is uses some filters to find the best spots
- * in order to minimize sig alteration, but it'not yet correct/complete
- * NOTE: 1px bigger erosion block
- */
-
 int main(int argc, char *argv[]) {
     auto print_help = [&]() {
          cerr << "Usage: " << argv[0] << " -f fst -s snd {-e|-d}"
