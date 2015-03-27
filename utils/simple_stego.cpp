@@ -5,6 +5,8 @@
 #include <fstream>
 #include <thread>
 #include <algorithm>
+#include <unistd.h>
+#include <limits.h>
 #include <png++/png.hpp>
 
 // gpp simple_stego.cpp -lpng
@@ -109,27 +111,56 @@ void check_sizes(const auto& img) {
  */
 
 int main(int argc, char *argv[]) {
-    auto print_help = [&]() { 
-         cerr << "Usage: " << argv[0] << " fst snd\n"
-              << "Scope: simple LSB gtegonograpy using two images\n";
+    auto print_help = [&]() {
+         cerr << "Usage: " << argv[0] << " -f fst -s snd {-e|-d}"
+              << "\n\t-f fst<string>: file name of the fist png image"
+              << "\n\t-s snd<string>: file name of the second png image"
+              << "\n\t-e: perform encoding"
+              << "\n\t-e: perform decoding"
+              << "\nScope: simple LSB gtegonograpy using two images"
+              << endl;
     };
-    if (argc - 1 < 3) {
+    char* ifname_f{nullptr},* ifname_s{nullptr};
+    enum { None, Enc, Dec} op = None;
+    int opt;
+    while ((opt = getopt(argc, argv, "edhvf:s:")) != -1) {
+        switch (opt) {
+        case 'f':           // first image filename
+            ifname_f = optarg;
+            break;
+        case 's':           // second image filename
+            ifname_s = optarg;
+            break;
+        case 'e':           // encode operation
+            op = Enc;
+            break;
+        case 'd':           // decode operation
+            op = Dec;
+            break;
+        case 'h':           // print help and exit
+            print_help();
+            return 0;
+        default:            // print help and die
+            print_help();
+            return 1;
+        }
+    }
+    if (ifname_f == nullptr || ifname_s == nullptr || op == None) {
         print_help();
         return 1;
     }
-    auto img_f = png_t(argv[1]);
-    auto img_s = png_t(argv[2]);
+    auto img_f = png_t(ifname_f);
+    auto img_s = png_t(ifname_s);
     check_sizes(img_f);
     check_sizes(img_s);
-
-    if (argv[3] == "-e"s) {
+    if (op == Enc) {
         vector<char> in;
         copy(istreambuf_iterator<char>{cin}, {}, back_inserter(in));
         auto msg = to_bitstream(in);
         enc(msg, img_f, img_s);
-        img_f.write(string(argv[1]) + ".enc.png"s);
-        img_s.write(string(argv[2]) + ".enc.png"s);
-    } else if (argv[3] == "-d"s) {
+        img_f.write(string(ifname_f) + ".enc.png"s);
+        img_s.write(string(ifname_s) + ".enc.png"s);
+    } else if (op == Dec) {
         auto msg = dec(img_f, img_s);
         copy(begin(msg), end(msg), ostreambuf_iterator<char>{cout});
     } else {
