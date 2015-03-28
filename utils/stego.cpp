@@ -66,10 +66,10 @@ inline bool inside(size_t i, size_t j, const mat<T>& mat) {
 
 template<typename T, typename F>
 void for_insides(mat<T>& m, F&& f) {
-    auto rs = round(m.size()-1, 2);
-    auto cs = round(m[0].size()-1, 2);
-    for (size_t i = 1; i < rs; i+=2) {
-        for (size_t j = 1; j < cs; j+=2) {
+    auto rs = round(m.size(), 2);
+    auto cs = round(m[0].size(), 2);
+    for (size_t i = 1; i < rs-1; i+=2) {
+        for (size_t j = 1; j < cs-1; j+=2) {
             f(m, i, j);
         }
     }
