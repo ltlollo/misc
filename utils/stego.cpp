@@ -79,6 +79,11 @@ void for_insides(mat<T>& m, F&& f) {
             f(m, i, j);
         }
     }
+    for (size_t i = 2; i < rs-2; i+=2) {
+        for (size_t j = 2; j < cs-2; j+=2) {
+            f(m, i, j);
+        }
+    }
 }
 
 #define PIND() do { cout << i << ' ' << j << '\n'; } while(0)
