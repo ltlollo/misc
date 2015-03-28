@@ -21,7 +21,7 @@ constexpr int dcenter_c{4};
 static_assert(dcenter_c >= 0, "must be a positive integer");
 
 constexpr int slope_c{2*dcenter_c+1};
-static_assert(slope_c >= 2*dcenter_c + 1 && slope_c <= 255, "");
+static_assert(slope_c >= 2*dcenter_c + 1 && slope_c <= 255, "invalid slope");
 
 template<typename T, typename U>
 constexpr T round(const T& size, const U& mul) {
