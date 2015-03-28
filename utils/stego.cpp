@@ -17,6 +17,12 @@ using png_t = image<rgb_pixel>;
 template<typename T>
 using mat = vector<vector<T>>;
 
+constexpr int dcenter_c{4};
+static_assert(dcenter_c >= 0, "must be a positive integer");
+
+constexpr int slope_c{2*dcenter_c+1};
+static_assert(slope_c >= 2*dcenter_c + 1 && slope_c <= 255, "");
+
 template<typename T, typename U>
 constexpr T round(const T& size, const U& mul) {
     return size - size%mul;
@@ -91,19 +97,20 @@ void for_insides(mat<T>& m, F&& f) {
 
 #define IF_CANDIDATE(color) \
     if(( \
-            CROSS(min, img, color, i, j) != CROSS(max, img, color, i, j) \
-        ) && (\
-            img[i][j].color >= CROSS(min, img, color, i, j) \
-        ) && (\
-            img[i][j].color <= CROSS(max, img, color, i, j) \
-        ))
+            CROSS(max, img, color, i, j) - CROSS(min, img, color, i, j) >= \
+                slope_c \
+       ) && (\
+            img[i][j].color >= (CROSS(min, img, color, i, j) + dcenter_c) \
+       ) && (\
+            img[i][j].color <= (CROSS(max, img, color, i, j) - dcenter_c) \
+      ))
 
-#define IF_(op, color) \
-    if(img[i][j].color == CROSS(op, img, color, i, j))
+#define IF_(op, color, off) \
+    if(img[i][j].color == CROSS(op, img, color, i, j) + (off))
 
 
-#define IF_MIN(color) IF_(min, color)
-#define IF_MAX(color) IF_(max, color)
+#define IF_MIN(color) IF_(min, color, +dcenter_c)
+#define IF_MAX(color) IF_(max, color, -dcenter_c)
 
 #define MIN 1
 #define MAX 2
