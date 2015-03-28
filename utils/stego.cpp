@@ -85,21 +85,21 @@ void for_insides(mat<T>& m, F&& f) {
 } while(0)
 
 
-#define cross(op, img, color, i, j) \
+#define CROSS(op, img, color, i, j) \
     op(op(img[i][j-1].color, img[i][j+1].color), \
        op(img[i-1][j].color, img[i+1][j].color))
 
 #define IF_CANDIDATE(color) \
     if(( \
-            cross(min, img, color, i, j) != cross(max, img, color, i, j) \
+            CROSS(min, img, color, i, j) != CROSS(max, img, color, i, j) \
         ) && (\
-            img[i][j].color >= cross(min, img, color, i, j) \
+            img[i][j].color >= CROSS(min, img, color, i, j) \
         ) && (\
-            img[i][j].color <= cross(max, img, color, i, j) \
+            img[i][j].color <= CROSS(max, img, color, i, j) \
         ))
 
 #define IF_(op, color) \
-    if(img[i][j].color == cross(op, img, color, i, j))
+    if(img[i][j].color == CROSS(op, img, color, i, j))
 
 
 #define IF_MIN(color) IF_(min, color)
