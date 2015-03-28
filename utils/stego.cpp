@@ -14,9 +14,16 @@ using namespace png;
 
 using png_t = image<rgb_pixel>;
 
-template<typename T> using mat = vector<vector<T>>;
+template<typename T>
+using mat = vector<vector<T>>;
 
-template<typename T> auto make_mat(const png_t& img, const T& ele) {
+template<typename T, typename U>
+constexpr T round(const T& size, const U& mul) {
+    return size - size%mul;
+}
+
+template<typename T>
+auto make_mat(const png_t& img, const T& ele) {
     if (img.get_height() < 10 || img.get_width() < 10) {
         throw runtime_error("unsufficient size");
     }
@@ -39,10 +46,10 @@ vector<bool> to_bitstream(const vector<char>& in) {
 }
 
 vector<char> to_stream(const vector<bool>& in) {
-    auto rs = in.size()/CHAR_BIT;
+    auto rs = round(in.size(), CHAR_BIT);
     auto res = vector<char>();
     res.reserve(rs);
-    for (auto it = begin(in); it < begin(in) + rs*CHAR_BIT; it += CHAR_BIT) {
+    for (auto it = begin(in); it < begin(in) + rs; it += CHAR_BIT) {
         char c = 0;
         for (uint8_t i = 0; i < CHAR_BIT; ++i) {
             c |= (char(*(it+i))<<i);
@@ -59,8 +66,8 @@ inline bool inside(size_t i, size_t j, const mat<T>& mat) {
 
 template<typename T, typename F>
 void for_insides(mat<T>& m, F&& f) {
-    auto rs = (m.size()-1)/2*2;
-    auto cs = (m[0].size()-1)/2*2;
+    auto rs = round(m.size()-1, 2);
+    auto cs = round(m[0].size()-1, 2);
     for (size_t i = 1; i < rs; i+=2) {
         for (size_t j = 1; j < cs; j+=2) {
             f(m, i, j);
