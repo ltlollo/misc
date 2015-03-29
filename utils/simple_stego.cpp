@@ -109,8 +109,8 @@ int main(int argc, char *argv[]) {
               << "\n\t-f fst<string>: file name of the fist png image"
               << "\n\t-s snd<string>: file name of the second png image"
               << "\n\t-e: perform encoding"
-              << "\n\t-e: perform decoding"
-              << "\nScope: simple LSB gtegonograpy using two images"
+              << "\n\t-d: perform decoding"
+              << "\nScope: simple LSB steganograpy using two images"
               << endl;
     };
     char* ifname_f{nullptr},* ifname_s{nullptr};
