@@ -255,7 +255,7 @@ int main(int argc, char *argv[]) {
               << "\n\t-s snd<string>: file name of the second png image"
               << "\n\t-e: perform encoding"
               << "\n\t-d: perform decoding"
-              << "\nScope: steganography on two images' LSB borders"
+              << "\nScope: steganography on two images' LSB edges"
               << endl;
     };
     char* ifname_f{nullptr},* ifname_s{nullptr};
