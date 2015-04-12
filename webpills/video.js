@@ -9,8 +9,10 @@ var fastSpeed = 2.0;
 var fastKey = "+";
 var slowSpeed = 1.25;
 var slowKey = "-";
+var currSpeed = fastSpeed;
 
 var setSpeed = function(vEle, vSpeed) {
+  currSpeed = vSpeed;
   vEle.playbackRate = vSpeed;
 }
 
@@ -19,7 +21,7 @@ var changeSpeed = function(vSpeed) {
     document.getElementsByTagName("video"),
     function(vEle) {
       setSpeed(vEle, vSpeed);
-    }); 
+    });
 }
 
 var handleKey = function(event) {
@@ -31,14 +33,13 @@ var handleKey = function(event) {
 }
 
 window.addEventListener("load", function() {
-  document.addEventListener("keypress", handleKey, false)
+  document.addEventListener("keypress", handleKey, false);
 }, false)
 
 window.addEventListener("canplay", function() {
   Array.prototype.forEach.call(
     document.getElementsByTagName("video"),
     function(vEle) {
-        setSpeed(vEle, fastSpeed);
+        setSpeed(vEle, currSpeed);
     });
 }, true)
-

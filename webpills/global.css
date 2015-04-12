@@ -13,6 +13,10 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
         outline-color: #4c4c4c !important;
         border: none !important;
     }
+    ::before, ::after {
+        background: none !important;
+    }
+
     div:after {
         background-color: #272822 !important;
     }
@@ -25,12 +29,22 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
        border: none !important;
     }
     /*SOLID BG*/
-    html, body > *, tr, td, table,
+    html, body > *, tr, td, th, table, article, footer, #page,
     ul, li, nav, section, li > *,
     div > :not(a):not(button):not(input):not([class*="ytp"]):not([class*="html5"]) {
         background: #272822 !important;
+
     }
-    body, h1 > a, h2 > a, h3 > a, div:not([class*="ytp"]):not([class*="html5"]) {
+    body, nav, pre, code, header, h1 > a, h2 > a, h3 > a, dt,
+    div:not([class*="ytp"]):not([class*="html5"]):after,
+    div:not([class*="ytp"]):not([class*="html5"]):before,
+    div:not([class*="ytp"]):not([class*="html5"]) {
+        background: none !important;
+    }
+    span {
+        background-color: transparent !important;
+    }
+    a[href="/"]:not(:empty) {
         background: none !important;
     }
     td > img {
@@ -59,9 +73,9 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     }
     /*LINKS*/
     a {
-        color: #FF4867 !important; 
+        color: #FF4867 !important;
         background-color: #272822 !important;
-        opacity: 1 !important; 
+        opacity: 1 !important;
         text-indent: 0px !important;
     }
     a:link {
@@ -117,6 +131,6 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
         background-color: #272822 !important;
     }
     .newtab-title {
-        background-color: rgba(0,0,0,.75) !important; 
+        background-color: rgba(0,0,0,.75) !important;
     }
 }
