@@ -86,6 +86,11 @@ void for_insides(mat<T>& m, F&& f) {
     }
 }
 
+#define COLORS \
+    FOR(red) \
+    FOR(blue) \
+    FOR(green)
+
 #define PIND() do { cout << i << ' ' << j << '\n'; } while(0)
 #define PMAT(mat, color, i, j) do { cerr \
     << '\t' << (int)mat[i-1][j].color << '\n'\
@@ -94,7 +99,6 @@ void for_insides(mat<T>& m, F&& f) {
     << '\t' << (int)mat[i][j+1].color << '\n'\
     << '\t' << (int)mat[i+1][j].color << "\n\n";\
 } while(0)
-
 
 #define CROSS(op, img, color, i, j) \
     op(op(img[i][j-1].color, img[i][j+1].color), \
@@ -112,7 +116,6 @@ void for_insides(mat<T>& m, F&& f) {
 
 #define IF_(op, color, off) \
     if(img[i][j].color == CROSS(op, img, color, i, j) + (off))
-
 
 #define IF_MIN(color) IF_(min, color, +dcenter_c)
 #define IF_MAX(color) IF_(max, color, -dcenter_c)
@@ -134,19 +137,13 @@ void for_insides(mat<T>& m, F&& f) {
     } \
 } while(0)
 
-
 auto enc_spots(const png_t& img) {
     auto mat = make_mat(img, changes_t{0,0,0});
     for_insides(mat, [&](auto& mat, size_t i, size_t j) {
-            IF_CANDIDATE(red) {
-                SET_TYPE(red);
-            }
-            IF_CANDIDATE(blue) {
-                SET_TYPE(blue);
-            }
-            IF_CANDIDATE(green) {
-                SET_TYPE(green);
-            }
+            #define FOR(color) \
+                IF_CANDIDATE(color) { SET_TYPE(color); }
+                COLORS
+            #undef FOR
     });
     return mat;
 }
@@ -154,15 +151,10 @@ auto enc_spots(const png_t& img) {
 auto dec_spots(const png_t& img) {
     auto mat = make_mat(img, changes_t{0,0,0});
     for_insides(mat, [&](auto& mat, size_t i, size_t j) {
-            IF_CANDIDATE(red) {
-                mat[i][j].red = OK;
-            }
-            IF_CANDIDATE(blue) {
-                mat[i][j].blue = OK;
-            }
-            IF_CANDIDATE(green) {
-                mat[i][j].green = OK;
-            }
+            #define FOR(color) \
+                IF_CANDIDATE(color) { mat[i][j].color = OK; }
+                COLORS
+            #undef FOR
     });
     return mat;
 }
@@ -224,9 +216,9 @@ auto enc(const vector<bool> msg, png_t& img_f, png_t& img_s) {
         for (size_t j = 0; j < min_c; ++j) {
             auto& fst_ele = mat_f[i][j];
             auto& snd_ele = mat_s[i][j];
-            ENC_MSG(red);
-            ENC_MSG(blue);
-            ENC_MSG(green);
+            #define FOR(color) ENC_MSG(color);
+                COLORS
+            #undef FOR
         }
     }
     return count;
@@ -240,9 +232,9 @@ auto dec(const png_t& img_f, const png_t& img_s) {
            min_c = min(mat_f[0].size(), mat_s[0].size());
     for (size_t i = 0; i < min_r; ++i) {
         for (size_t j = 0; j < min_c; ++j) {
-            DEC_MSG(red);
-            DEC_MSG(blue);
-            DEC_MSG(green);
+            #define FOR(color) DEC_MSG(color);
+                COLORS
+            #undef FOR
         }
     }
     return to_stream(msg);
