@@ -140,8 +140,7 @@ void for_insides(mat<T>& m, F&& f) {
 auto enc_spots(const png_t& img) {
     auto mat = make_mat(img, changes_t{0,0,0});
     for_insides(mat, [&](auto& mat, size_t i, size_t j) {
-            #define FOR(color) \
-                IF_CANDIDATE(color) { SET_TYPE(color); }
+            #define FOR(color) IF_CANDIDATE(color) { SET_TYPE(color); }
                 COLORS
             #undef FOR
     });
@@ -151,8 +150,7 @@ auto enc_spots(const png_t& img) {
 auto dec_spots(const png_t& img) {
     auto mat = make_mat(img, changes_t{0,0,0});
     for_insides(mat, [&](auto& mat, size_t i, size_t j) {
-            #define FOR(color) \
-                IF_CANDIDATE(color) { mat[i][j].color = OK; }
+            #define FOR(color) IF_CANDIDATE(color) { mat[i][j].color = OK; }
                 COLORS
             #undef FOR
     });
@@ -200,7 +198,7 @@ auto dec_spots(const png_t& img) {
     } \
 } while(0)
 
-auto enc(const vector<bool> msg, png_t& img_f, png_t& img_s) {
+auto enc(const vector<bool>& msg, png_t& img_f, png_t& img_s) {
     size_t count = 0;
     if (msg.empty()) {
         return count;
