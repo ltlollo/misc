@@ -36,8 +36,10 @@ auto make_mat(const png_t& img, const T& ele) {
     return mat<T>(img.get_height(), vector<T>(img.get_width(), ele));
 }
 
+enum Candidate { None = 0, Min = 1, Ok = 1, Max = 2, Mid = 3 };
+
 struct changes_t {
-    uint8_t red, blue, green;
+    Candidate red, blue, green;
 };
 
 vector<bool> to_bitstream(const vector<char>& in) {
@@ -120,25 +122,18 @@ void for_insides(mat<T>& m, F&& f) {
 #define IF_MIN(color) IF_(min, color, +dcenter_c)
 #define IF_MAX(color) IF_(max, color, -dcenter_c)
 
-#define MIN 1
-#define MAX 2
-#define MID 3
-#define OK MIN
-#define INC MIN
-#define DEC MAX
-
 #define SET_TYPE(color) do { \
     IF_MIN(color) { \
-        mat[i][j].color = MIN;  \
+        mat[i][j].color = Candidate::Min; \
     } else IF_MAX(color) { \
-        mat[i][j].color = MAX;  \
+        mat[i][j].color = Candidate::Max;  \
     } else { \
-        mat[i][j].color = MID;  \
+        mat[i][j].color = Candidate::Mid;  \
     } \
 } while(0)
 
 auto enc_spots(const png_t& img) {
-    auto mat = make_mat(img, changes_t{0,0,0});
+    auto mat = make_mat(img, changes_t{None, None, None});
     for_insides(mat, [&](auto& mat, size_t i, size_t j) {
             #define FOR(color) IF_CANDIDATE(color) { SET_TYPE(color); }
                 COLORS
@@ -148,9 +143,10 @@ auto enc_spots(const png_t& img) {
 }
 
 auto dec_spots(const png_t& img) {
-    auto mat = make_mat(img, changes_t{0,0,0});
+    auto mat = make_mat(img, changes_t{None, None, None});
     for_insides(mat, [&](auto& mat, size_t i, size_t j) {
-            #define FOR(color) IF_CANDIDATE(color) { mat[i][j].color = OK; }
+            #define FOR(color) \
+                IF_CANDIDATE(color) { mat[i][j].color = Candidate::Ok; }
                 COLORS
             #undef FOR
     });
@@ -158,9 +154,9 @@ auto dec_spots(const png_t& img) {
 }
 
 #define SET(ele, color, img) do { \
-    if (ele.color == MIN) { \
+    if (ele.color == Candidate::Min) { \
         img[i][j].color += 1; \
-    } else if (ele.color == MAX) { \
+    } else if (ele.color == Candidate::Max) { \
         img[i][j].color -= 1; \
     } else { \
         if (d(gen)) { \
@@ -174,9 +170,9 @@ auto dec_spots(const png_t& img) {
 #define ENC_MSG(color) do { \
     if (fst_ele.color || snd_ele.color) { \
         if (bool((img_f[i][j].color ^ img_s[i][j].color)&1) != msg[count]) { \
-            if (snd_ele.color == 0) { \
+            if (snd_ele.color == Candidate::None) { \
                 SET(fst_ele, color, img_f); \
-            } else if (fst_ele.color == 0) { \
+            } else if (fst_ele.color == Candidate::None) { \
                 SET(snd_ele, color, img_s); \
             } else { \
                if(d(gen)) { \
@@ -240,16 +236,17 @@ auto dec(const png_t& img_f, const png_t& img_s) {
 
 int main(int argc, char *argv[]) {
     auto print_help = [&]() {
-         cerr << "Usage: " << argv[0] << " -f fst -s snd {-e|-d}"
-              << "\n\t-f fst<string>: file name of the fist png image"
-              << "\n\t-s snd<string>: file name of the second png image"
-              << "\n\t-e: perform encoding"
-              << "\n\t-d: perform decoding"
-              << "\nScope: steganography on two images' LSB edges"
-              << endl;
+         cerr << "Usage:\t" << argv[0] << " -f fst -s snd {-e|-d}"
+         "\n\t-f fst<string>: file name of the fist png image"
+         "\n\t-s snd<string>: file name of the second png image"
+         "\n\t-e: perform encoding"
+         "\n\t-d: perform decoding"
+         "\nScope:\tsteganography on two images' LSB edges, (d)ecoding only,"
+         "\n\tit doesn't (d)encript/(de)compress/(de)serialize the message"
+         << endl;
     };
     char* ifname_f{nullptr},* ifname_s{nullptr};
-    enum { None, Enc, Dec} op = None;
+    enum { None = 0, Enc, Dec} op = None;
     int opt;
     while ((opt = getopt(argc, argv, "edhvf:s:")) != -1) {
         switch (opt) {
