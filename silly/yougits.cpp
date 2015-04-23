@@ -17,6 +17,11 @@ void initterm() {
     scrollok(stdscr, TRUE);
 }
 
+struct CursesWin {
+    CursesWin() { initterm(); }
+    ~CursesWin() { endwin(); }
+};
+
 int main(int argc, char *argv[]) {
     if (argc - 1 < 1) {
         printf("USAGE: %s file\nSCOPE: 攻殻機動隊 typing sim\n", argv[0]);
@@ -30,12 +35,18 @@ int main(int argc, char *argv[]) {
     if (!file.is_open()) {
         throw runtime_error("open");
     }
-    initterm();
     vector<wchar_t> buf(istreambuf_iterator<wchar_t>{file}, {});
-    cchar_t c;
-    for (size_t i = 0; getch(); i = (i+1)%buf.size()) {
-        c = { 0, buf[i] };
-        add_wch(&c);
+    auto win = CursesWin();
+    try {
+        cchar_t c;
+        for (size_t i = 0; getch(); i = (i+1)%buf.size()) {
+            c = { 0, buf[i] };
+            add_wch(&c);
+        } 
+    } catch (runtime_error& e) {
+        printf(e.what());
+    } catch (...) {
+        return 1;
     }
     return 0;
 }

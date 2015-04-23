@@ -277,8 +277,7 @@ int main(int argc, char *argv[]) {
     auto img_f = png_t(ifname_f);
     auto img_s = png_t(ifname_s);
     if (op == Enc) {
-        vector<char> in;
-        copy(istreambuf_iterator<char>{cin}, {}, back_inserter(in));
+        vector<char> in(istreambuf_iterator<char>{cin}, {});
         auto msg = to_bitstream(in);
         auto esize = enc(msg, img_f, img_s);
         img_f.write(string(ifname_f) + ".enc.png"s);
