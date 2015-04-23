@@ -1,11 +1,13 @@
+import Control.Monad
 import System.Environment
 import Data.Foldable
 import Control.Exception
 import UI.HSCurses.Curses
 import UI.HSCurses.CursesHelper
 
--- Usage: youguts [args]
--- Scope: Ghost in the shell typing sym
+-- scrollok()?
+
+usage = "Usage: yougits [args]\nScope: Ghost in the shell typing symulator"
 
 handleIn :: String -> IO ()
 handleIn [] = do return ()
@@ -23,7 +25,8 @@ interactChar (x:xs) = do
 main :: IO ()
 main = do
     start
-    s <- getArgs
-    filesContents <- mapM readFile s
+    args <- getArgs
+    when (null args) $ fail usage
+    filesContents <- mapM readFile args
     handleIn $ unlines filesContents 
     `finally` end
