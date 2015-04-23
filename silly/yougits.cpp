@@ -1,9 +1,9 @@
 #include <vector>
 #include <stdexcept>
 #include <fstream>
-#include <curses.h>
+#include <ncursesw/curses.h>
 
-// gpp yougits.cpp -lcurses
+// gpp yougits.cpp -lncursesw
 
 using namespace std;
 
@@ -19,26 +19,23 @@ void initterm() {
 
 int main(int argc, char *argv[]) {
     if (argc - 1 < 1) {
-        printf("USAGE: %s file\nSCOPE: Ghost in the shell typing sim\n",
-                argv[0]);
+        printf("USAGE: %s file\nSCOPE: 攻殻機動隊 typing sim\n", argv[0]);
         return 1;
     }
-    ifstream f(argv[1], ios::in|ios::binary|ios::ate);
-    if (!f.is_open()) {
-        throw std::runtime_error("open");
+    auto l = locale("");
+    locale::global(l);
+    wifstream file(argv[1]);
+    file.imbue(l);
+    noskipws(file);
+    if (!file.is_open()) {
+        throw runtime_error("open");
     }
-    size_t size = f.tellg();
-    if (size == 0) {
-        throw runtime_error("empty");
-    }
-    f.seekg(0, ios::beg);
-    vector<char> buf(size);
-    f.read(&buf[0], size);
     initterm();
-    size = 0;
-    while(getch()) {
-        addch(buf[size]);
-        size = (size+1)%buf.size();
+    vector<wchar_t> buf(istreambuf_iterator<wchar_t>{file}, {});
+    cchar_t c;
+    for (size_t i = 0; getch(); i = (i+1)%buf.size()) {
+        c = { 0, buf[i] };
+        add_wch(&c);
     }
     return 0;
 }
