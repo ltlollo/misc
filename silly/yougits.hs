@@ -4,6 +4,9 @@ import Control.Exception
 import UI.HSCurses.Curses
 import UI.HSCurses.CursesHelper
 
+-- Usage: youguts [args]
+-- Scope: Ghost in the shell typing sym
+
 handleIn :: String -> IO ()
 handleIn [] = do return ()
 handleIn a = interactChar $ cycle a
