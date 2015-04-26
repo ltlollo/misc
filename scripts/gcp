@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+source import_except.sh
+source import_template.sh
+
+gcsame() {
+    if [[ ! $(diff $template_dir/template.$1 $2) ]]; then 
+        rm $2
+    fi
+}
+
+for f in $(ls $bash_dir); do gcsame sh $bash_dir/$f; done

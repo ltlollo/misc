@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+elines=3
+file=${1%.cpp}
+rest=${@:2}
+
+mainopts="-Ofast -mtune=native -fno-rtti"
+loopopts="-floop-interchange -ftree-loop-distribution -floop-strip-mine -floop-block"
+restopts="-flto=8 -ftree-vectorize"
+
+OWarn="-Wall -Wextra -pedantic"
+OOpts="${mainopts} ${loopopts} ${restopts}"
+OOut="-fmax-errors=$elines"
+
+g++ -std=c++14 $file.cpp $OWarn $OOpts $OOut -pthread -o $file $rest 2>&1
