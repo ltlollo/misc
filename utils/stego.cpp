@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <png++/png.hpp>
+#include <extra/utils.h>
 
 // gpp stego.cpp -lpng
 
@@ -89,32 +90,20 @@ void for_insides(mat<T>& m, F&& f) {
 }
 
 #define COLORS \
-    FOR(red) \
-    FOR(blue) \
+    FOR(red)   \
+    FOR(blue)  \
     FOR(green)
 
-#define PIND() do { cout << i << ' ' << j << '\n'; } while(0)
-#define PMAT(mat, color, i, j) do { cerr \
-    << '\t' << (int)mat[i-1][j].color << '\n'\
-    <<         (int)mat[i][j-1].color \
-    << '\t' << (int)mat[i][j].color \
-    << '\t' << (int)mat[i][j+1].color << '\n'\
-    << '\t' << (int)mat[i+1][j].color << "\n\n";\
-} while(0)
-
-#define CROSS(op, img, color, i, j) \
+#define CROSS(op, img, color, i, j)              \
     op(op(img[i][j-1].color, img[i][j+1].color), \
        op(img[i-1][j].color, img[i+1][j].color))
 
-#define IF_CANDIDATE(color) \
-    if(( \
-            CROSS(max, img, color, i, j) - CROSS(min, img, color, i, j) >= \
-                slope_c \
-       ) && (\
-            img[i][j].color >= (CROSS(min, img, color, i, j) + dcenter_c) \
-       ) && (\
-            img[i][j].color <= (CROSS(max, img, color, i, j) - dcenter_c) \
-      ))
+#define IF_CANDIDATE(color)                             \
+    auto max##color  = CROSS(max, img, color, i, j);    \
+    auto min##color  = CROSS(min, img, color, i, j);    \
+    if((max##color - min##color >= slope_c) &&          \
+       (img[i][j].color >= (min##color + dcenter_c)) && \
+       (img[i][j].color <= (max##color - dcenter_c)))
 
 #define IF_(op, color, off) \
     if(img[i][j].color == CROSS(op, img, color, i, j) + (off))
@@ -122,14 +111,14 @@ void for_insides(mat<T>& m, F&& f) {
 #define IF_MIN(color) IF_(min, color, +dcenter_c)
 #define IF_MAX(color) IF_(max, color, -dcenter_c)
 
-#define SET_TYPE(color) do { \
-    IF_MIN(color) { \
+#define SET_TYPE(color) do {              \
+    IF_MIN(color) {                       \
         mat[i][j].color = Candidate::Min; \
-    } else IF_MAX(color) { \
-        mat[i][j].color = Candidate::Max;  \
-    } else { \
-        mat[i][j].color = Candidate::Mid;  \
-    } \
+    } else { IF_MAX(color) {              \
+        mat[i][j].color = Candidate::Max; \
+    } else {                              \
+        mat[i][j].color = Candidate::Mid; \
+    }}                                    \
 } while(0)
 
 auto enc_spots(const png_t& img) {
@@ -153,46 +142,46 @@ auto dec_spots(const png_t& img) {
     return mat;
 }
 
-#define SET(ele, color, img) do { \
-    if (ele.color == Candidate::Min) { \
-        img[i][j].color += 1; \
+#define SET(ele, color, img) do {             \
+    if (ele.color == Candidate::Min) {        \
+        img[i][j].color += 1;                 \
     } else if (ele.color == Candidate::Max) { \
-        img[i][j].color -= 1; \
-    } else { \
-        if (d(gen)) { \
-            img[i][j].color += 1; \
-        } else { \
-            img[i][j].color -= 1; \
-        } \
-    } \
+        img[i][j].color -= 1;                 \
+    } else {                                  \
+        if (d(gen)) {                         \
+            img[i][j].color += 1;             \
+        } else {                              \
+            img[i][j].color -= 1;             \
+        }                                     \
+    }                                         \
 } while(0)
 
-#define ENC_MSG(color) do { \
-    if (fst_ele.color || snd_ele.color) { \
+#define ENC_MSG(color) do {                                                  \
+    if (fst_ele.color || snd_ele.color) {                                    \
         if (bool((img_f[i][j].color ^ img_s[i][j].color)&1) != msg[count]) { \
-            if (snd_ele.color == Candidate::None) { \
-                SET(fst_ele, color, img_f); \
-            } else if (fst_ele.color == Candidate::None) { \
-                SET(snd_ele, color, img_s); \
-            } else { \
-               if(d(gen)) { \
-                    SET(fst_ele, color, img_f); \
-                } else { \
-                    SET(snd_ele, color, img_s); \
-                } \
-            } \
-        } \
-        if (++count == msg.size()) { \
-            return count; \
-        } \
-    } \
+            if (snd_ele.color == Candidate::None) {                          \
+                SET(fst_ele, color, img_f);                                  \
+            } else if (fst_ele.color == Candidate::None) {                   \
+                SET(snd_ele, color, img_s);                                  \
+            } else {                                                         \
+               if(d(gen)) {                                                  \
+                    SET(fst_ele, color, img_f);                              \
+                } else {                                                     \
+                    SET(snd_ele, color, img_s);                              \
+                }                                                            \
+            }                                                                \
+        }                                                                    \
+        if (++count == msg.size()) {                                         \
+            return count;                                                    \
+        }                                                                    \
+    }                                                                        \
 } while(0)
 
-#define DEC_MSG(color) do {\
-    if(mat_f[i][j].color || mat_s[i][j].color) { \
+#define DEC_MSG(color) do {                                             \
+    if(mat_f[i][j].color || mat_s[i][j].color) {                        \
         msg.push_back(bool((img_f[i][j].color ^ img_s[i][j].color)&1)); \
-    } \
-} while(0)
+    }                                                                   \
+} while(0                                                               )
 
 auto enc(const vector<bool>& msg, png_t& img_f, png_t& img_s) {
     size_t count = 0;
