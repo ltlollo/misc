@@ -181,7 +181,7 @@ auto dec_spots(const png_t& img) {
     if(mat_f[i][j].color || mat_s[i][j].color) {                        \
         msg.push_back(bool((img_f[i][j].color ^ img_s[i][j].color)&1)); \
     }                                                                   \
-} while(0                                                               )
+} while(0)
 
 auto enc(const vector<bool>& msg, png_t& img_f, png_t& img_s) {
     size_t count = 0;
