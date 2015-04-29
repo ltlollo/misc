@@ -114,11 +114,11 @@ void for_insides(mat<T>& m, F&& f) {
 #define SET_TYPE(color) do {              \
     IF_MIN(color) {                       \
         mat[i][j].color = Candidate::Min; \
-    } else { IF_MAX(color) {              \
+    } else IF_MAX(color) {                \
         mat[i][j].color = Candidate::Max; \
     } else {                              \
         mat[i][j].color = Candidate::Mid; \
-    }}                                    \
+    }                                     \
 } while(0)
 
 auto enc_spots(const png_t& img) {
