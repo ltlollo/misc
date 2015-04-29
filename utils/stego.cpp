@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <limits.h>
 #include <png++/png.hpp>
-#include <extra/utils.h>
 
 // gpp stego.cpp -lpng
 
@@ -105,8 +104,7 @@ void for_insides(mat<T>& m, F&& f) {
        (img[i][j].color >= (min##color + dcenter_c)) && \
        (img[i][j].color <= (max##color - dcenter_c)))
 
-#define IF_(op, color, off) \
-    if(img[i][j].color == CROSS(op, img, color, i, j) + (off))
+#define IF_(op, color, off) if(img[i][j].color == op##color + (off))
 
 #define IF_MIN(color) IF_(min, color, +dcenter_c)
 #define IF_MAX(color) IF_(max, color, -dcenter_c)
