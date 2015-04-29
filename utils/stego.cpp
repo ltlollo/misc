@@ -42,7 +42,7 @@ struct changes_t {
     Candidate red, blue, green;
 };
 
-vector<bool> to_bitstream(const vector<char>& in) {
+vector<bool> to_bitvec(const vector<char>& in) {
     auto res = vector<bool>();
     res.reserve(in.size() * CHAR_BIT);
     for(const auto& c: in) {
@@ -53,7 +53,7 @@ vector<bool> to_bitstream(const vector<char>& in) {
     return res;
 }
 
-vector<char> to_stream(const vector<bool>& in) {
+vector<char> to_vec(const vector<bool>& in) {
     auto rs = round(in.size(), CHAR_BIT);
     auto res = vector<char>();
     res.reserve(rs);
@@ -65,11 +65,6 @@ vector<char> to_stream(const vector<bool>& in) {
         res.push_back(c);
     }
     return res;
-}
-
-template<typename T>
-inline bool inside(size_t i, size_t j, const mat<T>& mat) {
-    return (i < mat.size()) && (j < mat[0].size());
 }
 
 template<typename T, typename F>
@@ -218,7 +213,7 @@ auto dec(const png_t& img_f, const png_t& img_s) {
             #undef FOR
         }
     }
-    return to_stream(msg);
+    return to_vec(msg);
 }
 
 int main(int argc, char *argv[]) {
@@ -265,7 +260,7 @@ int main(int argc, char *argv[]) {
     auto img_s = png_t(ifname_s);
     if (op == Enc) {
         vector<char> in(istreambuf_iterator<char>{cin}, {});
-        auto msg = to_bitstream(in);
+        auto msg = to_bitvec(in);
         auto esize = enc(msg, img_f, img_s);
         img_f.write(string(ifname_f) + ".enc.png"s);
         img_s.write(string(ifname_s) + ".enc.png"s);
