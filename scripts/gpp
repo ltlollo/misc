@@ -8,7 +8,7 @@ mainopts="-Ofast -mtune=native -fno-rtti"
 loopopts="-floop-interchange -ftree-loop-distribution -floop-strip-mine -floop-block"
 restopts="-flto=8 -ftree-vectorize"
 
-OWarn="-Wall -Wextra -pedantic"
+OWarn="-Wall -Wextra -Wconversion -pedantic"
 OOpts="${mainopts} ${loopopts} ${restopts}"
 OOut="-fmax-errors=$elines"
 
