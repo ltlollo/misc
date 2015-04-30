@@ -60,7 +60,7 @@ vector<char> to_vec(const vector<bool>& in) {
     for (auto it = begin(in); it < begin(in) + rs; it += CHAR_BIT) {
         char c = 0;
         for (uint8_t i = 0; i < CHAR_BIT; ++i) {
-            c |= (char(*(it+i))<<i);
+            c = char(c|(char(*(it+i))<<i));
         }
         res.push_back(c);
     }
@@ -135,18 +135,16 @@ auto dec_spots(const png_t& img) {
     return mat;
 }
 
-#define SET(ele, color, img) do {             \
-    if (ele.color == Candidate::Min) {        \
-        img[i][j].color += 1;                 \
-    } else if (ele.color == Candidate::Max) { \
-        img[i][j].color -= 1;                 \
-    } else {                                  \
-        if (d(gen)) {                         \
-            img[i][j].color += 1;             \
-        } else {                              \
-            img[i][j].color -= 1;             \
-        }                                     \
-    }                                         \
+#define SET(ele, color, img) do {                    \
+    if (ele.color == Candidate::Min) {               \
+        img[i][j].color = char((img[i][j].color)+1); \
+    } else if (ele.color == Candidate::Max) {        \
+        img[i][j].color = char((img[i][j].color)-1); \
+    } else {                                         \
+        img[i][j].color = d(gen) ?                   \
+            char((img[i][j].color)+1):               \
+            char((img[i][j].color)-1);               \
+    }                                                \
 } while(0)
 
 #define ENC_MSG(color) do {                                                  \
