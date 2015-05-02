@@ -82,9 +82,9 @@ struct Rule {
     std::map<char, sf::Vertex> vmap;
     Rule() : identity{true} {
         /* The identity rule Rule().apply(shape) is \shape -> [shape]
-         * used by Grammar::map<?, Rule> when ? is not in the map
+         * used by Grammar::map<n-of-gons, Rule> when n-gon is not in the map
          * this means that if there's no parser associated to the shape
-         * shape is retuned in the form of [shape].
+         * shape is retuned in the form of [shape] (by apply).
          */
     }
 
@@ -248,9 +248,9 @@ struct Grammar {
  *      LHS := [A-Z][:alpha:]
  *      RHS := "" | [:alpha:] | "." | RHS ',' RHS
  * ex: AbCdEf>ACE,bdf
- *      - AbCdEf>? instructs the parser to match an ACE shaped plygon,
+ *      - AbCdEf>_ instructs the parser to match an ACE shaped plygon,
  *        introducing b,d,f points between it's vertices
- *      - ?>aBc instucts the parser to form a new aBc polygon with using the
+ *      - _>aBc instucts the parser to form a new aBc polygon with using the
  *        vertices introduced in LHS
  *      - Old vertices must be uppercase, new ones lowercase.
  *      - The LHS definition wraps arownd, therfore in "ABCd", d is considered
@@ -261,7 +261,7 @@ struct Grammar {
  *        ( ex: "ABC>", "AdBC>" is not allowed )
  */
 
-int main(int argc, char *argv[]) {
+int main(int , char *[]) {
     sf::RenderWindow window{{ww, wh}, "shapes"};
     sf::Event event;
     auto g = Grammar{{
