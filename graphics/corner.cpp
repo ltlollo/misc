@@ -55,7 +55,10 @@ void blur(GImage& img) {
     for (size_t i{smooth_win}; i < h-smooth_win; ++i) {
         for (size_t j{smooth_win}; j < w-smooth_win; ++j) {
             for (int k{-smooth_win}; k < smooth_win+1; ++k) {
-                tmp[i][j] += img[i][j+k]/((2*smooth_win+1)*(2*smooth_win+1));
+                tmp[i][j] = png::gray_pixel(
+                                tmp[i][j] +
+                                img[i][j+k]/((2*smooth_win+1)*(2*smooth_win+1))
+                        );
             }
         }
     }
@@ -63,13 +66,13 @@ void blur(GImage& img) {
     for (size_t i{smooth_win}; i < h-smooth_win; ++i) {
         for (size_t j{smooth_win}; j < w-smooth_win; ++j) {
             for (int k{-smooth_win}; k < smooth_win+1; ++k) {
-                img[i][j] += tmp[i+k][j];
+                img[i][j] = png::gray_pixel(tmp[i][j] + tmp[i+k][j]);
             }
         }
     }
 }
 
-inline double patch_eval(const MGrad& grad, unsigned y, unsigned x) noexcept {
+inline double patch_eval(const MGrad& grad, size_t y, size_t x) noexcept {
     pderiv sum{0, 0, 0};
     for (unsigned k{0}; k < w_size; ++k) {
         for (unsigned z{0}; z < w_size; ++z) {
@@ -104,10 +107,22 @@ Features features(const MGrad& grad, double ets = 0) {
 }
 
 int main(int argc, char *argv[]) {
-    assert(argc > 1);
+    auto print_help = [&](){
+        std::cerr << "Usage: " << argv[0] << " in.png"
+                  << std::endl;
+    };
+    if (argc < 2) {
+        print_help();
+        return 1;
+    }
     GImage img(argv[1]);
     size_t h{img.get_height()}, w{img.get_width()};
-    assert(h > w_size+d_win && w > w_size+d_win);
+    if ((h > w_size+d_win && w > w_size+d_win) == false)  {
+        throw std::runtime_error("insufficient image size. "
+                "hint: must be begger than "
+                + std::to_string(w_size+d_win) + "x"
+                + std::to_string(w_size+d_win));
+    }
     GImage out(w, h);
     fun::Bencher("processing", [&]() noexcept {
         auto res = features(gradient(img), ets);
