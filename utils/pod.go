@@ -156,7 +156,7 @@ func newPodchan(settings Json, max int) Podchan {
 
 func createDirs(settings Json) {
     for _, item := range settings.Podcasts {
-        os.Mkdir(settings.Folder + "/" + item.Folder, 0644)
+        os.Mkdir(settings.Folder + "/" + item.Folder, 0755)
     }
 }
 
