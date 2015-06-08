@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include <stdio.h>
+#include <string.h>
 
 using namespace std;
 
@@ -9,40 +10,91 @@ struct str {
     size_t n;
 };
 
+void print(const vector<str>& vstr, size_t n) {
+    if (n < vstr.size()) {
+        size_t nr = vstr.size()%n ? vstr.size()/n+1 : vstr.size()/n;
+        vector<size_t> vmax(n, 0);
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = 0; j < nr && j*n+i < vstr.size(); ++j) {
+                if (vstr[j*n+i].n > vmax[i]) {
+                    vmax[i] = vstr[j*n+i].n;
+                }
+            }
+        }
+        for (size_t i = 0; i < nr; ++i) {
+            for (size_t j = 0; j < n && i*n+j < vstr.size(); ++j) {
+                printf("%-*s", (int)vmax[j], vstr[i*n+j].leak);
+            }
+            printf("\n");
+        }
+    } else {
+        for (const auto& str: vstr) {
+            printf("%s\n", str.leak);
+        }
+    }
+}
+
+void print_t(const vector<str>& vstr, size_t n) {
+    if (n < vstr.size()) {
+        size_t nr = vstr.size()%n ? vstr.size()/n+1 : vstr.size()/n;
+        vector<size_t> vmax(n, 0);
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = 0; j < nr && i*nr+j < vstr.size(); ++j) {
+                if (vstr[i*nr+j].n > vmax[i]) {
+                    vmax[i] = vstr[i*nr+j].n;
+                }
+            }
+        }
+        for (size_t i = 0; i < nr; ++i) {
+            for (size_t j = 0; j < n && j*nr+i < vstr.size(); ++j) {
+                printf("%-*s", (int)vmax[j], vstr[j*nr+i].leak);
+            }
+            printf("\n");
+        }
+    } else {
+        for (const auto& str: vstr) {
+            printf("%s\n", str.leak);
+        }
+    }
+}
+
 int main(int argc, char* argv[]) {
     auto print_help = [&]() {
-        fprintf(stderr, "USAGE:\t%s n\n"
+        fprintf(stderr, "USAGE:\t%s n [-t]\n"
         "SCOPE:\tpresent lines in a tabular form [line; n]\n"
-        "\t\twhen n is 0 returns 0", argv[0]);
+        "\t\twhen n is 0 returns 0\n", argv[0]);
     };
-    if (argc-1 != 1) {
+    if (argc-1 < 1) {
         print_help();
         return 1;
     }
-    size_t n = stoul(argv[1]), i = 0, max = 0;
+    size_t n = stoul(argv[1]);
     ssize_t s;
+    bool transpose = false;
     vector<str> vstr;
     str in{NULL, 0};
     if (!n) {
         return 0;
     }
-    while((s = getline(&in.leak, &in.n, stdin)) != -1) {
-        if ((size_t)s > max) {
-            max = s;
+    if (argc-1 == 2) {
+        if (strcmp(argv[2], "-t") == 0) {
+            transpose = true;
+        } else {
+            print_help();
+            return 1;
         }
+    }
+    while((s = getline(&in.leak, &in.n, stdin)) != -1) {
+        in.n = s;
         in.leak[s-1] = ' ';
         vstr.push_back(in);
         in.leak = NULL;
         in.n = 0;
     }
-    for (const auto& str: vstr) {
-        printf("%-*s", (int)max, str.leak);
-        if (!(++i%n)) {
-            printf("\n");
-        }
+    if (!transpose) {
+        print(vstr, n);
+    } else {
+        print_t(vstr, n);
     }
-    if (i%n) {
-        printf("\n");
-    };
     return 0;
 }
