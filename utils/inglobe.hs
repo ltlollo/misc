@@ -16,5 +16,4 @@ main = do
     args <- getArgs
     when (null args) $ fail usage
     files <- readFiles args
-    let origFile = head args
-    writeFile origFile $ uniqueLines files
+    writeFile (head args) $ uniqueLines files

@@ -207,7 +207,7 @@ Shapes Rule::apply(const Shape& shape) {
 struct Grammar {
     std::map<unsigned, Rule> pmap;
     Grammar(const vector<Rule>& rules) {
-        for (auto it_f = begin(rules); it_f != end(rules); ++it_f) {
+        for (auto it_f = begin(rules); it_f < end(rules)-1; ++it_f) {
             for (auto it_s = it_f+1; it_s != end(rules); ++it_s) {
                 if (it_f->type == it_s->type) {
                     throw std::runtime_error("Non unique rule: " + it_f->lhs +

@@ -100,12 +100,15 @@ status chan string) {
 
 func saveFile(base string, pod Podcast, status chan string) {
     path := urlToLocalPath(base, pod)
-    file, err := os.Create(path)
+    tempPath := path + ".part"
+    _ = os.Remove(tempPath)
+    file, err := os.Create(tempPath)
     if err != nil {
-        status <-"Error creating: " + path
+        status <-"Error creating: " + tempPath
         return
     }
     defer file.Close()
+    defer os.Remove(tempPath)
     res, err := http.Get(pod.Url)
     if err != nil {
         status <-"Error fetching: " + pod.Url
@@ -117,9 +120,10 @@ func saveFile(base string, pod Podcast, status chan string) {
     defer dst.Flush()
     _, err = io.Copy(dst, src)
     if err != nil {
-        status <- "Error writing: " + path
+        status <- "Error writing: " + tempPath
         return
     }
+    os.Rename(tempPath, path)
     status <-"Saved: " + path
 }
 
