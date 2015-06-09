@@ -10,10 +10,10 @@ struct str {
     size_t n;
 };
 
-void print(const vector<str>& vstr, size_t n) {
-    if (n < vstr.size()) {
-        size_t nr = vstr.size()%n ? vstr.size()/n+1 : vstr.size()/n;
-        vector<size_t> vmax(n, 0);
+void print(const vector<str>& vstr, size_t n, bool transpose=false) {
+    size_t nr = vstr.size()%n ? vstr.size()/n+1 : vstr.size()/n;
+    vector<size_t> vmax(n, 0);
+    if (!transpose) {
         for (size_t i = 0; i < n; ++i) {
             for (size_t j = 0; j < nr && j*n+i < vstr.size(); ++j) {
                 if (vstr[j*n+i].n > vmax[i]) {
@@ -28,16 +28,6 @@ void print(const vector<str>& vstr, size_t n) {
             printf("\n");
         }
     } else {
-        for (const auto& str: vstr) {
-            printf("%s\n", str.leak);
-        }
-    }
-}
-
-void print_t(const vector<str>& vstr, size_t n) {
-    if (n < vstr.size()) {
-        size_t nr = vstr.size()%n ? vstr.size()/n+1 : vstr.size()/n;
-        vector<size_t> vmax(n, 0);
         for (size_t i = 0; i < n; ++i) {
             for (size_t j = 0; j < nr && i*nr+j < vstr.size(); ++j) {
                 if (vstr[i*nr+j].n > vmax[i]) {
@@ -50,10 +40,6 @@ void print_t(const vector<str>& vstr, size_t n) {
                 printf("%-*s", (int)vmax[j], vstr[j*nr+i].leak);
             }
             printf("\n");
-        }
-    } else {
-        for (const auto& str: vstr) {
-            printf("%s\n", str.leak);
         }
     }
 }
@@ -73,7 +59,7 @@ int main(int argc, char* argv[]) {
     bool transpose = false;
     vector<str> vstr;
     str in{NULL, 0};
-    if (!n) {
+    if (n == 0) {
         return 0;
     }
     if (argc-1 == 2) {
@@ -91,10 +77,6 @@ int main(int argc, char* argv[]) {
         in.leak = NULL;
         in.n = 0;
     }
-    if (!transpose) {
-        print(vstr, n);
-    } else {
-        print_t(vstr, n);
-    }
+    print(vstr, n, transpose);
     return 0;
 }
