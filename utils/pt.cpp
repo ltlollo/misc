@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+// gpp pt.cpp
+
 using namespace std;
 
 struct str {
@@ -43,6 +45,9 @@ void print(const vector<str>& vstr, size_t n, bool transpose=false) {
         }
     }
 }
+
+// Non-lazy sink, presents lines in a tobular form, provided the number of
+// columns
 
 int main(int argc, char* argv[]) {
     auto print_help = [&]() {
