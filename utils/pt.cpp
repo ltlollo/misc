@@ -12,6 +12,8 @@ struct str {
     size_t n;
 };
 
+static vector<str> vstr;
+
 void print(const vector<str>& vstr, size_t n, bool transpose=false) {
     size_t nr = vstr.size()%n ? vstr.size()/n+1 : vstr.size()/n;
     vector<size_t> vmax(n, 0);
@@ -62,7 +64,6 @@ int main(int argc, char* argv[]) {
     size_t n = stoul(argv[1]);
     ssize_t s;
     bool transpose = false;
-    vector<str> vstr;
     str in{NULL, 0};
     if (n == 0) {
         return 0;
