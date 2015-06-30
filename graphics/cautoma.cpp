@@ -22,15 +22,15 @@ inline px_t next(px_t* curr, const rules_t rules) {
     uint8_t r = 0, g = 0, b = 0;
     if (red) {
         r = (((curr-1)->red&1)<<2)+((curr->red&1)<<1)+((curr+1)->red&1);
-        if ((((rules>>0)&0xff)>>r)&1) { ret.red = 255; }
+        if (((rules>>0)>>r)&1) { ret.red = 255; }
     }
     if (green) {
         g = (((curr-1)->green&1)<<2)+((curr->green&1)<<1)+((curr+1)->green&1);
-        if ((((rules>>8)&0xff)>>g)&1) { ret.green = 255; }
+        if (((rules>>8)>>g)&1) { ret.green = 255; }
     }
     if (blue) {
         b = (((curr-1)->blue&1)<<2)+((curr->blue&1)<<1)+((curr+1)->blue&1);
-        if ((((rules>>16)&0xff)>>b)&1) { ret.blue = 255; }
+        if (((rules>>16)>>b)&1) { ret.blue = 255; }
     }
     return ret;
 }
