@@ -51,8 +51,7 @@ void populate(img_t& img, const uint32_t rule) {
     }
 }
 
-template<typename T>
-auto new_img(size_t x, size_t y, T&& lambda) {
+template<typename T> auto new_img(size_t x, size_t y, T&& lambda) {
     if (x < 20 || x < 20) {
         throw std::runtime_error("Image too small");
     }
