@@ -52,9 +52,6 @@ void populate(img_t& img, const uint32_t rule) {
 }
 
 template<typename T> auto new_img(size_t x, size_t y, T&& lambda) {
-    if (x < 20 || x < 20) {
-        throw std::runtime_error("Image too small");
-    }
     auto ret = img_t(x+2,y+2);
     for (size_t i = 1; i < ret.get_width()-1; ++i) {
         ret[0][i] = lambda(i-1);
@@ -85,7 +82,7 @@ auto random_start(size_t x, size_t y) {
 // rules is uint32_t(0b________xxxxxxxxxxxxxxxxxxxxxxxx)
 //                     \ pad  /\ blue /\green /\ red  /
 //  where bitpos repr a state of the top neighbors, and the value the
-//  transformed state eg red: 11111110 (0: cell dead, cell alive)
+//  transformed state eg red: 11111110 (0: cell dead, 1: cell alive)
 //                    bitpos: 76543210 - 000 -> 0, 001 -> 1, 010 -> 1, ...
 //  or 000, 001, 010, ...
 //      0    1    1   ...
@@ -93,7 +90,7 @@ auto random_start(size_t x, size_t y) {
 int main(int , char *[]) {
     auto img = random_start(1024, 1024);
     auto rules = random_rules();
-    std::cerr << "rules: " << rules << '\n';
+    fprintf(stderr, "rules: 0x%X\n", rules);
     populate(img, rules);
     img.write("/tmp/out.png");
     return 0;
