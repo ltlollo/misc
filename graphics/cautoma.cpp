@@ -16,28 +16,28 @@ constexpr bool wrap = true, red = true, green = true, blue = true;
 std::random_device rd;
 std::default_random_engine gen(rd());
 std::uniform_int_distribution<> col_d(0, 7);
-std::uniform_int_distribution<> srule_d(0, 0x7ffffff);
+std::uniform_int_distribution<> srule_d(0, 0xffffff);
 
 inline px_t next(px_t* curr, const rules_t rules) {
     px_t ret;
-    uint16_t rval = 0, gval = 0, bval = 0;
+    uint8_t rval = 0, gval = 0, bval = 0;
     if (red) {
-        if ((curr-1)->red) { rval = 1; }
+        if ((curr-1)->red) { ++rval;       }
         if ((curr  )->red) { ++(rval<<=1); }
         if ((curr+1)->red) { ++(rval<<=1); }
-        if ((((rules>>0)&0x1ff)>>rval)&1) { ret.red = 255; }
+        if ((((rules>>0)&0xff)>>rval)&1) { ret.red = 255; }
     }
     if (green) {
-        if ((curr-1)->green) { gval = 1; }
+        if ((curr-1)->green) { ++gval;       }
         if ((curr  )->green) { ++(gval<<=1); }
         if ((curr+1)->green) { ++(gval<<=1); }
-        if ((((rules>>9)&0x1ff)>>gval)&1) { ret.green = 255; }
+        if ((((rules>>8)&0xff)>>gval)&1) { ret.green = 255; }
     }
     if (blue) {
-        if ((curr-1)->blue)  { bval = 1; }
+        if ((curr-1)->blue)  { ++bval;       }
         if ((curr  )->blue)  { ++(bval<<=1); }
         if ((curr+1)->blue)  { ++(bval<<=1); }
-        if ((((rules>>18)&0x1ff)>>bval)&1) { ret.blue = 255; }
+        if ((((rules>>16)&0xff)>>bval)&1) { ret.blue = 255; }
     }
     return ret;
 }
@@ -90,11 +90,11 @@ auto random_start(size_t x, size_t y) {
     return new_img(x, y, [](size_t) { return random_col(); });
 }
 
-// rules is uint32_t(0b_____xxxxxxxxxxxxxxxxxxxxxxxxxxx)
-//                     \pad/\  blue /\ green /\  red  /
+// rules is uint32_t(0b________xxxxxxxxxxxxxxxxxxxxxxxx)
+//                     \ pad  /\ blue /\green /\ red  /
 //  where bitpos repr a state of the top neighbors, and the value the
-//  transformed state eg: 111111110 (0: cell dead, cell alive)
-//                bitpos: 876543210 - 000 -> 0, 001 -> 1, 010 -> 1, ...
+//  transformed state eg: 11111110 (0: cell dead, cell alive)
+//                bitpos: 76543210 - 000 -> 0, 001 -> 1, 010 -> 1, ...
 //  or 000, 001, 010, ...
 //      0    1    1   ...
 
