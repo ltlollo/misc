@@ -20,24 +20,18 @@ std::uniform_int_distribution<> srule_d(0, 0xffffff);
 
 inline px_t next(px_t* curr, const rules_t rules) {
     px_t ret;
-    uint8_t rval = 0, gval = 0, bval = 0;
+    uint8_t r = 0, g = 0, b = 0;
     if (red) {
-        if ((curr-1)->red) { ++rval;       }
-        if ((curr  )->red) { ++(rval<<=1); }
-        if ((curr+1)->red) { ++(rval<<=1); }
-        if ((((rules>>0)&0xff)>>rval)&1) { ret.red = 255; }
+        r = (((curr-1)->red&1)<<2)+((curr->red&1)<<1)+((curr+1)->red&1);
+        if ((((rules>>0)&0xff)>>r)&1) { ret.red = 255; }
     }
     if (green) {
-        if ((curr-1)->green) { ++gval;       }
-        if ((curr  )->green) { ++(gval<<=1); }
-        if ((curr+1)->green) { ++(gval<<=1); }
-        if ((((rules>>8)&0xff)>>gval)&1) { ret.green = 255; }
+        g = (((curr-1)->green&1)<<2)+((curr->green&1)<<1)+((curr+1)->green&1);
+        if ((((rules>>8)&0xff)>>g)&1) { ret.green = 255; }
     }
     if (blue) {
-        if ((curr-1)->blue)  { ++bval;       }
-        if ((curr  )->blue)  { ++(bval<<=1); }
-        if ((curr+1)->blue)  { ++(bval<<=1); }
-        if ((((rules>>16)&0xff)>>bval)&1) { ret.blue = 255; }
+        b = (((curr-1)->blue&1)<<2)+((curr->blue&1)<<1)+((curr+1)->blue&1);
+        if ((((rules>>16)&0xff)>>b)&1) { ret.blue = 255; }
     }
     return ret;
 }
