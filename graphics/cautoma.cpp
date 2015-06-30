@@ -15,8 +15,7 @@ constexpr bool wrap = true, red = true, green = true, blue = true;
 
 std::random_device rd;
 std::default_random_engine gen(rd());
-std::uniform_int_distribution<> col_d(0, 7);
-std::uniform_int_distribution<> srule_d(0, 0xffffff);
+std::uniform_int_distribution<> dist(0, 0xffffff);
 
 inline px_t next(px_t* curr, const rules_t rules) {
     px_t ret;
@@ -67,9 +66,9 @@ auto new_img(size_t x, size_t y, T&& lambda) {
     return ret;
 }
 
-px_t random_col() {
+inline px_t random_col() {
     png::rgb_pixel ret;
-    auto rnd = col_d(gen);
+    auto rnd = uint8_t(dist(gen));
     if ((rnd>>0)&1) { ret.red   = 255; }
     if ((rnd>>1)&1) { ret.green = 255; }
     if ((rnd>>2)&1) { ret.blue  = 255; }
@@ -77,7 +76,7 @@ px_t random_col() {
 }
 
 uint32_t random_rules() {
-    return srule_d(gen);
+    return dist(gen);
 }
 
 auto random_start(size_t x, size_t y) {
