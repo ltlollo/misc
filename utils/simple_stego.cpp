@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
     char* ifname_f{nullptr},* ifname_s{nullptr};
     enum { None, Enc, Dec} op = None;
     int opt;
-    while ((opt = getopt(argc, argv, "edhvf:s:")) != -1) {
+    while ((opt = getopt(argc, argv, "edhf:s:")) != -1) {
         switch (opt) {
         case 'f':           // first image filename
             ifname_f = optarg;
