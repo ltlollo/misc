@@ -21,15 +21,15 @@ inline px_t next(px_t* curr, const rules_t rules) {
     px_t ret;
     uint8_t r = 0, g = 0, b = 0;
     if (red) {
-        r = (((curr-1)->red&1)<<2)+((curr->red&1)<<1)+((curr+1)->red&1);
+        r = (((curr-1)->red&1)<<2)|((curr->red&1)<<1)|((curr+1)->red&1);
         if (((rules>>0)>>r)&1) { ret.red = 255; }
     }
     if (green) {
-        g = (((curr-1)->green&1)<<2)+((curr->green&1)<<1)+((curr+1)->green&1);
+        g = (((curr-1)->green&1)<<2)|((curr->green&1)<<1)|((curr+1)->green&1);
         if (((rules>>8)>>g)&1) { ret.green = 255; }
     }
     if (blue) {
-        b = (((curr-1)->blue&1)<<2)+((curr->blue&1)<<1)+((curr+1)->blue&1);
+        b = (((curr-1)->blue&1)<<2)|((curr->blue&1)<<1)|((curr+1)->blue&1);
         if (((rules>>16)>>b)&1) { ret.blue = 255; }
     }
     return ret;
@@ -84,8 +84,8 @@ auto random_start(size_t x, size_t y) {
 //  where bitpos repr a state of the top neighbors, and the value the
 //  transformed state eg red: 11111110 (0: cell dead, 1: cell alive)
 //                    bitpos: 76543210 - 000 -> 0, 001 -> 1, 010 -> 1, ...
-//  or 000, 001, 010, ...
-//      0    1    1   ...
+//  or, using the standard top-down cell states 000, 001, 010, ...
+//                                               0    1    1   ...
 
 int main(int , char *[]) {
     auto img = random_start(1024, 1024);
