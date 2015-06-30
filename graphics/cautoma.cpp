@@ -18,26 +18,26 @@ std::default_random_engine gen(rd());
 std::uniform_int_distribution<> col_d(0, 7);
 std::uniform_int_distribution<> srule_d(0, 0x7ffffff);
 
-inline px_t next(px_t* curr, const rules_t rule) {
+inline px_t next(px_t* curr, const rules_t rules) {
     px_t ret;
     uint16_t rval = 0, gval = 0, bval = 0;
     if (red) {
         if ((curr-1)->red) { rval = 1; }
         if ((curr  )->red) { ++(rval<<=1); }
         if ((curr+1)->red) { ++(rval<<=1); }
-        if ((((rule>>0)&0x1ff)>>rval)&1) { ret.red = 255; }
+        if ((((rules>>0)&0x1ff)>>rval)&1) { ret.red = 255; }
     }
     if (green) {
         if ((curr-1)->green) { gval = 1; }
         if ((curr  )->green) { ++(gval<<=1); }
         if ((curr+1)->green) { ++(gval<<=1); }
-        if ((((rule>>9)&0x1ff)>>gval)&1) { ret.green = 255; }
+        if ((((rules>>9)&0x1ff)>>gval)&1) { ret.green = 255; }
     }
     if (blue) {
         if ((curr-1)->blue)  { bval = 1; }
         if ((curr  )->blue)  { ++(bval<<=1); }
         if ((curr+1)->blue)  { ++(bval<<=1); }
-        if ((((rule>>18)&0x1ff)>>bval)&1) { ret.blue = 255; }
+        if ((((rules>>18)&0x1ff)>>bval)&1) { ret.blue = 255; }
     }
     return ret;
 }
@@ -89,6 +89,14 @@ uint32_t random_rules() {
 auto random_start(size_t x, size_t y) {
     return new_img(x, y, [](size_t) { return random_col(); });
 }
+
+// rules is uint32_t(0b_____xxxxxxxxxxxxxxxxxxxxxxxxxxx)
+//                     \pad/\  blue /\ green /\  red  /
+//  where bitpos repr a state of the top neighbors, and the value the
+//  transformed state eg: 111111110 (0: cell dead, cell alive)
+//                bitpos: 876543210 - 000 -> 0, 001 -> 1, 010 -> 1, ...
+//  or 000, 001, 010, ...
+//      0    1    1   ...
 
 int main(int , char *[]) {
     auto img = random_start(1024, 1024);
