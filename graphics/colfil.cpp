@@ -48,8 +48,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     auto img = img_t(inname);
-    for (size_t i = 0; i < img.get_width(); ++i) {
-        for (size_t j = 0; j < img.get_height(); ++j) {
+    for (size_t i = 0; i < img.get_height(); ++i) {
+        for (size_t j = 0; j < img.get_width(); ++j) {
             if (r) { img[i][j].red   = 0; }
             if (g) { img[i][j].green = 0; }
             if (b) { img[i][j].blue  = 0; }
