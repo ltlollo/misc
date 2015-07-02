@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
         }
         f = parse_cols(argv[2]);
         if (!f) {
-            hint("must be r|g|b", 2);
+            hint("must be col[col...], where col: r|g|b", 2);
         }
         try {
             img = img_t(argv[3]);
