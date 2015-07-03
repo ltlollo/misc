@@ -1,11 +1,11 @@
+//gpp cautoma.cpp -lpng
+
 #include <vector>
 #include <stdexcept>
 #include <iostream>
 #include <random>
 #include <string.h>
 #include <png++/png.hpp>
-
-//gpp cautoma.cpp -lpng
 
 using px_t = png::rgb_pixel;
 using img_t = png::image<px_t>;

@@ -1,3 +1,5 @@
+// gpp corner -lpng
+
 #include <vector>
 #include <algorithm>
 #include <png++/png.hpp>

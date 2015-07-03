@@ -1,3 +1,5 @@
+// gpp cane
+
 #include <random>
 
 #define d(...) default: Word<__VA_ARGS__>{}(); break

@@ -1,3 +1,5 @@
+// gpp dictsubstr
+
 #include <vector>
 #include <string>
 #include <iostream>

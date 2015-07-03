@@ -1,9 +1,9 @@
+// gpp pt.cpp
+
 #include <vector>
 #include <string>
 #include <stdio.h>
 #include <string.h>
-
-// gpp pt.cpp
 
 using namespace std;
 

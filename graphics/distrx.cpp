@@ -1,3 +1,5 @@
+// gpp distrx -lpng
+
 #include <vector>
 #include <string>
 #include <iostream>

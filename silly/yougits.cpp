@@ -1,9 +1,9 @@
+// gpp yougits.cpp -lncursesw
+
 #include <vector>
 #include <stdexcept>
 #include <fstream>
 #include <ncursesw/curses.h>
-
-// gpp yougits.cpp -lncursesw
 
 using namespace std;
 

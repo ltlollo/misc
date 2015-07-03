@@ -1,3 +1,5 @@
+// gpp rxfrac -lpng
+
 #include <vector>
 #include <string>
 #include <iostream>

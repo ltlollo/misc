@@ -1,7 +1,7 @@
+// gpp urgb -lpng
+
 #include <strings.h>
 #include <png++/png.hpp>
-
-// gpp urgb -lpng
 
 using namespace std;
 using img_t = png::image<png::rgb_pixel>;

@@ -1,3 +1,6 @@
+// gpp shape-sys.cpp $(pkg-config --libs sfml-all)
+// ./shape-sys
+
 #include <vector>
 #include <algorithm>
 #include <SFML/Graphics.hpp>
@@ -6,8 +9,6 @@
 #include <iostream>
 #include <map>
 #include <cmath>
-
-// gpp shape-sys.cpp $(pkg-config --libs sfml-all) && ./shape-sys
 
 constexpr float off {10.f};
 constexpr unsigned wh{1020}, ww{1020};

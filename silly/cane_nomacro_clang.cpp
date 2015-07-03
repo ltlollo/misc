@@ -1,3 +1,5 @@
+// gpp cane_nomacro_clang
+
 #include <random>
 
 using namespace std;

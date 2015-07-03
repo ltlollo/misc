@@ -1,3 +1,5 @@
+// gpp lsys.cpp $(pkg-config --libs sfml-all)
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -5,8 +7,6 @@
 #include <algorithm>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
-
-/* gpp lsys.cpp $(pkg-config --libs sfml-all) */
 
 using namespace std;
 

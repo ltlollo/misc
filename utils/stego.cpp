@@ -1,3 +1,5 @@
+// gpp stego.cpp -lpng
+
 #include <vector>
 #include <stdexcept>
 #include <string>
@@ -6,8 +8,6 @@
 #include <unistd.h>
 #include <limits.h>
 #include <png++/png.hpp>
-
-// gpp stego.cpp -lpng
 
 using namespace std;
 using namespace png;
