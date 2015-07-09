@@ -19,7 +19,7 @@ std::uniform_int_distribution<> dist(0, 0xffffff);
 
 inline px_t next(px_t* curr, const rules_t rules) {
     px_t ret;
-    uint8_t r = 0, g = 0, b = 0;
+    unsigned r = 0, g = 0, b = 0;
     if (red) {
         r = (((curr-1)->red&1)<<2)|((curr->red&1)<<1)|((curr+1)->red&1);
         if (((rules>>0)>>r)&1) { ret.red = 255; }
@@ -35,7 +35,7 @@ inline px_t next(px_t* curr, const rules_t rules) {
     return ret;
 }
 
-inline void wrap_line(img_t& img, size_t r) {
+inline void wrap_line(img_t& img, const size_t r) {
     img[r][0] = img[r][img.get_width()-2];
     img[r][img.get_width()-1] = img[r][1];
 }
