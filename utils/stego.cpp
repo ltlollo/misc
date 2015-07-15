@@ -254,10 +254,10 @@ int main(int argc, char *argv[]) {
         case 'd':           // decode operation
             op = Dec;
             break;
-        case 'x':           // x
+        case 'x':           // horizontal offset
             offsets.x = atol(optarg);
             break;
-        case 'y':           // y
+        case 'y':           // vertical offset
             offsets.y = atol(optarg);
             break;
         case 'h':           // print help and exit
