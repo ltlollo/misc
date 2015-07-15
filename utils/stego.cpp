@@ -28,6 +28,8 @@ constexpr T round(const T& size, const U& mul) {
     return size - size%mul;
 }
 
+struct offsets_t { size_t x, y; };
+
 template<typename T>
 auto make_mat(const png_t& img, const T& ele) {
     if (img.get_height() < 10 || img.get_width() < 10) {
@@ -135,46 +137,47 @@ auto dec_spots(const png_t& img) {
     return mat;
 }
 
-#define SET(ele, color, img) do {                    \
-    if (ele.color == Candidate::Min) {               \
-        img[i][j].color = char((img[i][j].color)+1); \
-    } else if (ele.color == Candidate::Max) {        \
-        img[i][j].color = char((img[i][j].color)-1); \
-    } else {                                         \
-        img[i][j].color = d(gen) ?                   \
-            char((img[i][j].color)+1):               \
-            char((img[i][j].color)-1);               \
-    }                                                \
+#define SET(ele, color, img_px) do {           \
+    if (ele.color == Candidate::Min) {         \
+        img_px.color = char((img_px.color)+1); \
+    } else if (ele.color == Candidate::Max) {  \
+        img_px.color = char((img_px.color)-1); \
+    } else {                                   \
+        img_px.color = d(gen) ?                \
+            char((img_px.color)+1):            \
+            char((img_px.color)-1);            \
+    }                                          \
 } while(0)
 
-#define ENC_MSG(color) do {                                                  \
-    if (fst_ele.color || snd_ele.color) {                                    \
-        if (bool((img_f[i][j].color ^ img_s[i][j].color)&1) != msg[count]) { \
-            if (snd_ele.color == Candidate::None) {                          \
-                SET(fst_ele, color, img_f);                                  \
-            } else if (fst_ele.color == Candidate::None) {                   \
-                SET(snd_ele, color, img_s);                                  \
-            } else {                                                         \
-               if(d(gen)) {                                                  \
-                    SET(fst_ele, color, img_f);                              \
-                } else {                                                     \
-                    SET(snd_ele, color, img_s);                              \
-                }                                                            \
-            }                                                                \
-        }                                                                    \
-        if (++count == msg.size()) {                                         \
-            return count;                                                    \
-        }                                                                    \
-    }                                                                        \
+#define ENC_MSG(color) do {                                              \
+    if (mat_f_ele.color || mat_s_ele.color) {                            \
+        if (bool((img_f_ele.color ^ img_s_ele.color)&1) != msg[count]) { \
+            if (mat_s_ele.color == Candidate::None) {                    \
+                SET(mat_f_ele, color, img_f_ele);                        \
+            } else if (mat_f_ele.color == Candidate::None) {             \
+                SET(mat_s_ele, color, img_s_ele);                        \
+            } else {                                                     \
+               if(d(gen)) {                                              \
+                    SET(mat_f_ele, color, img_f_ele);                    \
+                } else {                                                 \
+                    SET(mat_s_ele, color, img_s_ele);                    \
+                }                                                        \
+            }                                                            \
+        }                                                                \
+        if (++count == msg.size()) {                                     \
+            return count;                                                \
+        }                                                                \
+    }                                                                    \
 } while(0)
 
-#define DEC_MSG(color) do {                                             \
-    if(mat_f[i][j].color || mat_s[i][j].color) {                        \
-        msg.push_back(bool((img_f[i][j].color ^ img_s[i][j].color)&1)); \
-    }                                                                   \
+#define DEC_MSG(color) do {                                         \
+    if(mat_f_ele.color || mat_s_ele.color) {                        \
+        msg.push_back(bool((img_f_ele.color ^ img_s_ele.color)&1)); \
+    }                                                               \
 } while(0)
 
-auto enc(const vector<bool>& msg, png_t& img_f, png_t& img_s) {
+auto enc(const vector<bool>& msg, png_t& img_f, png_t& img_s,
+         const offsets_t& offsets) {
     size_t count = 0;
     if (msg.empty()) {
         return count;
@@ -184,12 +187,14 @@ auto enc(const vector<bool>& msg, png_t& img_f, png_t& img_s) {
     discrete_distribution<> d({50, 50});
     auto mat_f = enc_spots(img_f);
     auto mat_s = enc_spots(img_s);
-    size_t min_r = min(mat_f.size(), mat_s.size()),
-           min_c = min(mat_f[0].size(), mat_s[0].size());
+    size_t min_r = min(mat_f.size() - offsets.y, mat_s.size()),
+           min_c = min(mat_f[0].size() - offsets.x, mat_s[0].size());
     for (size_t i = 0; i < min_r; ++i) {
         for (size_t j = 0; j < min_c; ++j) {
-            auto& fst_ele = mat_f[i][j];
-            auto& snd_ele = mat_s[i][j];
+            auto& mat_f_ele = mat_f[i + offsets.y][j + offsets.x];
+            auto& img_f_ele = img_f[i + offsets.y][j + offsets.x];
+            auto& mat_s_ele = mat_s[i][j];
+            auto& img_s_ele = img_s[i][j];
             #define FOR(color) ENC_MSG(color);
                 COLORS
             #undef FOR
@@ -198,14 +203,18 @@ auto enc(const vector<bool>& msg, png_t& img_f, png_t& img_s) {
     return count;
 }
 
-auto dec(const png_t& img_f, const png_t& img_s) {
+auto dec(const png_t& img_f, const png_t& img_s, const offsets_t& offsets) {
     auto msg = vector<bool>();
     auto mat_f = dec_spots(img_f);
     auto mat_s = dec_spots(img_s);
-    size_t min_r = min(mat_f.size(), mat_s.size()),
-           min_c = min(mat_f[0].size(), mat_s[0].size());
+    size_t min_r = min(mat_f.size() - offsets.y, mat_s.size()),
+           min_c = min(mat_f[0].size() - offsets.x, mat_s[0].size());
     for (size_t i = 0; i < min_r; ++i) {
         for (size_t j = 0; j < min_c; ++j) {
+            auto& mat_f_ele = mat_f[i + offsets.y][j + offsets.x];
+            auto& img_f_ele = img_f[i + offsets.y][j + offsets.x];
+            auto& mat_s_ele = mat_s[i][j];
+            auto& img_s_ele = img_s[i][j];
             #define FOR(color) DEC_MSG(color);
                 COLORS
             #undef FOR
@@ -221,6 +230,8 @@ int main(int argc, char *argv[]) {
          "\n\t-s snd<string>: file name of the second png image"
          "\n\t-e: perform encoding"
          "\n\t-d: perform decoding"
+         "\n\t-x x<uint>: x offset of the first image"
+         "\n\t-y x<uint>: y offset of the second image"
          "\nScope:\tsteganography on two images' LSB edges, (d)ecoding only,"
          "\n\tit doesn't (d)encript/(de)compress/(de)serialize the message"
          << endl;
@@ -228,7 +239,8 @@ int main(int argc, char *argv[]) {
     char* ifname_f{nullptr},* ifname_s{nullptr};
     enum { None = 0, Enc, Dec} op = None;
     int opt;
-    while ((opt = getopt(argc, argv, "edhf:s:")) != -1) {
+    offsets_t offsets{0, 0};
+    while ((opt = getopt(argc, argv, "edhf:s:x:y:")) != -1) {
         switch (opt) {
         case 'f':           // first image filename
             ifname_f = optarg;
@@ -241,6 +253,12 @@ int main(int argc, char *argv[]) {
             break;
         case 'd':           // decode operation
             op = Dec;
+            break;
+        case 'x':           // x
+            offsets.x = atol(optarg);
+            break;
+        case 'y':           // y
+            offsets.y = atol(optarg);
             break;
         case 'h':           // print help and exit
             print_help();
@@ -256,15 +274,21 @@ int main(int argc, char *argv[]) {
     }
     auto img_f = png_t(ifname_f);
     auto img_s = png_t(ifname_s);
+    if(img_f.get_height() <= offsets.y ||
+       img_f.get_width()  <= offsets.x) {
+        cerr << "Error: first image offset must be smaller"
+                " than the first image size\n" << endl;;
+        exit(1);
+    }
     if (op == Enc) {
         vector<char> in(istreambuf_iterator<char>{cin}, {});
         auto msg = to_bitvec(in);
-        auto esize = enc(msg, img_f, img_s);
+        auto esize = enc(msg, img_f, img_s, offsets);
         img_f.write(string(ifname_f) + ".enc.png"s);
         img_s.write(string(ifname_s) + ".enc.png"s);
         cerr << "[I]: bits encoded " << esize << endl;
     } else if (op == Dec) {
-        auto msg = dec(img_f, img_s);
+        auto msg = dec(img_f, img_s, offsets);
         copy(begin(msg), end(msg), ostreambuf_iterator<char>{cout});
     } else {
         print_help();
