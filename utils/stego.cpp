@@ -230,8 +230,8 @@ int main(int argc, char *argv[]) {
          "\n\t-s snd<string>: file name of the second png image"
          "\n\t-e: perform encoding"
          "\n\t-d: perform decoding"
-         "\n\t-x x<uint>: x offset of the first image"
-         "\n\t-y x<uint>: y offset of the second image"
+         "\n\t-x x<uint>: x offset of the first image (default: 0)"
+         "\n\t-y x<uint>: y offset of the second image (default: 0)"
          "\nScope:\tsteganography on two images' LSB edges, (d)ecoding only,"
          "\n\tit doesn't (d)encript/(de)compress/(de)serialize the message"
          << endl;
