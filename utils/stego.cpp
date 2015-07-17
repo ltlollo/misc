@@ -277,7 +277,7 @@ int main(int argc, char *argv[]) {
     auto img_s = png_t(ifname_s);
     if(img_f.get_height() <= offsets.y ||
        img_f.get_width()  <= offsets.x) {
-        cerr << "Error: first image offset must be smaller"
+        cerr << "[E]: first image offset must be smaller"
                 " than the first image size\n" << endl;;
         exit(1);
     }
