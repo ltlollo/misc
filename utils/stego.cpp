@@ -225,13 +225,14 @@ auto dec(const png_t& img_f, const png_t& img_s, const offsets_t& offsets) {
 
 int main(int argc, char *argv[]) {
     auto print_help = [&]() {
-         cerr << "Usage:\t" << argv[0] << " -f fst -s snd {-e|-d}"
+         cerr << "Usage:\t" << argv[0]
+              << " -f fst -s snd {-e|-d} [-x X] [-y Y]"
          "\n\t-f fst<string>: file name of the fist png image"
          "\n\t-s snd<string>: file name of the second png image"
          "\n\t-e: perform encoding"
          "\n\t-d: perform decoding"
-         "\n\t-x x<uint>: x offset of the first image (default: 0)"
-         "\n\t-y x<uint>: y offset of the second image (default: 0)"
+         "\n\t-x X<uint>: x offset of the first image (default: 0)"
+         "\n\t-y Y<uint>: y offset of the second image (default: 0)"
          "\nScope:\tsteganography on two images' LSB edges, (d)ecoding only,"
          "\n\tit doesn't (d)encript/(de)compress/(de)serialize the message"
          << endl;
