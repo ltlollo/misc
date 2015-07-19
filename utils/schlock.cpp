@@ -30,86 +30,7 @@ inline void swap_bits(px_t& f, px_t& s) noexcept {
 
 enum Count { Left = 1, Up = 1, Equal = 2, Right = 0, Low = 0 };
 
-Count lgtr(const png_t& img, size_t hlb, size_t hrb, size_t vub, size_t vlb) {
-    size_t right_count = 0, letf_count = 0;
-    for (size_t i = vub; i < vlb+1; ++i) {
-        while(hlb <= hrb) {
-            letf_count += bit_val(img[i][hlb++]);
-            right_count += bit_val(img[i][hrb--]);
-        }
-    }
-    if (letf_count > right_count) {
-        return Left;
-    } else if (letf_count < right_count) {
-        return Right;
-    } else {
-        return Equal;
-    }
-}
-
-Count ugtd(const png_t& img, size_t hlb, size_t hrb, size_t vub, size_t vlb) {
-    size_t upper_count = 0, lower_count = 0;
-
-    while(vub <= vlb) {
-        for (size_t i = hlb; i < hrb+1; ++i) {
-            upper_count += bit_val(img[vub][i]);
-            lower_count += bit_val(img[vlb][i]);
-        }
-        vub++;
-        vlb--;
-    }
-    if (upper_count > lower_count) {
-        return Up;
-    } else if (lower_count < upper_count) {
-        return Low;
-    } else {
-        return Equal;
-    }
-}
-
-void encode(const vector<bool>& msg, size_t& pos,
-            png_t& img, size_t hlb, size_t hrb, size_t vub, size_t vlb) {
-    if (pos >= msg.size()) {
-        return;
-    }
-    size_t hlb_orig = hlb, hrb_orig = hrb, vub_orig = vub, vlb_orig = vlb;
-    auto vcount = lgtr(img, hlb, hrb, vub, vlb);
-    if (vcount != Equal && vcount != msg[pos++]) {
-        for (size_t i = vub; i < vlb+1; ++i) {
-            while(hlb <= hrb) {
-                swap_bits(img[i][hlb++], img[i][hrb--]);
-            }
-        }
-    } else {
-        hlb = (hlb+hrb)/2+1;
-        hrb = hrb - (hrb-hlb_orig)/2-1;
-    }
-    if (pos >= msg.size()) {
-        return;
-    }
-    vcount = ugtd(img, hlb_orig, hrb_orig, vub, vlb);
-    if (vcount != Equal && vcount != msg[pos++]) {
-            while(vub <= vlb) {
-                for (size_t i = hlb_orig; i < hrb_orig+1; ++i) {
-                    swap_bits(img[vub][i], img[vlb][i]);
-                }
-                vub++;
-                vlb--;
-            }
-    } else {
-        vub = (vub+vlb)/2+1;
-        vlb = vlb - (vlb-vub_orig)/2-1;
-    }
-    if (hlb_orig+2 >= hrb_orig || vub_orig+2 >= vlb_orig) {
-        return;
-    }
-    encode(msg, pos, img, hlb_orig, hlb-1, vub_orig, vub-1);
-    encode(msg, pos, img, hrb+1, hrb_orig, vub_orig, vub-1);
-    encode(msg, pos, img, hlb_orig, hlb-1, vlb+1, vlb_orig);
-    encode(msg, pos, img, hrb+1, hrb_orig, vlb+1, vlb_orig);
-}
-
-Count lgtr(const png_t& img, bound b) {
+Count lgtr(const png_t& img, bound b) noexcept {
     size_t right_count = 0, letf_count = 0;
     for (size_t i = b.vub; i < b.vlb+1; ++i) {
         while(b.hlb <= b.hrb) {
@@ -126,7 +47,7 @@ Count lgtr(const png_t& img, bound b) {
     }
 }
 
-Count ugtd(const png_t& img, bound b) {
+Count ugtd(const png_t& img, bound b) noexcept {
     size_t upper_count = 0, lower_count = 0;
     while(b.vub <= b.vlb) {
         for (size_t i = b.hlb; i < b.hrb+1; ++i) {
@@ -145,7 +66,69 @@ Count ugtd(const png_t& img, bound b) {
     }
 }
 
-void encoder(const vector<bool>& msg, size_t& mpos,
+inline void flip_horiz(png_t& img, bound b) noexcept {
+    for (size_t i = b.vub; i < b.vlb+1; ++i) {
+        while(b.hlb <= b.hrb) {
+            swap_bits(img[i][b.hlb++], img[i][b.hrb--]);
+        }
+    }
+}
+
+inline void flip_vert(png_t& img, bound b) noexcept {
+   while(b.vub <= b.vlb) {
+       for (size_t i = b.hlb; i < b.hrb+1; ++i) {
+           swap_bits(img[b.vub][i], img[b.vlb][i]);
+       }
+       b.vub++;
+       b.vlb--;
+   }
+}
+
+void dfs_encode(const vector<bool>& msg, size_t& pos, png_t& img,
+                const bound& b) noexcept {
+    if (pos >= msg.size()) {
+        return;
+    }
+    size_t hlb = b.hlb, hrb = b.hrb,
+           vub = b.vub, vlb = b.vlb;
+    auto vcount = lgtr(img, b);
+    if (vcount != Equal && vcount != msg[pos++]) {
+        for (size_t i = vub; i < vlb+1; ++i) {
+            while(hlb <= hrb) {
+                swap_bits(img[i][hlb++], img[i][hrb--]);
+            }
+        }
+    } else {
+        hlb = (hlb+hrb)/2+1;
+        hrb = hrb - (hrb-b.hlb)/2-1;
+    }
+    if (pos >= msg.size()) {
+        return;
+    }
+    vcount = ugtd(img, b);
+    if (vcount != Equal && vcount != msg[pos++]) {
+            while(vub <= vlb) {
+                for (size_t i = b.hlb; i < b.hrb+1; ++i) {
+                    swap_bits(img[vub][i], img[vlb][i]);
+                }
+                vub++;
+                vlb--;
+            }
+    } else {
+        vub = (vub+vlb)/2+1;
+        vlb = vlb - (vlb-b.vub)/2-1;
+    }
+    if (b.hlb+2 >= b.hrb ||
+        b.vub+2 >= b.vlb) {
+        return;
+    }
+    dfs_encode(msg, pos, img, bound{b.hlb, hlb-1, b.vub, vub-1});
+    dfs_encode(msg, pos, img, bound{hrb+1, b.hrb, b.vub, vub-1});
+    dfs_encode(msg, pos, img, bound{b.hlb, hlb-1, vlb+1, b.vlb});
+    dfs_encode(msg, pos, img, bound{hrb+1, b.hrb, vlb+1, b.vlb});
+}
+
+void bfs_encoder(const vector<bool>& msg, size_t& mpos,
             png_t& img, const size_t bpos, vector<bound>& bounds) {
     if (mpos >= msg.size()) {
         return;
@@ -189,23 +172,6 @@ void encoder(const vector<bool>& msg, size_t& mpos,
     bounds.emplace_back(bound{hrb+1,bounds[bpos].hrb,vlb+1,bounds[bpos].vlb});
 }
 
-inline void flip_horiz(png_t& img, bound b) noexcept {
-    for (size_t i = b.vub; i < b.vlb+1; ++i) {
-        while(b.hlb <= b.hrb) {
-            swap_bits(img[i][b.hlb++], img[i][b.hrb--]);
-        }
-    }
-}
-
-inline void flip_vert(png_t& img, bound b) noexcept {
-   while(b.vub <= b.vlb) {
-       for (size_t i = b.hlb; i < b.hrb+1; ++i) {
-           swap_bits(img[b.vub][i], img[b.vlb][i]);
-       }
-       b.vub++;
-       b.vlb--;
-   }
-}
 
 size_t encode(png_t& img, const vector<bool>& msg) {
     if (msg.empty()) {
@@ -216,7 +182,7 @@ size_t encode(png_t& img, const vector<bool>& msg) {
     bounds.reserve(msg.size());
     bounds.emplace_back(bound{0, img.get_width()-1, 0, img.get_height()-1});
     do {
-        encoder(msg, mpos, img, bpos++, bounds);
+        bfs_encoder(msg, mpos, img, bpos++, bounds);
     } while (mpos != msg.size() || bpos != bounds.size());
     return mpos;
 }
@@ -224,12 +190,11 @@ size_t encode(png_t& img, const vector<bool>& msg) {
 bool encoder_producer(const size_t bpos, vector<bound>& bounds) {
     size_t hlb = bounds[bpos].hlb, hrb = bounds[bpos].hrb,
            vub = bounds[bpos].vub, vlb = bounds[bpos].vlb;
+    hlb = (hlb+hrb)/2+1;
+    hrb = hrb - (hrb-bounds[bpos].hlb)/2-1;
+    vub = (vub+vlb)/2+1;
+    vlb = vlb - (vlb-bounds[bpos].vub)/2-1;
 
-        hlb = (hlb+hrb)/2+1;
-        hrb = hrb - (hrb-bounds[bpos].hlb)/2-1;
-
-        vub = (vub+vlb)/2+1;
-        vlb = vlb - (vlb-bounds[bpos].vub)/2-1;
     if (bounds[bpos].hlb+2 >= bounds[bpos].hrb ||
         bounds[bpos].vub+2 >= bounds[bpos].vlb) {
         return false;
@@ -241,6 +206,9 @@ bool encoder_producer(const size_t bpos, vector<bound>& bounds) {
     return true;
 }
 
+// return the bound vector associated to (image, message),
+// it's sized as message size/2u, but can be samller depending
+// on image geometry
 auto make_bounds(const png_t& img, const vector<bool>& msg) {
     vector<bound> bounds;
     // last bit of msg ignored for simplicity if msg size is odd
@@ -262,6 +230,7 @@ auto make_bounds(const png_t& img, const vector<bool>& msg) {
     return bounds;
 }
 
+// return the number of bits of message used for the marking
 size_t mark(png_t& img, const vector<bool>& msg) {
     auto bounds = make_bounds(img, msg);
     size_t mpos = 0, bpos = 0;
@@ -277,6 +246,7 @@ size_t mark(png_t& img, const vector<bool>& msg) {
     return bounds.size()*2;
 }
 
+// return the number of bits of message used for the unmarking
 size_t unmark(png_t& img, const vector<bool>& msg) {
     auto bounds = make_bounds(img, msg);
     size_t mpos = bounds.size()*2-1;
@@ -294,7 +264,6 @@ size_t unmark(png_t& img, const vector<bool>& msg) {
 // the idea:
 // if represented as non inplace function (un)mark :: Png -> Msg -> Png, then
 // f b a = unmark (mark a b) b => f b = id foreach b
-
 
 int main(int , char *[]) {
     auto msg = vector<bool>{
