@@ -5,6 +5,7 @@
 #include <iostream>
 #include <png++/png.hpp>
 #include <stdlib.h>
+#include <iterator>
 
 using namespace std;
 using px_t = png::rgb_pixel;
@@ -140,19 +141,21 @@ template<typename T> vector<bool> to_bitvec(T&& in) {
 int main(int argc, char *argv[]) {
     auto print_help = [&]() {
          cerr << "Usage:\t" << argv[0]
-              << " -f img {-m|-u} [-p pattern]"
+              << " -f img {-m|-u} [-p pattern] [-n N]"
          "\n\t-i img<string>: file name of the png image"
          "\n\t-m: perform marking"
          "\n\t-u: perform unmarking"
          "\n\t-p pattern<string>: provide the marking pattern"
          " (defaults to stdin)"
+         "\n\t-n N<uint>: pattern padding size (default: 0)"
          "\nScope:\t(un)mark an image according to a user provided pattern"
          << endl;
     };
     char* ifname{nullptr}, *pattern{nullptr};
+    size_t n = 0;
     enum { None = 0, Mark, Unmark} op = None;
     int opt;
-    while ((opt = getopt(argc, argv, "muhi:p:")) != -1) {
+    while ((opt = getopt(argc, argv, "muhi:p:n:")) != -1) {
         switch (opt) {
         case 'i':           // image filename
             ifname = optarg;
@@ -165,6 +168,9 @@ int main(int argc, char *argv[]) {
             break;
         case 'u':           // unmark operation
             op = Unmark;
+            break;
+        case 'n':           // padding size
+            n = atoi(optarg);
             break;
         case 'h':           // print help and exit
             print_help();
@@ -181,6 +187,12 @@ int main(int argc, char *argv[]) {
     auto img = png_t(ifname);
     auto msg = pattern ? to_bitvec(string(pattern)) :
         to_bitvec(vector<char>(istreambuf_iterator<char>{cin}, {}));
+    if (n) {
+        auto padd = vector<bool>(100, false);
+        padd.insert(padd.begin(), make_move_iterator(msg.begin()),
+                      make_move_iterator(msg.end()));
+        msg = move(padd);
+    }
     auto esize = (op == Mark) ? mark(img, msg) : unmark(img, msg);
     if (op == Mark) {
         img.write(string(ifname) + ".mark.png"s);
