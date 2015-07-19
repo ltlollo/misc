@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
     auto msg = pattern ? to_bitvec(string(pattern)) :
         to_bitvec(vector<char>(istreambuf_iterator<char>{cin}, {}));
     if (n) {
-        auto padd = vector<bool>(100, false);
+        auto padd = vector<bool>(n, false);
         padd.insert(padd.begin(), make_move_iterator(msg.begin()),
                       make_move_iterator(msg.end()));
         msg = move(padd);
