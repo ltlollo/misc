@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
          "\n\t-u: perform unmarking"
          "\n\t-p pattern<string>: provide the marking pattern"
          " (defaults to stdin)"
-         "\nScope:\tmark/unmark an image according to a user provided pattern"
+         "\nScope:\t(un)mark an image according to a user provided pattern"
          << endl;
     };
     char* ifname{nullptr}, *pattern{nullptr};
