@@ -30,42 +30,6 @@ inline void swap_bits(px_t& f, px_t& s) noexcept {
 
 enum Count { Left = 1, Up = 1, Equal = 2, Right = 0, Low = 0 };
 
-Count lgtr(const png_t& img, bound b) noexcept {
-    size_t right_count = 0, letf_count = 0;
-    for (size_t i = b.vub; i < b.vlb+1; ++i) {
-        while(b.hlb <= b.hrb) {
-            letf_count += bit_val(img[i][b.hlb++]);
-            right_count += bit_val(img[i][b.hrb--]);
-        }
-    }
-    if (letf_count > right_count) {
-        return Left;
-    } else if (letf_count < right_count) {
-        return Right;
-    } else {
-        return Equal;
-    }
-}
-
-Count ugtd(const png_t& img, bound b) noexcept {
-    size_t upper_count = 0, lower_count = 0;
-    while(b.vub <= b.vlb) {
-        for (size_t i = b.hlb; i < b.hrb+1; ++i) {
-            upper_count += bit_val(img[b.vub][i]);
-            lower_count += bit_val(img[b.vlb][i]);
-        }
-        b.vub++;
-        b.vlb--;
-    }
-    if (upper_count > lower_count) {
-        return Up;
-    } else if (lower_count < upper_count) {
-        return Low;
-    } else {
-        return Equal;
-    }
-}
-
 inline void flip_horiz(png_t& img, bound b) noexcept {
     for (size_t i = b.vub; i < b.vlb+1; ++i) {
         while(b.hlb <= b.hrb) {
@@ -84,110 +48,7 @@ inline void flip_vert(png_t& img, bound b) noexcept {
    }
 }
 
-void dfs_encode(const vector<bool>& msg, size_t& pos, png_t& img,
-                const bound& b) noexcept {
-    if (pos >= msg.size()) {
-        return;
-    }
-    size_t hlb = b.hlb, hrb = b.hrb,
-           vub = b.vub, vlb = b.vlb;
-    auto vcount = lgtr(img, b);
-    if (vcount != Equal && vcount != msg[pos++]) {
-        for (size_t i = vub; i < vlb+1; ++i) {
-            while(hlb <= hrb) {
-                swap_bits(img[i][hlb++], img[i][hrb--]);
-            }
-        }
-    } else {
-        hlb = (hlb+hrb)/2+1;
-        hrb = hrb - (hrb-b.hlb)/2-1;
-    }
-    if (pos >= msg.size()) {
-        return;
-    }
-    vcount = ugtd(img, b);
-    if (vcount != Equal && vcount != msg[pos++]) {
-            while(vub <= vlb) {
-                for (size_t i = b.hlb; i < b.hrb+1; ++i) {
-                    swap_bits(img[vub][i], img[vlb][i]);
-                }
-                vub++;
-                vlb--;
-            }
-    } else {
-        vub = (vub+vlb)/2+1;
-        vlb = vlb - (vlb-b.vub)/2-1;
-    }
-    if (b.hlb+2 >= b.hrb ||
-        b.vub+2 >= b.vlb) {
-        return;
-    }
-    dfs_encode(msg, pos, img, bound{b.hlb, hlb-1, b.vub, vub-1});
-    dfs_encode(msg, pos, img, bound{hrb+1, b.hrb, b.vub, vub-1});
-    dfs_encode(msg, pos, img, bound{b.hlb, hlb-1, vlb+1, b.vlb});
-    dfs_encode(msg, pos, img, bound{hrb+1, b.hrb, vlb+1, b.vlb});
-}
-
-void bfs_encoder(const vector<bool>& msg, size_t& mpos,
-            png_t& img, const size_t bpos, vector<bound>& bounds) {
-    if (mpos >= msg.size()) {
-        return;
-    }
-    size_t hlb = bounds[bpos].hlb, hrb = bounds[bpos].hrb,
-           vub = bounds[bpos].vub, vlb = bounds[bpos].vlb;
-    auto vcount = lgtr(img, bounds[bpos]);
-    if (vcount != Equal && vcount != msg[mpos++]) {
-        for (size_t i = vub; i < vlb+1; ++i) {
-            while(hlb <= hrb) {
-                swap_bits(img[i][hlb++], img[i][hrb--]);
-            }
-        }
-    } else {
-        hlb = (hlb+hrb)/2+1;
-        hrb = hrb - (hrb-bounds[bpos].hlb)/2-1;
-    }
-    if (mpos >= msg.size()) {
-        return;
-    }
-    vcount = ugtd(img, bounds[bpos]);
-    if (vcount != Equal && vcount != msg[mpos++]) {
-        while(vub <= vlb) {
-            for (size_t i = bounds[bpos].hlb; i < bounds[bpos].hrb+1; ++i) {
-                swap_bits(img[vub][i], img[vlb][i]);
-            }
-            vub++;
-            vlb--;
-        }
-    } else {
-        vub = (vub+vlb)/2+1;
-        vlb = vlb - (vlb-bounds[bpos].vub)/2-1;
-    }
-    if (bounds[bpos].hlb+2 >= bounds[bpos].hrb ||
-        bounds[bpos].vub+2 >= bounds[bpos].vlb) {
-        return;
-    }
-    bounds.emplace_back(bound{bounds[bpos].hlb,hlb-1,bounds[bpos].vub,vub-1});
-    bounds.emplace_back(bound{hrb+1,bounds[bpos].hrb,bounds[bpos].vub,vub-1});
-    bounds.emplace_back(bound{bounds[bpos].hlb,hlb-1,vlb+1,bounds[bpos].vlb});
-    bounds.emplace_back(bound{hrb+1,bounds[bpos].hrb,vlb+1,bounds[bpos].vlb});
-}
-
-
-size_t encode(png_t& img, const vector<bool>& msg) {
-    if (msg.empty()) {
-        return 0;
-    }
-    size_t mpos = 0, bpos = 0;
-    vector<bound> bounds;
-    bounds.reserve(msg.size());
-    bounds.emplace_back(bound{0, img.get_width()-1, 0, img.get_height()-1});
-    do {
-        bfs_encoder(msg, mpos, img, bpos++, bounds);
-    } while (mpos != msg.size() || bpos != bounds.size());
-    return mpos;
-}
-
-bool encoder_producer(const size_t bpos, vector<bound>& bounds) {
+bool bound_producer(const size_t bpos, vector<bound>& bounds) {
     size_t hlb = bounds[bpos].hlb, hrb = bounds[bpos].hrb,
            vub = bounds[bpos].vub, vlb = bounds[bpos].vlb;
     hlb = (hlb+hrb)/2+1;
@@ -220,7 +81,7 @@ auto make_bounds(const png_t& img, const vector<bool>& msg) {
     bounds.reserve(msg.size());
     bounds.emplace_back(bound{0, img.get_width()-1, 0, img.get_height()-1});
     while (bounds.size() < expected_size) {
-        if (encoder_producer(bpos++, bounds)) {
+        if (bound_producer(bpos++, bounds)) {
             break;
         }
     }
@@ -261,24 +122,71 @@ size_t unmark(png_t& img, const vector<bool>& msg) {
     return bounds.size()*2;
 }
 
+template<typename T> vector<bool> to_bitvec(T&& in) {
+    auto res = vector<bool>();
+    res.reserve(in.size() * CHAR_BIT);
+    for(const auto& c: in) {
+        for (uint8_t i = 0; i < CHAR_BIT; ++i) {
+            res.push_back((c>>i)&1);
+        }
+    }
+    return res;
+}
+
 // the idea:
 // if represented as non inplace function (un)mark :: Png -> Msg -> Png, then
 // f b a = unmark (mark a b) b => f b = id foreach b
 
-int main(int , char *[]) {
-    auto msg = vector<bool>{
-        true, false,
-        true, false,
-        true, true,
-        false, true
+int main(int argc, char *argv[]) {
+    auto print_help = [&]() {
+         cerr << "Usage:\t" << argv[0]
+              << " -f img {-m|-u} [-p pattern]"
+         "\n\t-i img<string>: file name of the png image"
+         "\n\t-m: perform marking"
+         "\n\t-u: perform unmarking"
+         "\n\t-p pattern<string>: provide the marking pattern"
+         " (defaults to stdin)"
+         "\nScope:\tmark/unmark an image according to a user provided pattern"
+         << endl;
     };
-    auto img = png_t(string(getenv("HOME")) + "/Images/45.png.enc.png");
-    //auto size = encode(img, msg);
-    //cerr << "[I]: bits encoded " << size << '\n';
-    mark(img, msg);
-    img.write("marked.png");
-    img = png_t("marked.png");
-    unmark(img, msg);
-    img.write("unmarked.png");
+    char* ifname{nullptr}, *pattern{nullptr};
+    enum { None = 0, Mark, Unmark} op = None;
+    int opt;
+    while ((opt = getopt(argc, argv, "muhi:p:")) != -1) {
+        switch (opt) {
+        case 'i':           // image filename
+            ifname = optarg;
+            break;
+        case 'p':           // pattern
+            pattern = optarg;
+            break;
+        case 'm':           // mark operation
+            op = Mark;
+            break;
+        case 'u':           // unmark operation
+            op = Unmark;
+            break;
+        case 'h':           // print help and exit
+            print_help();
+            return 0;
+        default:            // print help and die
+            print_help();
+            return 1;
+        }
+    }
+    if (ifname == nullptr || op == None) {
+        print_help();
+        return 1;
+    }
+    auto img = png_t(ifname);
+    auto msg = pattern ? to_bitvec(string(pattern)) :
+        to_bitvec(vector<char>(istreambuf_iterator<char>{cin}, {}));
+    auto esize = (op == Mark) ? mark(img, msg) : unmark(img, msg);
+    if (op == Mark) {
+        img.write(string(ifname) + ".mark.png"s);
+    } else {
+        img.write(string(ifname) + ".unmark.png"s);
+    }
+    cerr << "[I]: msg bits used " << esize << endl;
     return 0;
 }
