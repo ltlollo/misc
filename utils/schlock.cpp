@@ -18,14 +18,14 @@ struct bound { size_t hlb, hrb, vub, vlb; };
 
 inline void swap_bits(px_t& f, px_t& s) noexcept {
     bool tmp = f.red&1;
-    f.red = (s.red&1)|(f.red&0xFE);
-    s.red = tmp | (s.red&0xFE);
+    f.red = uint8_t((s.red&1)|(f.red&0xFE));
+    s.red = uint8_t(tmp | (s.red&0xFE));
     tmp = f.blue&1;
-    f.blue = (s.blue&1)|(f.blue&0xFE);
-    s.blue = tmp | (s.blue&0xFE);
+    f.blue = uint8_t((s.blue&1)|(f.blue&0xFE));
+    s.blue = uint8_t(tmp | (s.blue&0xFE));
     tmp = f.green&1;
-    f.green = (s.green&1)|(f.green&0xFE);
-    s.green = tmp | (s.green&0xFE);
+    f.green = uint8_t((s.green&1)|(f.green&0xFE));
+    s.green = uint8_t(tmp | (s.green&0xFE));
 }
 
 enum Count { Left = 1, Up = 1, Equal = 2, Right = 0, Low = 0 };
