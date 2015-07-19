@@ -24,14 +24,14 @@ MARKED2="$ENCD2.mark.png"
 UNMARKED1="$MARKED1.unmark.png"
 UNMARKED2="$MARKED2.unmark.png"
 
-printf "Using X, Y = $X, $Y\n"            1>&2
-printf "Using N1, N2 = $N2, $N2\n"        1>&2
-printf "Using  PASS1 = "                  1>&2
-printf $PASS1 | hexdump -e '/1 "0x%02X "' 1>&2
-printf "\n"                               1>&2
-printf "Using  PASS2 = "                  1>&2
-printf $PASS2 | hexdump -e '/1 "0x%02X "' 1>&2
-printf "\n"                               1>&2
+echo    "Using X, Y = $X, $Y"              1>&2
+echo    "Using N1, N2 = $N2, $N2"          1>&2
+echo -n "Using  PASS1 = "                  1>&2
+echo -n $PASS1 | hexdump -e '/1 "0x%02X "' 1>&2
+echo                                       1>&2
+echo -n "Using  PASS2 = "                  1>&2
+echo -n $PASS2 | hexdump -e '/1 "0x%02X "' 1>&2
+echo                                       1>&2
 
 cat $MSG | ./stego -x$X -y$Y -f$IMG1 -s$IMG2 -e    &&
            ./schlock -i $ENCD1   -m -p$PASS1 -n$N1 &&
