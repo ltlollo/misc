@@ -188,6 +188,7 @@ int main(int argc, char *argv[]) {
     auto msg = pattern ? to_bitvec(string(pattern)) :
         to_bitvec(vector<char>(istreambuf_iterator<char>{cin}, {}));
     if (n) {
+        //NOTE: odd padding means that the las msg bit will be ignored
         auto padd = vector<bool>(n, false);
         padd.insert(padd.begin(), make_move_iterator(msg.begin()),
                       make_move_iterator(msg.end()));
