@@ -11,7 +11,7 @@ IMG2=$3
 LINES=`cat $MSG | wc -l`
 X=$((RANDOM%10))
 Y=$((RANDOM%10))
-PASS="test"
+PASS=`head -c24 /dev/urandom`
 ENCD1=$IMG1.enc.png
 ENCD2=$IMG2.enc.png
 MARKED="$ENCD1.mark.png"
@@ -20,5 +20,4 @@ UNMARKED="$MARKED.unmark.png"
 cat $MSG | ./stego -x$X -y$Y -f $IMG1 -s $IMG2 -e &&
            ./schlock -i $ENCD1  -m -p$PASS        &&
            ./schlock -i $MARKED -u -p$PASS        &&
-           ./stego -x$X -y$Y -f$UNMARKED -s$ENCD2 -d
-         | head -n$LINES
+           ./stego -x$X -y$Y -f$UNMARKED -s$ENCD2 -d | head -n$LINES
