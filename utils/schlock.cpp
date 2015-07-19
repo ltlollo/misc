@@ -11,10 +11,6 @@ using namespace std;
 using px_t = png::rgb_pixel;
 using png_t = png::image<px_t>;
 
-inline bool bit_val(const px_t& px) {
-    return (px.red ^ px.blue ^ px.green)&1;
-}
-
 struct bound { size_t hlb, hrb, vub, vlb; };
 
 inline void swap_bits(px_t& f, px_t& s) noexcept {
@@ -185,10 +181,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     auto img = png_t(ifname);
+    if (img.get_height() < 10 || img.get_width() < 10) {
+        cerr << "[E]: insufficient size" << endl;
+        return 1;
+    }
     auto msg = pattern ? to_bitvec(string(pattern)) :
         to_bitvec(vector<char>(istreambuf_iterator<char>{cin}, {}));
     if (n) {
-        //NOTE: odd padding means that the las msg bit will be ignored
+        //NOTE: odd padding means that the last msg bit will be ignored
         auto padd = vector<bool>(n, false);
         padd.insert(padd.begin(), make_move_iterator(msg.begin()),
                       make_move_iterator(msg.end()));
