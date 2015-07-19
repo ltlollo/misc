@@ -48,7 +48,7 @@ inline void flip_vert(png_t& img, bound b) noexcept {
    }
 }
 
-bool bound_producer(const size_t bpos, vector<bound>& bounds) {
+void bound_producer(const size_t bpos, vector<bound>& bounds) {
     size_t hlb = bounds[bpos].hlb, hrb = bounds[bpos].hrb,
            vub = bounds[bpos].vub, vlb = bounds[bpos].vlb;
     hlb = (hlb+hrb)/2+1;
@@ -58,13 +58,12 @@ bool bound_producer(const size_t bpos, vector<bound>& bounds) {
 
     if (bounds[bpos].hlb+2 >= bounds[bpos].hrb ||
         bounds[bpos].vub+2 >= bounds[bpos].vlb) {
-        return false;
+        return;
     }
     bounds.emplace_back(bound{bounds[bpos].hlb,hlb-1,bounds[bpos].vub,vub-1});
     bounds.emplace_back(bound{hrb+1,bounds[bpos].hrb,bounds[bpos].vub,vub-1});
     bounds.emplace_back(bound{bounds[bpos].hlb,hlb-1,vlb+1,bounds[bpos].vlb});
     bounds.emplace_back(bound{hrb+1,bounds[bpos].hrb,vlb+1,bounds[bpos].vlb});
-    return true;
 }
 
 // return the bound vector associated to (image, message),
@@ -80,10 +79,8 @@ auto make_bounds(const png_t& img, const vector<bool>& msg) {
     bounds.reserve(expected_size+5);
     bounds.reserve(msg.size());
     bounds.emplace_back(bound{0, img.get_width()-1, 0, img.get_height()-1});
-    while (bounds.size() < expected_size) {
-        if (bound_producer(bpos++, bounds)) {
-            break;
-        }
+    while (bounds.size() < expected_size && bpos < bounds.size()) {
+        bound_producer(bpos++, bounds);
     }
     if (bounds.size() > expected_size) {
         bounds.resize(expected_size);
