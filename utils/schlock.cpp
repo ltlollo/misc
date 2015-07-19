@@ -50,6 +50,7 @@ inline void flip_vert(png_t& img, bound b) noexcept {
 
 // the bounds are choosen this way in order to minimize phase shift in {F}
 // probably makes very little difference
+// TODO: must be removed as it makes easier to reverse
 void bound_producer(const size_t bpos, vector<bound>& bounds) {
     size_t hlb = bounds[bpos].hlb, hrb = bounds[bpos].hrb,
            vub = bounds[bpos].vub, vlb = bounds[bpos].vlb;
