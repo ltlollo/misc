@@ -221,7 +221,7 @@ template<typename T> vector<bool> to_bitvec(T&& in) {
 int main(int argc, char *argv[]) {
     auto print_help = [&]() {
          cerr << "Usage:\t" << argv[0]
-              << " -f img {-m|-u} [-p pattern] [-n N] [-b]"
+              << " -i img {-m|-u} [-p pattern] [-n N] [-b]"
          "\n\t-i img<string>: file name of the png image"
          "\n\t-m: perform marking"
          "\n\t-u: perform unmarking"
