@@ -9,9 +9,8 @@ ap() { for ((i=${1-0};i<${#P[@]};++i)); do pn $i; done;}; c() { ls $ns ;}
 d() { unset P; [[ $pc ]] && kill $pc_PID ;}; b() { l=$((`c`-1)); s; p $l ;}
 a() { for ((i=0;i<$#;++i)); do P[${#P[@]}]=`readlink -f "${@:i+1:1}"`; done ;}
 sn() { for ((i=0;i<${#P[@]};++i)); do echo $i - ${P[$i]}; done ;}
-sw() { t="${P[$1]}"; P[$1]="${P[$2]}"; P[$2]=$t ;}; m() { t 0 "$@" ;}
-p() { [[ $pc ]] && r || coproc pc { ap $1;} &>/dev/null ;}; rs() { s; p ;}
-s() { [[ $pc ]] && { kill $pc_PID; sc; [[ `j` ]] && cl ;} ;}
-sc() { [[ `j` ]] && kill $1 `j` ;}; cl(){ rm $dr/`j` $ns/`c` ;}
-n() { sc -INT ;}; pa() { sc -STOP ;}; r() { sc -CONT ;}
+sw() { t="${P[$1]}"; P[$1]="${P[$2]}"; P[$2]=$t ;}; r() { sc -CONT ;}
+p() { [[ $pc ]] && r || coproc pc { ap $1;} &>/dev/null ;}; pa() { sc -STOP ;};
+s() { [[ $pc ]] && { kill $pc_PID; sc; [[ `j` ]] && cl ;} ;}; n() { sc -INT ;};
+sc() { [[ `j` ]] && kill $1 `j` ;}; cl(){ rm $dr/`j` $ns/`c` ;}; rs() { s; p ;}
 rn() { for ((i=0;i<${#P[@]};++i)); do sw $i $((RANDOM%${#P[@]})); done; rs ;}
