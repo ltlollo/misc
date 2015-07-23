@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # trash mp3 player in bash; useage: source mptre.sh; add */*.mp3; play; stop
 declare -A P; bin="mpv"; bd="/tmp/mps"; dr="$bd/fd"; ns="$bd/n"
-alias play=p pause=pa rsume=r add=a stop=s shownum=sn del=d next=n back=b
-alias list=sn k=s random=rn swap=sw rstart=rs shuffle=rn md=mkdir curr=c job=j
+alias play=p pause=pa resume=r add=a stop=s shownum=sn del=d next=n back=b
+alias list=sn k=s random=rn swap=sw restart=rs shuffle=rn md=mkdir curr=c job=j
 [[ -d $bd ]]||md $bd&&[[ -d $dr ]]||md $dr&&[[ -d $ns ]]||md $ns||echo "Err"
 pn() { $bin "${P[$1]}"&touch $dr/$! "$ns/$1";wait `j`; cl ;}; j() { ls $dr ;}
 ap() { for ((i=${1-0};i<${#P[@]};++i)); do pn $i; done;}; c() { ls $ns ;}
