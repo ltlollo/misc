@@ -6,7 +6,8 @@ alias list=sn k=s random=rn swap=sw restart=rs shuffle=rn md=mkdir curr=c job=j
 [[ -d $bd ]]||md $bd&&[[ -d $dr ]]||md $dr&&[[ -d $ns ]]||md $ns||echo "Err"
 pn() { $bin "${P[$1]}"&touch $dr/$! "$ns/$1";wait `j`; cl ;}; j() { ls $dr ;}
 ap() { for ((i=${1-0};i<${#P[@]};++i)); do pn $i; done;}; c() { ls $ns ;}
-d() { unset P; [[ $pc ]] && kill $pc_PID ;}; b() { l=$((`c`-1)); s; p $l ;}
+d() { unset P; [[ $pc ]] && kill $pc_PID ;};
+b() { l=`c`; s; p $((l?l-1:${#P[@]}-1));};
 a() { for ((i=0;i<$#;++i)); do P[${#P[@]}]=`readlink -f "${@:i+1:1}"`; done ;}
 sn() { for ((i=0;i<${#P[@]};++i)); do echo $i - ${P[$i]}; done ;}
 sw() { t="${P[$1]}"; P[$1]="${P[$2]}"; P[$2]=$t ;}; r() { sc -CONT ;}
