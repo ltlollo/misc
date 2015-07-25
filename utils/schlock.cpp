@@ -76,7 +76,6 @@ auto make_bounds(const png_t& img, const vector<bool>& msg) {
         return bounds;
     }
     bounds.reserve(expected_size+5);
-    bounds.reserve(msg.size());
     bounds.emplace_back(bound{0, img.get_width()-1, 0, img.get_height()-1});
     while (bounds.size() < expected_size && bpos < bounds.size()) {
         bound_producer(bpos++, bounds);
@@ -161,7 +160,6 @@ auto ex_make_bounds(const png_t& img, const vector<bool>& msg) {
         return bounds;
     }
     bounds.reserve(expected_size+5);
-    bounds.reserve(msg.size());
     bounds.emplace_back(bound{0, img.get_width(), 0, img.get_height()});
     while (bounds.size() < expected_size && bpos < bounds.size()) {
         ex_bound_producer(bpos++, bounds);
