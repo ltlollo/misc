@@ -8,33 +8,39 @@
 #include <thread>
 #include <algorithm>
 
-using namespace std;
-
 inline bool is_spacing(wchar_t c) {
-    return c == L' ' || c == L'\n' || c == L'\t';
+    return c == ' ' || c == '\n' || c == '\t';
 }
 
 int main(int argc, char *argv[]) {
-    enum { More, Less } opt = (argc > 1 && argv[1] == "-l"s) ? Less : More;
-    locale::global(locale(""));
-    vector<wchar_t> in(istreambuf_iterator<wchar_t>{wcin}, {});
-    in.erase(remove_if(in.begin(), in.end(), [](const auto& i){
-        return i == L'\r'; }), in.end());
+    enum { More, Mid, Less } opt = (argc > 1) ? [&](){
+        if (argv[1] == std::string("-l"))  return Mid;
+        if (argv[1] == std::string("-ll")) return Less;
+        throw std::runtime_error("unknown option");
+    }() : More;
+    std::locale::global(std::locale(""));
+    std::vector<wchar_t> in;
+    std::copy_if(std::istreambuf_iterator<wchar_t>{std::wcin}, {},
+                 std::back_inserter(in), [](const auto& it){
+                    return it != '\r';
+    });
     if (opt == More) {
         auto it = in.cbegin();
         if (it == in.cend()) { return 0; }
-        if (is_spacing(*it)) { wcout << *it; }
+        if (is_spacing(*it)) { std::wcout << *it; }
         if (++it  == in.cend()) { return 0; }
         for (; it < in.cend(); ++it) {
             if (!is_spacing(*(it-1)) || !is_spacing(*it) ) {
-                wcout << *it;
+                std::wcout << *it;
             }
         }
     } else {
-        unique(in.begin(), in.end(), [](const auto& i, const auto& j){
-            return i == j && is_spacing(i);
+        std::unique(in.begin(), in.end(), [=](const auto& i, const auto& j){
+            return (opt == Mid) ? is_spacing(j) && is_spacing(i) :
+                i == j && is_spacing(i);
         });
-        copy(in.begin(), in.end(), ostreambuf_iterator<wchar_t>{wcout});
+        std::copy(in.begin(), in.end(),
+                  std::ostreambuf_iterator<wchar_t>{std::wcout});
     }
     return 0;
 }
