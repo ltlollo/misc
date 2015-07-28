@@ -46,7 +46,8 @@ int main(int argc, char *argv[]) {
     try {
         print_forever(string(argv[1]));
     } catch (runtime_error& e) {
-        printf(e.what());
+        fprintf(stderr, "%s", e.what());
+        return 1;
     } catch (...) {
         return 1;
     }
