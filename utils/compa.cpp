@@ -16,7 +16,9 @@ int main(int argc, char *argv[]) {
     enum { More, Mid, Less } opt = (argc > 1) ? [&](){
         if (argv[1] == std::string("-l"))  return Mid;
         if (argv[1] == std::string("-ll")) return Less;
-        throw std::runtime_error("unknown option");
+        std::cerr << "[E]: unknown option: " << argv[1] << "\nUsage: "
+        << argv[0] << " [-l[l]]\n\tScope: removes unecesary spacing\n";
+        exit(EXIT_FAILURE);
     }() : More;
     std::locale::global(std::locale(""));
     std::vector<wchar_t> in;
