@@ -1,11 +1,8 @@
 // gpp compa
 
 #include <vector>
-#include <stdexcept>
 #include <string>
 #include <iostream>
-#include <fstream>
-#include <thread>
 #include <algorithm>
 
 inline bool is_spacing(wchar_t c) {
