@@ -15,8 +15,8 @@ int main(int argc, char *argv[]) {
     auto print_help = [&]() {
         fprintf(stderr, "Usage:\t%s -d dict [-i in][-o out][-s S][-1][-h]"
                 "\nScope:\ttranslate S-prefixes into words from a dictionary"
-                "\n\t-i in<string>: input file (default: stdout)"
-                "\n\t-o out<string>: output file (default: stdin)"
+                "\n\t-i in<string>: input file (default: stdin)"
+                "\n\t-o out<string>: output file (default: stdout)"
                 "\n\t-s S<rune>: prefix (default: @)"
                 "\n\t-1: 1-based index (deafult: false)"
                 "\n\t-h: this message\n", argv[0]);
