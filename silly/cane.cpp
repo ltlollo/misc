@@ -50,8 +50,8 @@ template<ui N> struct Word<N, Male<Name>> {
     void operator()() {
         rand cdist(0, 1);
         switch(cdist(gen)) {
-            pc(0, "Gesu");
-            pc(1, "Dio");
+            pc(0, "@g@e@102369");
+            pc(1, "@33081");
         }
         rand ndist(0, 5);
         switch(ndist(gen)) {
@@ -68,9 +68,9 @@ template<ui N> struct Word<N, Animal<Name>> {
     void operator()() {
         rand cdist(0, 2);
         switch(cdist(gen)) {
-            pc(0, "porco");
-            pc(1, "cane");
-            pc(2, "maiale");
+            pc(0, "@68519");
+            pc(1, "@17969");
+            pc(2, "@56642");
         }
         rand ndist(0, 4);
         switch(ndist(gen)) {
@@ -86,8 +86,8 @@ template<ui N> struct Word<N, Female<Name>> {
     void operator()() {
         rand dist(0, 1);
         switch(dist(gen)) {
-            pc(0, "Madonna");
-            pc(1, "Maremma");
+            pc(0, "@56558");
+            pc(1, "@57352@m@m@a");
         }
         rand ndist(0, 4);
         switch(ndist(gen)) {
@@ -103,11 +103,11 @@ template<ui N> struct Word<N, Male<Adj>> {
     void operator()() {
         rand cdist(0, 4);
         switch(cdist(gen)) {
-            pc(0, "sudicio");
-            pc(1, "infiammato");
-            pc(2, "beduino");
-            pc(3, "buco");
-            pc(4, "laido");
+            pc(0, "@102660");
+            pc(1, "@49088");
+            pc(2, "@b@e@d@u@i@61568");
+            pc(3, "@16904");
+            pc(4, "@54400");
         }
         rand ndist(0, 3);
         switch(ndist(gen)) {
@@ -122,17 +122,17 @@ template<ui N> struct Word<N, Female<Adj>> {
     void operator()() {
         rand cdist(0, 10);
         switch(cdist(gen)) {
-            pc(0, "puttana");
-            pc(1, "infiammata");
-            pc(2, "laida");
-            pc(3, "sudicia");
-            pc(4, "porca");
-            pc(5, "troia");
-            pc(6, "maiala");
-            pc(7, "appestata");
-            pc(8, "impestata");
-            pc(9, "vipera");
-            pc(10, "velenosa");
+            pc(0, "@73131");
+            pc(1, "@49086");
+            pc(2, "@54397");
+            pc(3, "@102658");
+            pc(4, "@68507");
+            pc(5, "@111224");
+            pc(6, "@56641@6023");
+            pc(7, "@10253");
+            pc(8, "@i@m@67223");
+            pc(9, "@115802");
+            pc(10, "@114636");
         }
         rand ndist(0, 4);
         switch(ndist(gen)) {
@@ -146,7 +146,7 @@ template<ui N> struct Word<N, Female<Adj>> {
 
 template<ui N> struct Word<N, Female<Conj>> {
     void operator()() {
-        printf("della ");
+        printf("@30473 ");
         Word<N-1, Female<Name>>()();
     }
 };
@@ -154,14 +154,14 @@ template<ui N> struct Word<N, Female<Conj>> {
 
 template<ui N> struct Word<N, Animal<Conj>> {
     void operator()() {
-        printf("del ");
+        printf("@29078 ");
         Word<N-1, Animal<Name>>()();
     }
 };
 
 template<ui N> struct Word<N, Male<Conj>> {
     void operator()() {
-        printf("di ");
+        printf("@31807 ");
         Word<N-1, Male<Name>>()();
     }
 };
