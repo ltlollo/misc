@@ -1,4 +1,4 @@
-// cat cane_nomacro_clang.cpp | transcat /usr/share/dict/italian | g++ -std=c++14 -x c++ - -o cane_nomacro_clang
+// cat cane_nomacro_clang.cpp | transcat -d /usr/share/dict/italian | g++ -std=c++14 -x c++ - -o cane_nomacro_clang
 
 #include <random>
 
