@@ -8,27 +8,77 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <wchar.h>
+#include <unistd.h>
+#include <string.h>
 
 int main(int argc, char *argv[]) {
+    auto print_help = [&]() {
+        fprintf(stderr, "Usage:\t%s -d dict [-i in][-o out][-s S][-1][-h]"
+                "\nScope:\ttranslate S-prefixes into words from a dictionary"
+                "\n\t-i in<string>: input file (default: stdout)"
+                "\n\t-o out<string>: output file (default: stdin)"
+                "\n\t-s S<char>: char separator (default: '@')"
+                "\n\t-1: 1-based index (deafult: false)"
+                "\n\t-h: this message\n", argv[0]);
+    };
     std::locale::global(std::locale(""));
-    if (argc < 2) {
-        fprintf(stderr, "Usage:\t%s dict [1]\nScope:\ttranslate @prefixes into"
-                " words from a dictionary\n\t1: 1-based index\n", argv[0]);
+    wchar_t s = '@';
+    int opt;
+    bool one_based = false;
+    char* dfname = nullptr;
+    while ((opt = getopt(argc, argv, "h1s:i:d:o:")) != -1) {
+        switch (opt) {
+        case 'i':
+            if (freopen(optarg, "r", stdin) == NULL) {
+                perror("freopen");
+                exit(EXIT_FAILURE);
+            }
+            break;
+        case 'o':
+            if (freopen(optarg, "w", stdout) == NULL) {
+                perror("freopen");
+                exit(EXIT_FAILURE);
+            }
+            break;
+        case 'd':
+            dfname = optarg;
+            break;
+        case '1':
+            one_based = true;
+            break;
+        case 's':
+            if (strlen(optarg) != 1) {
+                fprintf(stderr, "[E]: -s S: S must be a char, is \"%s\""
+                        " instead\n", optarg);
+                exit(EXIT_FAILURE);
+            }
+            s = optarg[0];
+            break;
+        case 'h':
+            print_help();
+            return 0;
+        default:
+            print_help();
+            exit(EXIT_FAILURE);
+        }
+    }
+    if (!dfname) {
+        print_help();
         exit(EXIT_FAILURE);
     }
     std::vector<std::wstring> dict;
-    if (argc > 2 && argv[2] == std::string("1")) {
+    if (one_based) {
         dict.push_back(L"");
     }
     {
-        std::wifstream df(argv[1]);
+        std::wifstream df(dfname);
         for (std::wstring s; std::getline(df, s);) {
             dict.push_back(std::move(s));
         }
     }
     wint_t c;
     while ((c = fgetwc(stdin)) != WEOF) {
-        if (c != '@') {
+        if (wchar_t(c) != s) {
             fputwc(c, stdout);
             continue;
         }
@@ -44,7 +94,7 @@ int main(int argc, char *argv[]) {
         if (c == WEOF) {
             break;
         }
-        if (!esc && c == '@') {
+        if (!esc && wchar_t(c) == s) {
             fputwc(c, stdout);
             continue;
         }
