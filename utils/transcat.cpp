@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
         case 's':
             sepa = converter.from_bytes(optarg);
             if (sepa.length() != 1) {
-                fprintf(stderr, "[E]: -s S: S must be a rune, is \"%s\""
+                fprintf(stderr, "[E]: -s S: S must be a rune, it's \"%s\""
                         " instead\n", optarg);
                 exit(EXIT_FAILURE);
             }
