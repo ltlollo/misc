@@ -44,6 +44,10 @@ int main(int argc, char *argv[]) {
         if (c == WEOF) {
             break;
         }
+        if (!esc && c == '@') {
+            fputwc(c, stdout);
+            continue;
+        }
         ungetwc(c, stdin);
     }
     return 0;
