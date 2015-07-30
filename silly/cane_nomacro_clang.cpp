@@ -36,50 +36,50 @@ template<typename T> using flip_type_of = typename FlipType<T>::type;
 template<typename T> using flip_any_of = flip_type_of<flip_sex_of<T>>;
 
 char pmnames[][6]{
-    "Gesu"
-    , "Dio"
+    "@g@e@102369"
+    , "@33081"
 };
 char cmnames[][10]{
-    "cane"
-    , "porco"
-    , "maiale"
-    , "cinghiale"
-    , "becco"
+    "@17969"
+    , "@68519"
+    , "@56642"
+    , "@19877"
+    , "@15533"
 };
 char pfnames[][8]{
-    "Madonna"
-    , "Maremma"
+    "@56558"
+    , "@57352@m@m@a"
 };
 char madjs[][11]{
-    "sudicio"
-    , "infiammato"
-    , "beduino"
-    , "buco"
-    , "laido"
-    , "bastardo"
+    "@102660"
+    , "@49088"
+    , "@b@e@d@u@i@61568"
+    , "@16904"
+    , "@54400"
+    , "@15296"
 };
 char fadjs[][11]{
-    "infiammata"
-    , "laida"
-    , "sudicia"
-    , "porca"
-    , "troia"
-    , "maiala"
-    , "appestata"
-    , "impestata"
-    , "vipera"
-    , "velenosa"
-    , "ladra"
-    , "schifosa"
-    , "lezza"
+    "@49086"
+    , "@54397"
+    , "@102658"
+    , "@68507"
+    , "@111224"
+    , "@56641@6023"
+    , "@10253"
+    , "@i@m@67223"
+    , "@115802"
+    , "@114636"
+    , "@54367"
+    , "@86884"
+    , "@54997@z@z@a"
 };
 char cfnames[][11]{
-    "puttana"
-    , "porca"
-    , "troia"
-    , "maiala"
-    , "vipera"
-    , "velenosa"
+    "@73131"
+    , "@68507"
+    , "@111224"
+    , "@56641@6023"
+    , "@115802"
+    , "@114636"
 };
 
 
@@ -153,19 +153,19 @@ template<typename T, ui N, ui... Ns> struct Word<Adj<T>, N, Ns...> {
     }
 };
 template<ui N, ui... Ns> struct Word<Conj<Proper<Female>>, N, Ns...> {
-    void operator()() { printf("della "); Word<Name<Proper<Female>>, Ns...>()(); }
+    void operator()() { printf("@30473 "); Word<Name<Proper<Female>>, Ns...>()(); }
 };
 
 template<ui N, ui... Ns> struct Word<Conj<Common<Male>>, N, Ns...> {
-    void operator()() { printf("del "); Word<Name<Common<Male>>, Ns...>()(); }
+    void operator()() { printf("@29078 "); Word<Name<Common<Male>>, Ns...>()(); }
 };
 
 template<ui N, ui... Ns> struct Word<Conj<Common<Female>>, N, Ns...> {
-    void operator()() { printf("della "); Word<Name<Common<Female>>, Ns...>()(); }
+    void operator()() { printf("@30473 "); Word<Name<Common<Female>>, Ns...>()(); }
 };
 
 template<ui N, ui... Ns> struct Word<Conj<Proper<Male>>, N, Ns...> {
-    void operator()() { printf("di "); Word<Name<Proper<Male>>, Ns...>()(); }
+    void operator()() { printf("@31807 "); Word<Name<Proper<Male>>, Ns...>()(); }
 };
 
 template<typename N> struct Word<N>{
