@@ -5,11 +5,11 @@
 #include <iostream>
 #include <fstream>
 #include <locale>
+#include <codecvt>
 #include <stdlib.h>
 #include <stdio.h>
 #include <wchar.h>
 #include <unistd.h>
-#include <string.h>
 
 int main(int argc, char *argv[]) {
     auto print_help = [&]() {
@@ -17,12 +17,14 @@ int main(int argc, char *argv[]) {
                 "\nScope:\ttranslate S-prefixes into words from a dictionary"
                 "\n\t-i in<string>: input file (default: stdout)"
                 "\n\t-o out<string>: output file (default: stdin)"
-                "\n\t-s S<char>: char separator (default: '@')"
+                "\n\t-s S<rune>: prefix (default: @)"
                 "\n\t-1: 1-based index (deafult: false)"
                 "\n\t-h: this message\n", argv[0]);
     };
     std::locale::global(std::locale(""));
-    wchar_t s = '@';
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+    std::wstring sepa;
+    wchar_t s = L'@';
     int opt;
     bool one_based = false;
     char* dfname = nullptr;
@@ -47,12 +49,13 @@ int main(int argc, char *argv[]) {
             one_based = true;
             break;
         case 's':
-            if (strlen(optarg) != 1) {
-                fprintf(stderr, "[E]: -s S: S must be a char, is \"%s\""
+            sepa = converter.from_bytes(optarg);
+            if (sepa.length() != 1) {
+                fprintf(stderr, "[E]: -s S: S must be a rune, is \"%s\""
                         " instead\n", optarg);
                 exit(EXIT_FAILURE);
             }
-            s = optarg[0];
+            s = sepa[0];
             break;
         case 'h':
             print_help();
@@ -68,7 +71,7 @@ int main(int argc, char *argv[]) {
     }
     std::vector<std::wstring> dict;
     if (one_based) {
-        dict.push_back(L"");
+        dict.emplace_back(L"");
     }
     {
         std::wifstream df(dfname);
