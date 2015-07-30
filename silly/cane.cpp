@@ -1,4 +1,4 @@
-// gpp cane
+// cat cane.cpp | transcat /usr/share/dict/italian | g++ -std=c++14 -x c++ - -o cane
 
 #include <random>
 
