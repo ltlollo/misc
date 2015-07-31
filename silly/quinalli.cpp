@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <iostream>
+#include <string>
 #include <algorithm>
 #include <png++/png.hpp>
 
@@ -14,21 +15,29 @@ char to_ch(double i) {return(i>=123)?hi:(i>=98&&i<123)?hm:(i>=68&&i<98)?lm:lo;}
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
-        cerr << "Usage:\t" << argv[0] << " PNG SIZE\nScope:\tprints pgm/bash"
-            " grayscale quines from PNG image of size SIZE\n";
+        cerr << "Usage:\t" << argv[0] << " png size [-i]\nScope:\tprints pgm/"
+            "bash grayscale quines from a png image given a size"
+            "\n\timg<string>: png input file"
+            "\n\tsize<unsigned>: width of the printed output (required > 0)"
+            "\n\t-i: inverts the output\n";
         return 1;
+    }
+    bool inv = false;
+    if (argc > 3 && argv[3] == "-i"s) {
+        inv = true;
     }
     png_t img(argv[1]);
     double s = stol(argv[2]), w = img.get_width(), h = img.get_height();
     if (!w || !h || !s) {
-        cerr << "[E]: " << (s ? argv[1] : "SIZE") << " too small\n";
+        cerr << "[E]: " << (s ? argv[1] : "new size") << " too small\n";
         return 1;
     }
     printf("P5 %ld %ld %d", size_t(s+1), size_t(s*(h/w)), unsigned(hi));
     for (double i = 0; i < s*(h/w); ++i) {
         cout << '\n';
-    for (double j = 0; j < s; ++j) {
-            cout << to_ch(luma(img[i/s*w][j/s*w]));
+        for (double j = 0; j < s; ++j) {
+            cout << to_ch((!inv ? luma(img[i/s*w][j/s*w]):
+                            255 - luma(img[i/s*w][j/s*w])));
         }
     }
     cout << endl;
