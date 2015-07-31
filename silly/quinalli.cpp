@@ -17,7 +17,7 @@ char to_ch(double i) {return(i>=123)?hi:(i>=98&&i<123)?hm:(i>=68&&i<98)?lm:lo;}
 int main(int argc, char *argv[]) {
     if (argc < 3) {
         cerr << "Usage:\t" << argv[0] << " png size [-i]\nScope:\tprints pgm/"
-            "bash grayscale polyglot from a png image given a size"
+            "ascii grayscale polyglot from a png image given a size"
             "\n\timg<string>: png input file"
             "\n\tsize<unsigned>: width of the printed output (required > 0)"
             "\n\t-i: inverts the output\n";
