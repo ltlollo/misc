@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     png_t img(argv[1]);
     double s = stol(argv[2]), w = img.get_width(), h = img.get_height();
     if (!w || !h || !s) {
-        cerr << argv[1] << "too small\n";
+        cerr << "[E]: " << (s ? argv[1] : "SIZE") << " too small\n";
         return 1;
     }
     printf("P5 %ld %ld %d", size_t(s+1), size_t(s*(h/w)), unsigned(hi));
