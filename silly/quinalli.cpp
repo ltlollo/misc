@@ -9,7 +9,7 @@ using namespace std;
 using px_t = png::rgb_pixel;
 using png_t = png::image<px_t>;
 constexpr char lo = 32, lm = 46, hm = 58, hi = 120;
-double luma(const px_t& p) {return 0.2126*p.red+0.7152*p.green+0.0722*p.blue; }
+double luma(const px_t& p) { return 0.299*p.red+0.587*p.green+0.114*p.blue; }
 char to_ch(double i) {return(i>=123)?hi:(i>=98&&i<123)?hm:(i>=68&&i<98)?lm:lo;}
 
 int main(int argc, char *argv[]) {
