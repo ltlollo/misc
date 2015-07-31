@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
         cout << '\n';
         for (double j = 0; j < s; ++j) {
             cout << to_ch((!inv ? luma(img[i/s*w][j/s*w]):
-                            255 - luma(img[i/s*w][j/s*w])));
+                            187 - luma(img[i/s*w][j/s*w])));
         }
     }
     cout << endl;
