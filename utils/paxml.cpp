@@ -2290,7 +2290,6 @@ void consume_ent(It& it, const It& end) {
     return;
 }
 
-
 template<typename It>
 void consume_tag(It& it, const It& end) {
     for (const auto& tag: tags) {
@@ -2309,7 +2308,12 @@ void consume_tag(It& it, const It& end) {
     return;
 }
 
-int main(int , char *[]) {
+int main(int argc, char *argv[]) {
+    if (argc != 1) {
+        fprintf(stderr, "Usage:\t%s\nScope:\textracts strings from a html doc"
+               " given to stdin\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
     std::locale::global(std::locale(""));
     std::vector<wchar_t> in(std::istreambuf_iterator<wchar_t>{std::wcin}, {});
     auto it = in.cbegin();
