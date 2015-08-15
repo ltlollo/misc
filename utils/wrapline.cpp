@@ -8,7 +8,6 @@
 #include <locale>
 #include <experimental/string_view>
 
-
 int main(int argc, char *argv[]) {
     auto print_usage = [&]() {
         std::wcerr << "Usage:\t" << argv[0] << L" N S\nScope:\tpresent"
