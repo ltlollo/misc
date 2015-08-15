@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+sstat() {
+    echo "$PWD:"
+    for f in *; do
+        echo -n "   "
+        [[ -d "$f" ]] && echo `cd "$f"; find|wc -l; cd ..` "$f" || echo "$f"
+    done
+    echo ${PWD//?/-}
+}
+
+rstat() {
+    echo `ls | wc -l` "$PWD";
+    for f in *; do
+        if [[ -d "$f" ]]; then
+            cd "$f"
+            rstat
+            cd ..
+        fi
+    done
+}
+sstat 1>&2
+rstat
