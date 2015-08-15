@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+list() {
+    unrar l $1|awk '{a=0; if (FNR > 8) print substr($0, index($0,$5))}'|head -n-3
+}
+
+op() {
+    unrar -ierr p "$1" "`list $1| sort -R |head -n1`" | "$2" - > /dev/null 2>&1
+}
+
+op $@
