@@ -10,15 +10,28 @@
 
 
 int main(int argc, char *argv[]) {
+    auto print_usage = [&]() {
+        std::wcerr << "Usage:\t" << argv[0] << L" N S\nScope:\tpresent"
+            " text using N runes per line, using S to indicate line "
+            "wrap.\n\tN<uint>: runes per line (default: 79)\n\t"
+            "S<str>: newline indicator (default ' ↵')\n";
+    };
     std::locale::global(std::locale(""));
     std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
     std::ostreambuf_iterator<wchar_t> wc{std::wcout};
-    size_t max = (argc > 1) ? std::stoull(argv[1]) : 79;
+    size_t max = (argc > 1) ?
+        [&]() { try { return std::stoull(argv[1]); }
+            catch (std::invalid_argument& e) {
+                std::cerr << "[E]: " << argv[1] << " unrecognised option\n";
+                print_usage();
+                exit(EXIT_FAILURE);
+            }}()
+    : 79;
     std::wstring sepa = (argc > 2) ? converter.from_bytes(argv[2]) : L" ↵";
     if (max <= sepa.length() ) {
         std::copy(std::istreambuf_iterator<wchar_t>{std::wcin}, {}, wc);
         std::cerr << "[E]: separator size must be greater than line size\n";
-        return 1;
+        exit(EXIT_FAILURE);
     }
     for (std::wstring s; std::getline(std::wcin, s);) {
         auto it = s.begin();
