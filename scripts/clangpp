@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+file=${1%.cpp}
+
+mainopts="-Ofast -mtune=native -fno-rtti"
+restopts="-ftree-vectorize"
+OWarn="-Wall -Wextra -pedantic"
+OOpts="${mainopts} ${restopts}"
+
+clang++-3.5 -std=c++14 $file.cpp $OWarn $OOpts -pthread -o $file $2 $3 $4
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 elines=3
-file=${1%.cpp}
+file="${1%.cpp}"
 rest=${@:2}
 
 mainopts="-Ofast -mtune=native -fno-rtti"
@@ -11,5 +11,6 @@ restopts="-flto=8 -ftree-vectorize"
 OWarn="-Wall -Wextra -Wconversion -pedantic"
 OOpts="${mainopts} ${loopopts} ${restopts}"
 OOut="-fmax-errors=$elines"
+OSec="-fstack-protector-all"
 
-g++ -std=c++14 $file.cpp $OWarn $OOpts $OOut -pthread -o $file $rest 2>&1
+g++-5 -std=c++14 $file.cpp $OWarn $OOpts $OOut $OSec -pthread -o $file $rest
