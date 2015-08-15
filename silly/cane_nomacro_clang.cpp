@@ -103,7 +103,7 @@ template<> struct Data<Name<Common<Female>>> {
 };
 template<> struct Data<Adj<Male>>            {
     static constexpr auto words = madjs;
-    static   constexpr ui size = size_of(madjs);
+    static constexpr ui size = size_of(madjs);
 };
 template<> struct Data<Adj<Female>>          {
     static constexpr auto words = fadjs;
