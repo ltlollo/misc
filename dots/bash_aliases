@@ -1,0 +1,14 @@
+# some more ls aliases
+alias ll='ls -l'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias sizeof='du -bh'
+
+# typos
+alias cim='vim'
+alias bim='vim'
+
+#other
+alias cenv='source eprep'
