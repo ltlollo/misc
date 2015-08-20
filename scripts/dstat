@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 
+USAGE="Usage:\t$0 [-d] [-h | --help]\n\
+Scope:\tList number of files in all the subdirectories of the current path\n\
+\t-d: List the all the subdirectories with the number of files"
+
 sstat() {
-    for f in *; do
-        [[ -d "$f" ]] && echo `cd "$f"; find|wc -l; cd ..` "$f" || echo "$f"
+    for f in `find -O3 -maxdepth 1 -exec realpath {} \;`
+    do [[ -d "$f" ]] && echo -e `find "$f" | wc -l`"\t$f"\
+                     || echo -e                   "-\t$f"
     done
 }
 
 rstat() {
-    echo `ls | wc -l` "$PWD";
-    for f in *; do
-        if [[ -d "$f" ]]; then
-            cd "$f"
-            rstat
-            cd ..
-        fi
+    for f in `find -O3 -type d -exec realpath {} \;`
+    do echo -e `ls "$f"|wc -l`"\t$f"
     done
 }
 
-[[ "$1" = "-d" ]] && rstat || sstat
+[[ $1 = --help || $1 = -h ]] && { echo -e $USAGE 1>&2; exit 0; }
+[[ $1 = -d ]] && rstat . || sstat .
+
