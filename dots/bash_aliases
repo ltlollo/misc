@@ -26,11 +26,12 @@ alias cenv='export PATH=/usr/local/bin:"$PATH"\
     export CFLAGS="-O3 -ffast-math -march=native"'
 
 # functions
-culo()   { su -pc "$*"; }
-tcc()    { sh -c "`sed -n -e '1{s:^\/\/::p;q}' $1`"; }
-ttc()    { sh -c "`sed -n -e '2{s:^\/\/::p;q}' $1`"; }
 repeat() { while $@; do ``; done; }
-mon()    { L=`pidof $1`; top -p ${L// /,}; }
+culo() { su -pc "$*"; }
+tcc() { sh -c "`sed -n -e '1{s:^\/\/::p;q}' $1`"; }
+ttc() { sh -c "`sed -n -e '2{s:^\/\/::p;q}' $1`"; }
+mon() { L=`pidof $1`; top -p ${L// /,}; }
+dev() { [[ $1 ]] && { mkdir "$HOME/dev/$1" 2>/dev/null; cd "$HOME/dev/$1"; }; }
 
 # typos
 alias cim='vim'
