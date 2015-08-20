@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+file=`[[ $1 ]] &&\
+    find -type f -iname "*$2*" | sort -R | head -n1 ||\
+    find -type f -iname "*$2*" -printf '%s\t%p\n' | sort -R |\
+        head -n$1 | sort -rn | awk 'NR==1{print $2}'`
+echo [I]: opening $file 1>&2
+poppe "$file"
+
