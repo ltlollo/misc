@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
-file=${1%.cpp}
+elines=3
+file="${1%.cpp}"
+rest=${@:2}
 
 mainopts="-Ofast -mtune=native -fno-rtti"
 restopts="-ftree-vectorize"
-OWarn="-Wall -Wextra -pedantic"
-OOpts="${mainopts} ${restopts}"
 
-clang++-3.5 -std=c++14 $file.cpp $OWarn $OOpts -pthread -o $file $2 $3 $4
+OWarn="-Wall -Wextra -Wconversion -pedantic"
+OOpts="${mainopts} ${loopopts} ${restopts}"
+OOut="-ferror-limit=$elines"
 
+clang++-3.5 -std=c++14 $file.cpp $OWarn $OOpts $OOut $OSec -pthread -o $file $rest
