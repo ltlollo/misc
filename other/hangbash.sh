@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 
 [[ $1 ]] || { echo "$0 dict [guesses]"; exit 1; }
-L=`cat $1| wc -l`
-W=`awk "NR==$((RANDOM%(L+1))){print tolower(\\$0)}" $1`
-N=${2-6}
-G=""; T=""; V=""
+L=`cat $1| wc -l`; W=`awk "NR==$((RANDOM%(L+1))){print tolower(\\$0)}" $1`
+N=${2-6}; G=""; T=""; V=""
 while [[ $N -gt 0 ]]; do
-    echo -n "Guesses: $N, W: "
-    echo $W | tr -c "$G\n" "-"
+    echo -n "Guesses: $N, W: "; echo $W | tr -c "$G\n" "-"
     echo -ne "Tried: $T\tCorrect: $G\nEnter a char: "
     read -n1 i; echo; i=${i,,}
     case $W in *$i*) case $G in *$i*);;*) G="$G$i";;esac;;
@@ -19,4 +16,3 @@ while [[ $N -gt 0 ]]; do
     [[ $V ]] && { echo Congrats, it was: $W; exit 0; }
 done
 echo Sorry, it was: $W
-
