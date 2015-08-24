@@ -1,21 +1,18 @@
-// cat cane_nomacro_clang.cpp | transcat -d /usr/share/dict/italian | g++ -std=c++14 -x c++ - -o cane_nomacro_clang
+// cat cane_nomacro_clang.cpp | transcat -d /usr/share/dict/italian | g++ -std=c++14 -x c++ - -o pd
 
 #include <random>
 
-using namespace std;
 using ui = size_t;
 
 std::random_device rd;
 std::mt19937 gen(rd());
 
 template<unsigned N, unsigned M>
-constexpr unsigned size_of(const char (&arr)[N][M]) {
-        return N;
-}
+constexpr unsigned size_of(const char (&arr)[N][M]) { return N; }
 
-struct Root{};
-struct Male{};
-struct Female{};
+struct Root;
+struct Male;
+struct Female;
 template<typename T> using sex_of = typename T::sex;
 template<typename T> struct Gender{ using sex = T; };
 template<typename T> struct Proper : Gender<T> {};
@@ -23,13 +20,13 @@ template<typename T> struct Common : Gender<T> {};
 template<typename T> struct Adj : Gender<T> {};
 template<typename T> struct Name : T {};
 template<typename T> struct Conj : T {};
-template<typename T> struct FlipSex{};
+template<typename T> struct FlipSex;
 template<> struct FlipSex<Male> : Gender<Female> {};
 template<> struct FlipSex<Female> : Gender<Male> {};
 template<typename T> using flip_sex_of = sex_of<FlipSex<T>>;
 template<typename T> struct FlipSex<Proper<T>>{ using sex = Proper<flip_sex_of<T>>; };
 template<typename T> struct FlipSex<Common<T>>{ using sex = Common<flip_sex_of<T>>; };
-template<typename T> struct FlipType{};
+template<typename T> struct FlipType;
 template<typename T> struct FlipType<Proper<T>> { using type = Common<T>; };
 template<typename T> struct FlipType<Common<T>> { using type = Proper<T>; };
 template<typename T> using flip_type_of = typename FlipType<T>::type;
@@ -82,12 +79,10 @@ char cfnames[][11]{
     , "@114636"
 };
 
-
-
-template<typename T> struct Data{};
+template<typename T> struct Data;
 template<> struct Data<Name<Proper<Male>>>   {
-    static constexpr auto words = pmnames; static
-    constexpr ui size = size_of(pmnames);
+    static constexpr auto words = pmnames;
+    static constexpr ui size = size_of(pmnames);
 };
 template<> struct Data<Name<Proper<Female>>> {
     static constexpr auto words = pfnames;
@@ -110,9 +105,8 @@ template<> struct Data<Adj<Female>>          {
     static   constexpr ui size = size_of(fadjs);
 };
 
-template<typename T, ui... Ns> struct Word {};
-
-template<ui... Ns> struct Word<Root, Ns...>{
+template<typename T, ui... Ns> struct Word;
+template<ui... Ns> struct Word<Root, Ns...> {
     void operator()() {
         std::uniform_int_distribution<> dist(0,1);
         switch(dist(gen)) {
@@ -121,7 +115,6 @@ template<ui... Ns> struct Word<Root, Ns...>{
         }
     }
 };
-
 template<typename T, ui N, ui... Ns> struct Word<Name<T>, N, Ns...> {
     void operator()() {
         std::uniform_int_distribution<> cdist(0, Data<Name<T>>::size-1);
@@ -148,7 +141,6 @@ template<typename T, ui N, ui... Ns> struct Word<Adj<T>, N, Ns...> {
             case 1: Word<Conj<Proper<T>>, Ns...>()(); break;
             case 2: Word<Conj<Proper<flip_sex_of<T>>>, Ns...>()(); break;
             case 3: Word<Conj<Common<flip_sex_of<T>>>, Ns...>()(); break;
-
         }
     }
 };
@@ -159,19 +151,15 @@ template<ui N, ui... Ns> struct Word<Conj<Proper<Female>>, N, Ns...> {
 template<ui N, ui... Ns> struct Word<Conj<Common<Male>>, N, Ns...> {
     void operator()() { printf("@29078 "); Word<Name<Common<Male>>, Ns...>()(); }
 };
-
 template<ui N, ui... Ns> struct Word<Conj<Common<Female>>, N, Ns...> {
     void operator()() { printf("@30473 "); Word<Name<Common<Female>>, Ns...>()(); }
 };
-
 template<ui N, ui... Ns> struct Word<Conj<Proper<Male>>, N, Ns...> {
     void operator()() { printf("@31807 "); Word<Name<Proper<Male>>, Ns...>()(); }
 };
-
-template<typename N> struct Word<N>{
+template<typename N> struct Word<N> {
     void operator()() { printf("\n"); }
 };
-
 template<ui N> struct Word<Conj<Common<Male>>, N> {
     void operator()() { Word<Conj<Common<Male>>, N, N>()(); }
 };
@@ -189,15 +177,17 @@ template<typename T, ui N>struct Word<Name<Common<T>>,   N> {
 };
 
 template<ui... Ns> struct Num {};
-template<ui N, typename T> struct GenGraph {
-    template<ui... Ns> void operator()(Num<Ns...> n){ GenGraph<N-1, T>()(Num<Ns..., N>()); }
-};
 
+template<ui N, typename T> struct GenGraph {
+    template<ui... Ns> void operator()(Num<Ns...> n){
+        GenGraph<N-1, T>()(Num<Ns..., N>());
+    }
+};
 template<typename T> struct GenGraph<0, T> {
     template<ui... Ns> void operator()(Num<Ns...> n){ Word<T, Ns...>()(); }
 };
 
-template<ui N> void Graph() { GenGraph<N, Root>()(Num<>()); }
+template<ui N> void Graph() { GenGraph<N, Root>()(Num<>{}); }
 
 int main(int argc, char *argv[]) {
     Graph<10>();
