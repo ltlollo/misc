@@ -6,35 +6,31 @@
 #define c(pos,...) case pos: Word<__VA_ARGS__>{}(); break
 #define pc(pos, name) case pos: printf("%s ", name); break
 #define rand std::uniform_int_distribution<>
-#define base(case) \
-template<>\
-struct Word<0, case> {\
-    void operator()(){ printf("\n"); }\
-}
-#define cont(case) \
-template<>\
-struct Word<1, case> {\
-    void operator()() {\
-        Word<2, case>()();\
-    }\
-}
+#define base(case)                         \
+    template<> struct Word<0, case> {      \
+        void operator()(){ printf("\n"); } \
+    }
+#define cont(case)                    \
+    template<> struct Word<1, case> { \
+        void operator()() {           \
+            Word<2, case>()();        \
+        }                             \
+    }
 
-using namespace std;
 using ui = size_t;
 
 std::random_device rd;
 std::mt19937 gen(rd());
 
-struct Root{};
-template<typename T> struct Male{};
-template<typename T> struct Female{};
-template<typename T> struct Animal{};
-struct Name{};
-struct Adj{};
-struct Conj{};
+struct Root;
+template<typename T> struct Male;
+template<typename T> struct Female;
+template<typename T> struct Animal;
+struct Name;
+struct Adj;
+struct Conj;
 
-
-template<ui N, typename T> struct Word {};
+template<ui N, typename T> struct Word;
 
 template<ui N> struct Word<N, Root> {
     void operator()() {
@@ -185,4 +181,3 @@ int main(int argc, char *argv[]) {
     Word<10, Root>()();
     return 0;
 }
-
