@@ -147,7 +147,6 @@ template<ui N> struct Word<N, Female<Conj>> {
     }
 };
 
-
 template<ui N> struct Word<N, Animal<Conj>> {
     void operator()() {
         printf("@29078 ");
