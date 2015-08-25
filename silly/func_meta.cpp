@@ -1,6 +1,7 @@
 // gpp func_meta
 
 #include "extra/func_meta.h"
+#include <iostream>
 
 using namespace std;
 using namespace fun;
