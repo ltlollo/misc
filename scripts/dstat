@@ -17,6 +17,6 @@ rstat() {
     done
 }
 
-[[ $1 = --help || $1 = -h ]] && { echo -e $USAGE 1>&2; exit 0; }
+[[ $1 = --help || $1 = -h ]] && { echo -e "$USAGE" 1>&2; exit 0; }
 [[ $1 = -d ]] && rstat . || sstat .
 

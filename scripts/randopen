@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 
-case $1 in ''|*[!0-9]*) N=0;  S=$1;;
+USAGE="Usage: $0 [N|fil|-h|--help] [fil]\n\
+Scope:\tRandomly opens a file in a directory tree\n\
+\t N<uint>: use a N large sample, then pick the largest (default: 1)\n\
+\t fil<string>: filter the samples that contain fil key (default: *)"
+
+case $1 in ''|*[!0-9]*) N=1;  S=$1;;
                      *) N=$1; S=$2;;
 esac
+
 file=`[[ $N -gt 1 ]] &&\
     find -type f -iname "*$S*" -printf '%s\t%p\n' | sort -R | head -n$N |\
         sort -rn | awk -F '\t' 'NR==1{print $2}' ||\
     find -type f -iname "*$S*" | sort -R | head -n1`
+
+[[ $1 = --help || $1 = -h ]] && { echo -e "$USAGE" 1>&2; exit 0; }
 echo [I]: opening $file 1>&2; poppe "$file"
 
