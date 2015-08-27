@@ -8,7 +8,7 @@ std::random_device rd;
 std::mt19937 gen(rd());
 
 template<unsigned N, unsigned M>
-constexpr unsigned size_of(const char (&arr)[N][M]) { return N; }
+constexpr unsigned size_of(const char (&)[N][M]) { return N; }
 
 struct Root;
 struct Male;
