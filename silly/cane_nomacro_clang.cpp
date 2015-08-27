@@ -1,4 +1,4 @@
-// cat cane_nomacro_clang.cpp | transcat -d /usr/share/dict/italian | g++ -std=c++14 -x c++ - -o pd
+// cat cane_nomacro_clang.cpp | transcat -d /usr/share/dict/italian | g++ -std=c++14 -x c++ - -o pd -ftemplate-depth=50000
 
 #include <random>
 
@@ -110,7 +110,7 @@ template<ui... Ns> struct Word<Root, Ns...> {
     void operator()() {
         std::uniform_int_distribution<> dist(0,1);
         switch(dist(gen)) {
-            case 0: Word<Name<Proper<Male>>, Ns...>()(); break;
+            case 0: Word<Name<Proper<Male>>,   Ns...>()(); break;
             case 1: Word<Name<Proper<Female>>, Ns...>()(); break;
         }
     }
@@ -121,12 +121,12 @@ template<typename T, ui N, ui... Ns> struct Word<Name<T>, N, Ns...> {
         printf("%s ", Data<Name<T>>::words[cdist(gen)]);
         std::uniform_int_distribution<> ndist(0, 7);
         switch(ndist(gen)) {
-            default: Word<Adj<sex_of<T>>, Ns...>()(); break;
-            case 1: Word<Conj<T>, Ns...>()(); break;
-            case 2: Word<Conj<flip_sex_of<T>>, Ns...>()(); break;
-            case 3: Word<Conj<flip_type_of<T>>, Ns...>()(); break;
-            case 4: Word<Conj<flip_any_of<T>>, Ns...>()(); break;
-            case 5: Word<Name<Common<sex_of<T>>>, Ns...>()(); break;
+            default: Word<Adj<sex_of<T>>,          Ns...>()(); break;
+            case 1:  Word<Conj<T>,                 Ns...>()(); break;
+            case 2:  Word<Conj<flip_sex_of<T>>,    Ns...>()(); break;
+            case 3:  Word<Conj<flip_type_of<T>>,   Ns...>()(); break;
+            case 4:  Word<Conj<flip_any_of<T>>,    Ns...>()(); break;
+            case 5:  Word<Name<Common<sex_of<T>>>, Ns...>()(); break;
         }
     }
 };
@@ -137,10 +137,10 @@ template<typename T, ui N, ui... Ns> struct Word<Adj<T>, N, Ns...> {
         printf("%s ", Data<Adj<T>>::words[cdist(gen)]);
         std::uniform_int_distribution<> ndist(0, 3);
         switch(ndist(gen)) {
-            default: Word<Adj<T>, Ns...>()(); break;
-            case 1: Word<Conj<Proper<T>>, Ns...>()(); break;
-            case 2: Word<Conj<Proper<flip_sex_of<T>>>, Ns...>()(); break;
-            case 3: Word<Conj<Common<flip_sex_of<T>>>, Ns...>()(); break;
+            default: Word<Adj<T>,                       Ns...>()(); break;
+            case 1:  Word<Conj<Proper<T>>,              Ns...>()(); break;
+            case 2:  Word<Conj<Proper<flip_sex_of<T>>>, Ns...>()(); break;
+            case 3:  Word<Conj<Common<flip_sex_of<T>>>, Ns...>()(); break;
         }
     }
 };
