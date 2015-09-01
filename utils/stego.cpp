@@ -9,19 +9,19 @@
 #include <limits.h>
 #include <png++/png.hpp>
 
+constexpr bool use_red{true}, use_blue{true}, use_green{true};
+constexpr int dcenter_c{4};
+constexpr int slope_c{2*dcenter_c+1};
+
+static_assert(use_red || use_blue || use_green, "one channel required");
+static_assert(dcenter_c >= 0, "must be a positive integer");
+static_assert(slope_c >= 2*dcenter_c + 1 && slope_c <= 255, "invalid slope");
+
 using namespace std;
 using namespace png;
 
 using png_t = image<rgb_pixel>;
-
-template<typename T>
-using mat = vector<vector<T>>;
-
-constexpr int dcenter_c{4};
-static_assert(dcenter_c >= 0, "must be a positive integer");
-
-constexpr int slope_c{2*dcenter_c+1};
-static_assert(slope_c >= 2*dcenter_c + 1 && slope_c <= 255, "invalid slope");
+template<typename T> using mat = vector<vector<T>>;
 
 template<typename T, typename U>
 constexpr T round(const T& size, const U& mul) {
@@ -40,8 +40,15 @@ auto make_mat(const png_t& img, const T& ele) {
 
 enum Candidate { None = 0, Min = 1, Ok = 1, Max = 2, Mid = 3 };
 
+#define COLORS \
+    FOR(red)   \
+    FOR(blue)  \
+    FOR(green)
+
 struct changes_t {
-    Candidate red, blue, green;
+#define FOR(color) Candidate color;
+    COLORS
+#undef FOR
 };
 
 vector<bool> to_bitvec(const vector<char>& in) {
@@ -85,10 +92,7 @@ void for_insides(mat<T>& m, F&& f) {
     }
 }
 
-#define COLORS \
-    FOR(red)   \
-    FOR(blue)  \
-    FOR(green)
+#define IF_USING(color) if(use_##color)
 
 #define CROSS(op, img, color, i, j)              \
     op(op(img[i][j-1].color, img[i][j+1].color), \
@@ -119,7 +123,8 @@ void for_insides(mat<T>& m, F&& f) {
 auto enc_spots(const png_t& img) {
     auto mat = make_mat(img, changes_t{None, None, None});
     for_insides(mat, [&](auto& mat, size_t i, size_t j) {
-            #define FOR(color) IF_CANDIDATE(color) { SET_TYPE(color); }
+            #define FOR(color) IF_USING(color)               \
+                { IF_CANDIDATE(color) { SET_TYPE(color); } }
                 COLORS
             #undef FOR
     });
@@ -129,8 +134,8 @@ auto enc_spots(const png_t& img) {
 auto dec_spots(const png_t& img) {
     auto mat = make_mat(img, changes_t{None, None, None});
     for_insides(mat, [&](auto& mat, size_t i, size_t j) {
-            #define FOR(color) \
-                IF_CANDIDATE(color) { mat[i][j].color = Candidate::Ok; }
+            #define FOR(color)  IF_USING(color)                              \
+                { IF_CANDIDATE(color) { mat[i][j].color = Candidate::Ok; } }
                 COLORS
             #undef FOR
     });
@@ -195,7 +200,7 @@ auto enc(const vector<bool>& msg, png_t& img_f, png_t& img_s,
             auto& img_f_ele = img_f[i + offsets.y][j + offsets.x];
             auto& mat_s_ele = mat_s[i][j];
             auto& img_s_ele = img_s[i][j];
-            #define FOR(color) ENC_MSG(color);
+            #define FOR(color) IF_USING(color) ENC_MSG(color);
                 COLORS
             #undef FOR
         }
@@ -215,7 +220,7 @@ auto dec(const png_t& img_f, const png_t& img_s, const offsets_t& offsets) {
             auto& img_f_ele = img_f[i + offsets.y][j + offsets.x];
             auto& mat_s_ele = mat_s[i][j];
             auto& img_s_ele = img_s[i][j];
-            #define FOR(color) DEC_MSG(color);
+            #define FOR(color) IF_USING(color) DEC_MSG(color);
                 COLORS
             #undef FOR
         }
@@ -225,7 +230,7 @@ auto dec(const png_t& img_f, const png_t& img_s, const offsets_t& offsets) {
 
 int main(int argc, char *argv[]) {
     auto print_help = [&]() {
-         cerr << "Usage:\t" << argv[0]
+        cerr << "Usage:\t" << argv[0]
               << " -f fst -s snd {-e|-d} [-x X] [-y Y]"
          "\n\t-f fst<string>: file name of the fist png image"
          "\n\t-s snd<string>: file name of the second png image"

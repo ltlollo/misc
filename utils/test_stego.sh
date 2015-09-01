@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCHLOCK=schlock
+STEGO=stego
+
 HELP="Usage: $0 msg img1 img2"
 die() {
     echo $HELP; exit 1
@@ -33,9 +36,9 @@ echo -n "Using  PASS2 = "                  1>&2
 echo -n $PASS2 | hexdump -e '/1 "0x%02X "' 1>&2
 echo                                       1>&2
 
-cat $MSG | ./stego -x$X -y$Y -f$IMG1 -s$IMG2 -e    &&
-           ./schlock -i $ENCD1   -m -p$PASS1 -n$N1 &&
-           ./schlock -i $MARKED1 -u -p$PASS1 -n$N1 &&
-           ./schlock -i $ENCD2   -m -p$PASS2 -n$N2 &&
-           ./schlock -i $MARKED2 -u -p$PASS2 -n$N2 &&
-           ./stego -x$X -y$Y -f$UNMARKED1 -s$UNMARKED2 -d | head -n$LINES
+cat $MSG | $STEGO -x$X -y$Y -f$IMG1 -s$IMG2 -e    &&
+           $SCHLOCK -i $ENCD1   -m -p$PASS1 -n$N1 &&
+           $SCHLOCK -i $MARKED1 -u -p$PASS1 -n$N1 &&
+           $SCHLOCK -i $ENCD2   -m -p$PASS2 -n$N2 &&
+           $SCHLOCK -i $MARKED2 -u -p$PASS2 -n$N2 &&
+           $STEGO -x$X -y$Y -f$UNMARKED1 -s$UNMARKED2 -d | head -n$LINES
