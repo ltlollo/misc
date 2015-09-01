@@ -1,4 +1,4 @@
-// gpp map
+// gpp self
 
 #include <string>
 #include <cstdlib>

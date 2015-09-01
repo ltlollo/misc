@@ -1,4 +1,4 @@
-// gpp lsort
+// gpp self
 
 #include <vector>
 #include <string>

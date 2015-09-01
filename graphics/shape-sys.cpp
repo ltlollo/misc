@@ -1,4 +1,4 @@
-// gpp shape-sys.cpp $(pkg-config --libs sfml-all)
+// gpp self $(pkg-config --libs sfml-all)
 // ./shape-sys
 
 #include <vector>

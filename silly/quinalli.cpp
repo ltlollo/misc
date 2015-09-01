@@ -1,4 +1,4 @@
-// gpp quinalli.cpp
+// gpp self -lpng
 
 #include <vector>
 #include <iostream>

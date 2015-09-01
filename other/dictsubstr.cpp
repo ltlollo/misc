@@ -1,4 +1,4 @@
-// gpp dictsubstr
+// gpp self
 
 #include <vector>
 #include <string>

@@ -1,4 +1,4 @@
-// cat cane_nomacro.cpp | transcat -d /usr/share/dict/italian | g++ -std=c++14 -x c++ - -o pd -ftemplate-depth=50000
+// cat self | transcat -d /usr/share/dict/italian | g++ -std=c++14 -x c++ - -o pd -ftemplate-depth=50000
 
 #include <random>
 

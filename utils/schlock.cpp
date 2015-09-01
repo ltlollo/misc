@@ -1,4 +1,4 @@
-// gpp schlock.cpp -lpng
+// gpp self -lpng
 
 #include <vector>
 #include <string>

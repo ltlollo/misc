@@ -1,4 +1,4 @@
-// gpp yougits.cpp -lncursesw
+// gpp self -lncursesw
 
 #include <vector>
 #include <stdexcept>

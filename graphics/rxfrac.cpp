@@ -1,4 +1,4 @@
-// gpp rxfrac -lpng
+// gpp self -lpng
 
 #include <vector>
 #include <string>

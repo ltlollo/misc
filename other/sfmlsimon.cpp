@@ -1,4 +1,4 @@
-// gpp sfmlsimon.cpp -lsfml-system -lsfml-graphics -lsfml-window -lsfml-audio
+// gpp self -lsfml-system -lsfml-graphics -lsfml-window -lsfml-audio
 
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>

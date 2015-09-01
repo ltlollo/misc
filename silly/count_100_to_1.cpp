@@ -1,4 +1,4 @@
-// gpp count_100_to_1
+// gpp self
 
 // #include                         <iostream>
 // using namespace std                       ;

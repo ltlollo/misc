@@ -1,4 +1,4 @@
-// gpp corner -lpng
+// gpp self -lpng
 
 #include <vector>
 #include <algorithm>

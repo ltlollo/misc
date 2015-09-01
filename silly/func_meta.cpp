@@ -1,4 +1,4 @@
-// gpp func_meta
+// gpp self
 
 #include "extra/func_meta.h"
 #include <iostream>

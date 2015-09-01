@@ -13,24 +13,25 @@ alias grab='wget --random-wait -r -l inf -nd -A'
 alias yt='youtube-dl'
 alias yta='youtube-dl -x --audio-quality 0 --audio-format mp3'
 alias sysup='su -c "apt-get update && apt-get dist-upgrade &&\
-    apt-get autoremove&& apt-get autoclean"'
-alias ghh='ghc -O3 -fPIC -fllvm -fforce-recomp'
+             apt-get autoremove&& apt-get autoclean"'
+alias ghh='ghc -O3 -fPIC -fforce-recomp'
 alias pki='make package && su -c "dpkg -i $(ls *.deb|sort|tail -n1)"'
 alias gitc='git commit -am'
 alias release='cmake -DCMAKE_BUILD_TYPE=Release ..'
 alias debug='cmake -DCMAKE_BUILD_TYPE=Debug ..'
 alias recd='recordmydesktop --compress-cache --no-cursor --no-sound --delay=2'
 alias cenv='export PATH=/usr/local/bin:"$PATH"\
-    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:"$PKG_CONFIG_PATH"\
-    export LD_LIBRARY_PATH=/usr/local/lib:"$LD_LIBRARY_PATH"\
-    export CFLAGS="-O3 -ffast-math -march=native"'
+            export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:"$PKG_CONFIG_PATH"\
+            export LD_LIBRARY_PATH=/usr/local/lib:"$LD_LIBRARY_PATH"\
+            export CFLAGS="-O3 -ffast-math -march=native"'
 alias deve='dev experiments'
+alias rr='repeat randopen'
 
 # functions
 repeat() { while $@; do ``; done; }
 culo() { su -pc "$*"; }
-tcc() { sh -c "`sed -n -e '1{s:^\/\/::p;q}' $1`"; }
-ttc() { sh -c "`sed -n -e '2{s:^\/\/::p;q}' $1`"; }
+tcc() { sh -c "`sed -n -e "1{s:^\/\/::;s:\sself\(\s*$\|\s\): $1 :g;p;q}" $1`"; }
+ttc() { sh -c "`sed -n -e "2{s:^\/\/::;s:\sself\(\s*$\|\s\): $1 :g;p;q}" $1`"; }
 mon() { L=`pidof $1`; top -p ${L// /,}; }
 dev() { [[ $1 ]] && { mkdir "$HOME/dev/$1" 2>/dev/null; cd "$HOME/dev/$1"; }; }
 

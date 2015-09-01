@@ -1,4 +1,4 @@
-// gpp urgb -lpng
+// gpp self -lpng
 
 #include <strings.h>
 #include <png++/png.hpp>

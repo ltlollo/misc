@@ -1,4 +1,4 @@
-// gpp compa
+// gpp self
 
 #include <vector>
 #include <string>

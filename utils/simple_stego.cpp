@@ -1,4 +1,4 @@
-// gpp simple_stego.cpp -lpng
+// gpp self -lpng
 
 #include <vector>
 #include <stdexcept>

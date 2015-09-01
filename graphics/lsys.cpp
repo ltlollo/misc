@@ -1,4 +1,4 @@
-// gpp lsys.cpp $(pkg-config --libs sfml-all)
+// gpp self $(pkg-config --libs sfml-all)
 
 #include <vector>
 #include <string>

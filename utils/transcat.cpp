@@ -1,4 +1,4 @@
-// gpp transcat.cpp
+// gpp self
 
 #include <vector>
 #include <string>

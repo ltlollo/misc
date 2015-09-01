@@ -1,4 +1,4 @@
-// gpp do
+// gpp self
 
 #include <string>
 
