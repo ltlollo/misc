@@ -7,7 +7,7 @@ std::mt19937 gen(rd());
 
 template<unsigned N, unsigned M>
 constexpr unsigned size_of(const char (&)[N][M]) { return N; }
-void n() { printf("\n"); }
+void endl() { printf("\n"); }
 
 struct Root;
 struct Male;
@@ -167,16 +167,16 @@ template<size_t N> struct Word<Conj<Proper<Male>>   ,N> {
         Word<Name<Proper<Male>>, N>()();
     }
 };
-template<> struct Word<Adj<Male>            ,0> { void operator()() { n(); } };
-template<> struct Word<Adj<Female>          ,0> { void operator()() { n(); } };
-template<> struct Word<Conj<Proper<Male>>   ,0> { void operator()() { n(); } };
-template<> struct Word<Conj<Proper<Female>> ,0> { void operator()() { n(); } };
-template<> struct Word<Conj<Common<Male>>   ,0> { void operator()() { n(); } };
-template<> struct Word<Conj<Common<Female>> ,0> { void operator()() { n(); } };
-template<> struct Word<Name<Common<Male>>   ,0> { void operator()() { n(); } };
-template<> struct Word<Name<Common<Female>> ,0> { void operator()() { n(); } };
-template<> struct Word<Name<Proper<Male>>   ,0> { void operator()() { n(); } };
-template<> struct Word<Name<Proper<Female>> ,0> { void operator()() { n(); } };
+template<> struct Word<Adj<Male>            ,0> { void operator()() {endl();}};
+template<> struct Word<Adj<Female>          ,0> { void operator()() {endl();}};
+template<> struct Word<Conj<Proper<Male>>   ,0> { void operator()() {endl();}};
+template<> struct Word<Conj<Proper<Female>> ,0> { void operator()() {endl();}};
+template<> struct Word<Conj<Common<Male>>   ,0> { void operator()() {endl();}};
+template<> struct Word<Conj<Common<Female>> ,0> { void operator()() {endl();}};
+template<> struct Word<Name<Common<Male>>   ,0> { void operator()() {endl();}};
+template<> struct Word<Name<Common<Female>> ,0> { void operator()() {endl();}};
+template<> struct Word<Name<Proper<Male>>   ,0> { void operator()() {endl();}};
+template<> struct Word<Name<Proper<Female>> ,0> { void operator()() {endl();}};
 
 template<size_t N> void Graph() { Word<Root, N>()(); }
 

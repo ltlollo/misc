@@ -4,16 +4,16 @@
 
 std::random_device rd;
 std::mt19937 gen(rd());
-static void n() { printf("\n"); }
+static void endl() { printf("\n"); }
 
 template<typename T> static constexpr auto v_of() { return T::value; }
 template<typename T> using t_of = typename T::type;
 struct Z;
-template<typename T> struct N { using type = T; };
+template<typename T> struct S { using type = T; };
 template<typename T> struct Lit { static constexpr auto value = 1 + v_of<Lit<t_of<T>>>(); };
 template<>           struct Lit<Z> { static constexpr size_t value = 0; };
 template<typename T> static constexpr auto to_lit() { return v_of<Lit<T>>(); }
-template<size_t n>   struct FromLit { using type = N<t_of<FromLit<n-1>>>; };
+template<size_t N>   struct FromLit { using type = S<t_of<FromLit<N-1>>>; };
 template<>           struct FromLit<0> { using type = Z; };
 template<unsigned N, unsigned M> constexpr unsigned size_of(const char (&)[N][M]) { return N; }
 struct Root;
@@ -35,7 +35,7 @@ template<typename T> struct FlipSex<Common<T>>{ using sex = Common<flip_sex_of<T
 template<typename T> struct FlipType;
 template<typename T> struct FlipType<Proper<T>> { using type = Common<T>; };
 template<typename T> struct FlipType<Common<T>> { using type = Proper<T>; };
-template<typename T> using flip_type_of = typename FlipType<T>::type;
+template<typename T> using flip_type_of = t_of<FlipType<T>>;
 template<typename T> using flip_any_of = flip_type_of<flip_sex_of<T>>;
 char pmnames[][6]{
     "@g@e@102369"
@@ -109,7 +109,7 @@ template<> struct Data<Adj<Female>>          {
     static constexpr size_t size = size_of(fadjs);
 };
 template<typename T, typename U> struct Word;
-template<typename U> struct Word<Root                 ,N<U>> {
+template<typename U> struct Word<Root                 ,S<U>> {
     void operator()() {
         std::uniform_int_distribution<> dist(0,1);
         switch(dist(gen)) {
@@ -118,7 +118,7 @@ template<typename U> struct Word<Root                 ,N<U>> {
         }
     }
 };
-template<typename T, typename U> struct Word<Name<T>  ,N<U>> {
+template<typename T, typename U> struct Word<Name<T>  ,S<U>> {
     void operator()() {
         std::uniform_int_distribution<> cdist(0, Data<Name<T>>::size-1);
         printf("%s ", Data<Name<T>>::words[cdist(gen)]);
@@ -134,7 +134,7 @@ template<typename T, typename U> struct Word<Name<T>  ,N<U>> {
     }
 };
 
-template<typename T, typename U> struct Word<Adj<T>   ,N<U>> {
+template<typename T, typename U> struct Word<Adj<T>   ,S<U>> {
     void operator()() {
         std::uniform_int_distribution<> cdist(0, Data<Adj<T>>::size-1);
         printf("%s ", Data<Adj<T>>::words[cdist(gen)]);
@@ -147,34 +147,34 @@ template<typename T, typename U> struct Word<Adj<T>   ,N<U>> {
         }
     }
 };
-template<typename U> struct Word<Conj<Proper<Female>> ,N<U>> {
+template<typename U> struct Word<Conj<Proper<Female>> ,S<U>> {
     void operator()() {
         printf("@30473 ");
-        Word<Name<Proper<Female>>, N<U>>()();
+        Word<Name<Proper<Female>>, S<U>>()();
     }
 };
-template<typename U> struct Word<Conj<Common<Male>>   ,N<U>> {
+template<typename U> struct Word<Conj<Common<Male>>   ,S<U>> {
     void operator()() {
         printf("@29078 ");
-        Word<Name<Common<Male>>, N<U>>()();
+        Word<Name<Common<Male>>, S<U>>()();
     }
 };
-template<typename U> struct Word<Conj<Common<Female>> ,N<U>> {
+template<typename U> struct Word<Conj<Common<Female>> ,S<U>> {
     void operator()() {
         printf("@30473 ");
-        Word<Name<Common<Female>>, N<U>>()();
+        Word<Name<Common<Female>>, S<U>>()();
     }
 };
-template<typename U> struct Word<Conj<Proper<Male>>   ,N<U>> {
+template<typename U> struct Word<Conj<Proper<Male>>   ,S<U>> {
     void operator()() {
         printf("@31807 ");
-        Word<Name<Proper<Male>>, N<U>>()();
+        Word<Name<Proper<Male>>, S<U>>()();
     }
 };
-template<typename T> struct Word<Name<Common<T>>  ,N<Z>> {
-    void operator()() { Word<Name<Common<T>>      ,N<N<Z>>>()(); }
+template<typename T> struct Word<Name<Common<T>>  ,S<Z>> {
+    void operator()() { Word<Name<Common<T>>      ,S<S<Z>>>()(); }
 };
-template<typename T> struct Word<T, Z> { void operator()() { n(); } };
+template<typename T> struct Word<T, Z> { void operator()() { endl(); } };
 template<size_t N> void Graph() { Word<Root, t_of<FromLit<N>>>()(); }
 
 int main(int, char *[]) {
