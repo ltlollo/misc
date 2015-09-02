@@ -33,12 +33,18 @@ constexpr uint8_t to_hex(char c) noexcept {
 
 auto parse_num(const string& str) {
     px_t res = {0,0,0};
-    if (str.empty()) { throw std::runtime_error("can't be empty"); }
-    if (str.length()%2) { throw std::runtime_error("must be even in size"); }
-    if (str.length()>6) { throw std::runtime_error("max 6 chars"); }
+    if (str.empty())    {
+        throw std::runtime_error("color can't be empty");
+    }
+    if (str.length()%2) {
+        throw std::runtime_error("color must be even in size");
+    }
+    if (str.length()>6) {
+        throw std::runtime_error("color max 6 chars");
+    }
     for (const auto& c: str) {
         if (!(hex(c))) {
-            throw std::runtime_error("not a number");
+            throw std::runtime_error("color is not a hex number");
         }
     }
     res.red = uint8_t(to_hex(str[0])*16+to_hex(str[1]));
@@ -49,15 +55,15 @@ auto parse_num(const string& str) {
     return res;
 }
 
-struct CVers { float red, green, blue; };
+struct CVers { float r, g, b; };
 
 struct CVBound {
-    float min_red_vers
-        , max_red_vers
-        , min_green_vers
-        , max_green_vers
-        , min_blue_vers
-        , max_blue_vers
+    float min_r_vers
+        , max_r_vers
+        , min_g_vers
+        , max_g_vers
+        , min_b_vers
+        , max_b_vers
         ;
 };
 
@@ -71,14 +77,13 @@ float norm2sq(const px_t& col) noexcept {
 CVBound ptrun_bounds(const px_t& col) {
     auto norm = sqrt(norm2sq(col));
     if (norm == 0) { throw std::runtime_error("cannot use black"); }
-    CVers res = { col.red/norm, col.green/norm, col.blue/norm };
+    CVers cv = { col.red/norm, col.green/norm, col.blue/norm };
     // z = r, g = x, b = y
-    float phi = acos(res.red), th = atan2(res.blue, res.green);
+    float phi = acos(cv.r), th = atan2(cv.b, cv.g);
     if (phi > pi/2-rdiv/2) { phi = pi/2-rdiv/2; }
     else if (phi < rdiv/2) { phi = rdiv/2;      }
-    if (th > pi/2-rdiv/2)  { th = pi/2-rdiv/2;  }
-    else if (th < rdiv/2)  { th = rdiv/2;       }
-    res = { cos(phi), sin(phi)*cos(th), sin(phi)*sin(th) };
+    if (th > pi/2-rdiv/2)  { th  = pi/2-rdiv/2; }
+    else if (th < rdiv/2)  { th  = rdiv/2;      }
     return CVBound {
           cos(phi+rdiv/2)
         , cos(phi-rdiv/2)
@@ -89,37 +94,78 @@ CVBound ptrun_bounds(const px_t& col) {
     };
 }
 
+CVBound bounds(const px_t& col) {
+    CVBound res;
+    auto norm = sqrt(norm2sq(col));
+    if (norm == 0) { throw std::runtime_error("color cannot be black"); }
+    CVers cv = { col.red/norm, col.green/norm, col.blue/norm };
+    // z = r, g = x, b = y
+    float phi = acos(cv.r), th = atan2(cv.b, cv.g);
+    if (phi > pi/2-rdiv/2) {
+        res.min_r_vers =             0.0;
+        res.max_r_vers = cos(phi-rdiv/2);
+    } else if (phi < rdiv/2) {
+        res.min_r_vers = cos(phi+rdiv/2);
+        res.max_r_vers =             1.0;
+    } else {
+        res.min_r_vers = cos(phi+rdiv/2);
+        res.max_r_vers = cos(phi-rdiv/2);
+    }
+    if (th > pi/2-rdiv/2)  {
+        res.min_g_vers =                     0.0;
+        res.max_g_vers = sin(phi)*cos(th-rdiv/2);
+        res.min_b_vers = sin(phi)*sin(th-rdiv/2);
+        res.max_b_vers                     = 1.0;
+    } else if (th < rdiv/2)  {
+        res.min_g_vers = sin(phi)*cos(th+rdiv/2);
+        res.max_g_vers =                     1.0;
+        res.min_b_vers                     = 0.0;
+        res.max_b_vers = sin(phi)*sin(th+rdiv/2);
+    } else {
+        res.min_g_vers = sin(phi)*cos(th+rdiv/2);
+        res.max_g_vers = sin(phi)*cos(th-rdiv/2);
+        res.min_b_vers = sin(phi)*sin(th-rdiv/2);
+        res.max_b_vers = sin(phi)*sin(th+rdiv/2);
+    }
+    return res;
+}
+
 int main(int argc, char *argv[]) {
-    auto print_help =[&] () {
+    auto print_help =[&]() {
         cerr << "Usage:\t" << argv[0] << " img col"
-            "\n\timg<png>: input image"
-            "\n\tcol<hh[hh][hh]>: hex color (where h in 0..F)"
-            "\nScope:\tdoes something"
+            "\n\timg<png>: input png filename"
+            "\n\tcol<hh[hh][hh]>: hex color (where h in 0..F), col not 0"
+            "\nScope:\tsome"
             <<  endl;
     };
     if (argc-1 < 2) {
         print_help();
         return 1;
     }
-    auto img = png_t(argv[1]);
-    auto cv = parse_num(argv[2]);
-    auto bounds = ptrun_bounds(cv);
-    size_t count = 0;
-    for (size_t i = 0; i < img.get_height(); ++i) {
-        for (size_t j = 0; j < img.get_width(); ++j) {
-            auto& col = img[i][j];
-            auto norm = sqrt(norm2sq(col));
-            CVers res = { col.red/norm, col.green/norm, col.blue/norm };
-            if (res.red   < bounds.min_red_vers   ||
-                res.red   > bounds.max_red_vers   ||
-                res.blue  < bounds.min_blue_vers  ||
-                res.blue  > bounds.max_blue_vers  ||
-                res.green < bounds.min_green_vers ||
-                res.green > bounds.max_green_vers) { continue; }
-            ++count;
+    try {
+        auto img = png_t(argv[1]);
+        auto cv = parse_num(argv[2]);
+        auto area_half = double(area(img))/2.0;
+        auto b = ptrun ? ptrun_bounds(cv) : bounds(cv);
+        size_t count = 0;
+        for (size_t i = 0; i < img.get_height(); ++i) {
+            for (size_t j = 0; j < img.get_width(); ++j) {
+                auto& col = img[i][j];
+                auto norm = sqrt(norm2sq(col));
+                CVers res = { col.red/norm, col.green/norm, col.blue/norm };
+                if (res.r < b.min_r_vers || res.r > b.max_r_vers ||
+                    res.b < b.min_b_vers || res.b > b.max_b_vers ||
+                    res.g < b.min_g_vers || res.g > b.max_g_vers) { continue; }
+                ++count;
+            }
         }
+        cout << (count >= area_half ? 'y' : 'n') << endl;
+    } catch (std::runtime_error& e) {
+        cerr << "[E]: " << e.what() << endl;
+        return 1;
+    } catch(...) {
+        return 1;
     }
-    cout << (count >= area(img)/2 ? 'y' : 'n') << endl;
     return 0;
 }
 
