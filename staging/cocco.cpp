@@ -145,7 +145,6 @@ int main(int argc, char *argv[]) {
     try {
         auto img = png_t(argv[1]);
         auto cv = parse_num(argv[2]);
-        auto area_half = double(area(img))/2.0;
         auto b = ptrun ? ptrun_bounds(cv) : bounds(cv);
         size_t count = 0;
         for (size_t i = 0; i < img.get_height(); ++i) {
@@ -159,7 +158,7 @@ int main(int argc, char *argv[]) {
                 ++count;
             }
         }
-        cout << (count >= area_half ? 'y' : 'n') << endl;
+        cout << (count >= area(img)/2 ? 'y' : 'n') << endl;
     } catch (std::runtime_error& e) {
         cerr << "[E]: " << e.what() << endl;
         return 1;
