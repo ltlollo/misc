@@ -17,6 +17,9 @@ using png_t = png::image<px_t>;
 constexpr bool ptrun{true};
 constexpr float pi { acos(-1.f) };
 constexpr float rdiv{ pi/4 };
+constexpr float rd_div{ 2.0 };
+constexpr float rd_divsq{ rd_div*rd_div };
+constexpr double pop_rat{ 0.5 };
 
 static_assert(rdiv < pi/2, "must be less than pi/2");
 
@@ -56,7 +59,7 @@ auto parse_num(const string& str) {
 }
 
 struct CVers { float r, g, b; };
-
+struct Vdiff { int16_t r, g, b; };
 struct CVBound {
     float min_r_vers
         , max_r_vers
@@ -72,6 +75,9 @@ size_t area(const png_t& img) noexcept {
 }
 float norm2sq(const px_t& col) noexcept {
     return float(col.red*col.red+col.green*col.green+col.blue*col.blue);
+}
+float norm2sq(const Vdiff& vd) noexcept {
+    return float(vd.r*vd.r+vd.g*vd.g+vd.b*vd.b);
 }
 
 CVBound ptrun_bounds(const px_t& col) {
@@ -130,6 +136,45 @@ CVBound bounds(const px_t& col) {
     return res;
 }
 
+Vdiff operator-(const px_t& lhs, const px_t& rhs) noexcept {
+    Vdiff res = { lhs.red, lhs.green, lhs.blue };
+    res.r = int16_t(res.r - rhs.red);
+    res.g = int16_t(res.g - rhs.green);
+    res.b = int16_t(res.b - rhs.blue);
+    return res;
+}
+
+bool scasim(const png_t& img, const px_t cv) {
+    auto cvn2sq = norm2sq(cv);
+    auto esq = cvn2sq/rd_divsq;
+    size_t count = 0;
+    for (size_t i = 0; i < img.get_height(); ++i) {
+        for (size_t j = 0; j < img.get_width(); ++j) {
+            if (norm2sq(cv-img[i][j]) <= esq) {
+                ++count;
+            }
+        }
+    }
+    return count >= double(area(img))*pop_rat;
+}
+
+bool inbsim(const png_t img, const px_t cv) {
+    auto b = ptrun ? ptrun_bounds(cv) : bounds(cv);
+    size_t count = 0;
+    for (size_t i = 0; i < img.get_height(); ++i) {
+        for (size_t j = 0; j < img.get_width(); ++j) {
+            auto& col = img[i][j];
+            auto norm = sqrt(norm2sq(col));
+            CVers res = { col.red/norm, col.green/norm, col.blue/norm };
+            if (res.r < b.min_r_vers || res.r > b.max_r_vers ||
+                res.b < b.min_b_vers || res.b > b.max_b_vers ||
+                res.g < b.min_g_vers || res.g > b.max_g_vers) { continue; }
+            ++count;
+        }
+    }
+    return count >= double(area(img))*pop_rat;
+}
+
 int main(int argc, char *argv[]) {
     auto print_help =[&]() {
         cerr << "Usage:\t" << argv[0] << " img col"
@@ -145,20 +190,7 @@ int main(int argc, char *argv[]) {
     try {
         auto img = png_t(argv[1]);
         auto cv = parse_num(argv[2]);
-        auto b = ptrun ? ptrun_bounds(cv) : bounds(cv);
-        size_t count = 0;
-        for (size_t i = 0; i < img.get_height(); ++i) {
-            for (size_t j = 0; j < img.get_width(); ++j) {
-                auto& col = img[i][j];
-                auto norm = sqrt(norm2sq(col));
-                CVers res = { col.red/norm, col.green/norm, col.blue/norm };
-                if (res.r < b.min_r_vers || res.r > b.max_r_vers ||
-                    res.b < b.min_b_vers || res.b > b.max_b_vers ||
-                    res.g < b.min_g_vers || res.g > b.max_g_vers) { continue; }
-                ++count;
-            }
-        }
-        cout << (count >= area(img)/2 ? 'y' : 'n') << endl;
+        cout << (inbsim(img, cv) ? 'y' : 'n') << endl;
     } catch (std::runtime_error& e) {
         cerr << "[E]: " << e.what() << endl;
         return 1;
