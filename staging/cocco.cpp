@@ -22,6 +22,7 @@ constexpr float rd_divsq{ rd_div*rd_div };
 constexpr double pop_rat{ 0.5 };
 
 static_assert(rdiv < pi/2, "must be less than pi/2");
+static_assert(rd_div > 0, "can't be 0");
 
 constexpr bool hex(char c) noexcept {
     return (c >= '0' && c <= '9')
