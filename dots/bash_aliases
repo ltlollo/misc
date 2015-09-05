@@ -26,6 +26,8 @@ alias cenv='export PATH=/usr/local/bin:"$PATH"\
             export CFLAGS="-O3 -ffast-math -march=native"'
 alias deve='dev experiments'
 alias rr='repeat randopen'
+alias es='(while read i; do echo "${i##*.}";done< <(find -type f -name \*.\*))\
+          | sort | uniq -c | sort -n'
 
 # functions
 repeat() { while $@; do ``; done; }
