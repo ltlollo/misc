@@ -9,11 +9,11 @@
 #include <limits.h>
 #include <png++/png.hpp>
 
-constexpr bool use_red{true}, use_blue{true}, use_green{true};
+constexpr bool use_red{true}, use_green{true}, use_blue{true};
 constexpr int dcenter_c{4};
 constexpr int slope_c{2*dcenter_c+1};
 
-static_assert(use_red || use_blue || use_green, "one channel required");
+static_assert(use_red || use_green || use_blue, "one channel required");
 static_assert(dcenter_c >= 0, "must be a positive integer");
 static_assert(slope_c >= 2*dcenter_c + 1 && slope_c <= 255, "invalid slope");
 
@@ -42,8 +42,8 @@ enum Candidate { None = 0, Min = 1, Ok = 1, Max = 2, Mid = 3 };
 
 #define COLORS \
     FOR(red)   \
-    FOR(blue)  \
-    FOR(green)
+    FOR(green) \
+    FOR(blue)
 
 struct changes_t {
 #define FOR(color) Candidate color;
