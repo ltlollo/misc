@@ -1,4 +1,4 @@
-// gpp self
+// sacca $HOME/.soppe_conf > soppe_conf.h && gpp self
 
 #include <vector>
 #include <stdexcept>
@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <regex>
 #include <unistd.h>
+
 
 using namespace std;
 
@@ -51,20 +52,7 @@ static auto operator""_r(const char* str, size_t) {
 struct StrNum{ string str{}; unsigned num{}; };
 struct Rule{regex r; vector<StrNum> strnunms; string rest{}; };
 
-Rule rules[] = {
-    {"(.+\\.(?:cbz|pdf)$)"_r, {{"okular "}}},
-    {"(.+\\.(?:cbr)$)"_r, {{"qcomicbook "}}},
-    {"(.+\\.(?:3g2|3gp|avi|flv|mkv|mpg|wmv|mp4)$)"_r ,{{"vlc "}}},
-    {"(.+\\.(?:m3u|mp3|ogg|wav)$)"_r, {{"vlc "}}},
-    {"(.+\\.(?:h|cpp|c|cc|rs)):([0-9]+):([0-9]+):?$"_r ,
-        {{"kate -l ", 1}, {" -c ", 2}, {" ", 0}}},
-    {"(.+\\.(?:h|cpp|c|cc|rs)):([0-9]+):?$"_r, {{"kate -l ", 1}, {" ", 0}}},
-    {"(.+\\.(?:h|cpp|c|cc|rs)):?$"_r, {{"kate ",0}}},
-    {"(.+\\.(?:test|exp)$)"_r, {{"cat -> ", 0}}},
-    {"(.+\\.(?:loop)$)"_r, {{"poppe ", 0}}, " -"},
-    {"(.+(?:youtube).+)"_r, {{"youtube-dl -q ", 0}}, " &>/dev/null"},
-    {"(www.*)"_r, {{"ping "}}},
-};
+#include "soppe_conf.h"
 
 void call(const string& str) {
     size_t i = 0;

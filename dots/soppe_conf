@@ -1,0 +1,16 @@
+#sepa
+|||
+
+#regex
+
+(.+\\.(?:cbz|pdf)$)                           ||| okular 
+(.+\\.(?:cbr)$)                               ||| qcomicbook \0
+(.+\\.(?:3g2|3gp|avi|flv|mkv|mpg|wmv|mp4)$)   ||| vlc \0
+(.+\\.(?:m3u|mp3|ogg|wav)$)                   ||| vlc \0
+(.+\\.(?:h|cpp|c|cc|rs)):([0-9]+):([0-9]+):?$ ||| kate -l \1 -c \2 \0
+(.+\\.(?:h|cpp|c|cc|rs)):([0-9]+):?$          ||| kate -l \1 \0
+(.+\\.(?:h|cpp|c|cc|rs)):?$                   ||| kate \0
+(.+\\.(?:test|exp)$)                          ||| cat -> \0
+(.+\\.(?:loop)$)                              ||| poppe \0 -
+(.+(?:youtube).+)                             ||| youtube-dl -q \0 &> /dev/null
+(www.*)                                       ||| ping \0
