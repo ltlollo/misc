@@ -13,20 +13,28 @@ using namespace std;
 template<typename L, typename T, typename U>
 void rparse_next_vec(const L& line, string& out, T& it, T& sep, const U& end,
                      bool top=true) {
-    if (!top) { out += ", "; }
-    out += "{\"" + string(it, sep) + "\"";
+    string str, num;
+    if (!top) {
+        out += ", ";
+    }
+    str = string(it, sep);
+    out += "{\"" + move(str) + "\"";
     if (++sep == end) {
         cerr << "[E]: no cannot parse number after \\ in\n\t" << *line << endl;
         exit(EXIT_FAILURE);
     }
     it = sep;
-    while (sep != end && *sep >= '0' && *sep <= '9') { ++sep; }
-    string num = string(it, sep);
+    while (sep != end && *sep >= '0' && *sep <= '9') {
+        ++sep;
+    }
+    num = string(it, sep);
     if (num.empty()) {
         cerr << "[E]: no cannot parse number after \\ in\n\t" << *line << endl;
         exit(EXIT_FAILURE);
     }
-    if (stoul(num)) { out += ", " + move(num); }
+    if (stoul(num)) {
+        out += ", " + move(num);
+    }
     out += "}";
     it = sep;
     if ((sep = find(it, end, '\\')) != end) {
@@ -35,23 +43,42 @@ void rparse_next_vec(const L& line, string& out, T& it, T& sep, const U& end,
 }
 template<typename L, typename T, typename U>
 void parse_vecnum_rest(const L& line, string& out, T& it, const U& end) {
+    string rx, rest;
     auto it_cp = it;
     out += "{";
     if ((it = find(it, end, '\\')) == end) {
-        out += "{\"" + string(it_cp, it) + "\"}";
+        rx = string(it_cp, it);
+        out += "{\"" + move(rx) + "\"}";
     } else {
         rparse_next_vec(line, out, it_cp, it, end);
     }
     out += "}";
-    auto rest = string(it, end);
+    rest = string(it, end);
     if (!rest.empty()) {
         out += ", \"" + move(rest) + "\"";
     }
 }
 
+/*
+ * Grammar:
+ *  Separator Nl Rules
+ * Separator:
+ *  Ignore Chars Nl Ignore
+ * Rules:
+ *  (Ignore Rule Rules Inore) || Nil
+ * Rule:
+ *  Rx Spaces Sepa StrNum
+ * Ignore: ("#" (Chars || Nil) Nl) || Nil
+ * Nl: "\n"
+ * Nil: ""
+ */
+
 int main(int argc, char *argv[]) {
     auto print_help = [&]() {
-        cerr << "Usage:\nScope\n" << endl;
+        cerr << "Usage:\t" << argv[0] << " grammar"
+            "\n\tgrammar<file>: file containing the regex"
+            "\nScope:\tgenerates the Rules struct to be used by soppe"
+             << endl;
     };
     if (argc-1 != 1) {
         print_help();
