@@ -27,7 +27,7 @@ struct MatView {
         }
     }
     T* operator[](const D i) noexcept {
-        return data[i*width];
+        return data+i*width;
     }
 };
 
@@ -67,10 +67,10 @@ public:
     T* operator[](const D row) noexcept {
         return data+row*width;
     }
-    MatView<T, D>& view(D row, D col) noexcept {
-        return MatView<T>{ data+row*width+col, width, height };
+    MatView<T, D> view(D row, D col) noexcept {
+        return MatView<T, D>{ width, height, data+size_t(row)*width+col };
     }
-    MatView<T, D>& operator[](const Pos<D>& ele) noexcept {
+    MatView<T, D> operator[](const Pos<D>& ele) noexcept {
         return view(ele.row, ele.col);
     }
     ~Mat() noexcept {
