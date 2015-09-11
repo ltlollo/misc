@@ -10,6 +10,10 @@ template<typename D=size_t>
 struct Bound {
     D wl, wr, ht, hb;
 };
+template<typename D=size_t>
+struct Erode {
+    D wl, wr, ht, hb;
+};
 
 template<typename T, typename D=size_t>
 struct MatView {
@@ -77,7 +81,7 @@ public:
             f(data+i);
         }
     }
-    template<typename F> void for_each(F&& f, const Bound<D> b) {
+    template<typename F> void for_each(F&& f, const Erode<D> b) {
         for (auto i = b.ht; i < height-b.hb; ++i) {
             for (auto j = b.wl; j < width-b.wr; ++j) {
                 f(data+i*width+j);
