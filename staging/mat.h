@@ -15,11 +15,6 @@ template<typename T, typename D=size_t>
 struct MatView {
     D width, height;
     T* data;
-    template<typename F> void for_each(F&& f) {
-        for (size_t i = 0; i < size_t(height)*width; ++i) {
-            f(data+i);
-        }
-    }
     template<typename F, typename S> void for_each(F&& f, const Bound<S>& b) {
         using U = std::make_unsigned_t<S>;
         T* ptr = (*this)[b.wl]+b.ht;
@@ -64,7 +59,7 @@ public:
     Mat(D width, D height) :
         width{width},
         height{height},
-        data{new T[width*height]} {
+        data{new T[size_t(width)*height]} {
     }
     Mat(Mat<T, D>&& rhs) noexcept : width{rhs.width}, height{rhs.height} {
         std::swap(data, rhs.data);
@@ -78,10 +73,16 @@ public:
     Mat(const Mat<T, D>&) = delete;
     Mat<T, D>& operator=(const Mat<T, D>&) = delete;
     template<typename F> void for_each(F&& f) {
-        MatView<T, D>{ width, height, data }.for_each(f);
+        for (size_t i = 0; i < size_t(height)*width; ++i) {
+            f(data+i);
+        }
     }
-    template<typename F> void for_each(F&& f, const Bound<D>& b) {
-        MatView<T, D>{ width, height, data }.for_each(f, b);
+    template<typename F> void for_each(F&& f, const Bound<D> b) {
+        for (auto i = b.ht; i < height-b.hb; ++i) {
+            for (auto j = b.wl; j < width-b.wr; ++j) {
+                f(data+i*width+j);
+            }
+        }
     }
     T* operator[](const D row) noexcept {
         return data+row*width;
@@ -91,6 +92,9 @@ public:
     }
     MatView<T, D> operator[](const Pos<D>& ele) noexcept {
         return view(ele.row, ele.col);
+    }
+    MatView<T, D> view(T* ele) noexcept {
+        return MatView<T, D>{ width, height, ele };
     }
     ~Mat() noexcept {
         delete[] data;
