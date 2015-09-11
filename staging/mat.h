@@ -56,6 +56,8 @@ public:
         std::swap(data,   rhs.data);
         return *this;
     }
+    Mat(const Mat<T, D>&) = delete;
+    Mat<T, D>& operator=(const Mat<T, D>&) = delete;
     template<typename F> void for_each(F&& f) {
         MatView<T, D>{ width, height, data }.for_each(f);
     }
