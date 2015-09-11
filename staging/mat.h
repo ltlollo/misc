@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <new>
 #include <utility>
+#include <type_traits>
 
 template<typename D=size_t>
 struct Bound {
@@ -20,19 +21,24 @@ struct MatView {
         }
     }
     template<typename F, typename S> void for_each(F&& f, const Bound<S>& b) {
+        using U = std::make_unsigned_t<S>;
         T* ptr = (*this)[b.wl]+b.ht;
-        for (auto i = 0; i < b.hb-b.ht; ++i) {
-            for (auto j = 0; j < b.wr-b.wl; ++j) {
+        U wlen = b.wr-b.wl;
+        U hlen = b.hb-b.ht;
+        for (U i = 0; i < hlen; ++i) {
+            for (U j = 0; j < wlen; ++j) {
                 f(ptr+i*width+j);
             }
         }
     }
     template<typename F, typename S>
     void for_each(F&& f, const Bound<S>& b, size_t mask) {
+        using U = std::make_unsigned_t<S>;
         T* ptr = (*this)[b.wl]+b.ht;
-        auto wlen = b.wr-b.wl;
-        for (auto i = 0; i < b.hb-b.ht; ++i) {
-            for (auto j = 0; j < wlen; ++j) {
+        U wlen = b.wr-b.wl;
+        U hlen = b.hb-b.ht;
+        for (U i = 0; i < hlen; ++i) {
+            for (U j = 0; j < wlen; ++j) {
                 if ((mask>>(j+wlen*i))&1) {
                     f(ptr+i*width+j);
                 }
