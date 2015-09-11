@@ -19,10 +19,23 @@ struct MatView {
             f(data+i);
         }
     }
-    template<typename F> void for_each(F&& f, const Bound<D> b) {
-        for (auto i = b.ht; i < height-b.hb; ++i) {
-            for (auto j = b.wl; j < width-b.wr; ++j) {
-                f(data+i*width+j);
+    template<typename F, typename S> void for_each(F&& f, const Bound<S>& b) {
+        T* ptr = (*this)[b.wl]+b.ht;
+        for (auto i = 0; i < b.hb-b.ht; ++i) {
+            for (auto j = 0; j < b.wr-b.wl; ++j) {
+                f(ptr+i*width+j);
+            }
+        }
+    }
+    template<typename F, typename S>
+    void for_each(F&& f, const Bound<S>& b, size_t mask) {
+        T* ptr = (*this)[b.wl]+b.ht;
+        auto wlen = b.wr-b.wl;
+        for (auto i = 0; i < b.hb-b.ht; ++i) {
+            for (auto j = 0; j < wlen; ++j) {
+                if ((mask>>(j+wlen*i))&1) {
+                    f(ptr+i*width+j);
+                }
             }
         }
     }
