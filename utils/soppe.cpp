@@ -5,21 +5,16 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <thread>
-#include <algorithm>
 #include <regex>
 #include <unistd.h>
-
-
-using namespace std;
 
 bool needs_escape(const char c) noexcept {
     return c == '(' || c == ')' || c == ' ' || c == '\'' || c == '"'
         || c == '&';
 }
 
-auto escape(const string& s) {
-    string res;
+auto escape(const std::string& s) {
+    std::string res;
     res.reserve(s.size());
     for (auto it = s.begin(); it != s.end(); ++it) {
         if (needs_escape(*it)) {
@@ -31,7 +26,7 @@ auto escape(const string& s) {
 }
 
 auto escape(int argc, char* argv[], int start=1) {
-    string res;
+    std::string res;
     if (start >= argc) return res;
     for (int i = start; i < argc; ++i) {
         for(char* it = argv[i]; *it != '\0'; ++it) {
@@ -45,26 +40,27 @@ auto escape(int argc, char* argv[], int start=1) {
     return res;
 }
 
-static auto operator""_r(const char* str, size_t) {
-    return regex(str, regex::optimize);
+static auto operator""_r(const char* str, std::size_t) {
+    return std::regex(str, std::regex::optimize);
 }
 
-struct StrNum{ string str{}; unsigned num{}; };
-struct Rule{regex r; vector<StrNum> strnunms; string rest{}; };
+struct StrNum{ std::string str{}; unsigned num{}; };
+struct Rule{std::regex r; std::vector<StrNum> strnunms; std::string rest{}; };
 
 #include "soppe_conf.h"
 
-void call(const string& str) {
-    size_t i = 0;
+void call(const std::string& str) {
+    std::size_t i = 0;
     for (const auto& rule: rules) {
-        smatch what;
+        std::smatch what;
         if (regex_match(str, what, rule.r) &&
             what.size() == rule.strnunms.size() + 1) {
-            string cmd;
+            std::string cmd;
             for (const auto& strnum: rule.strnunms) {
                 cmd += strnum.str;
                 if (strnum.num+1 >= what.size()) {
-                    cerr << "[W]: position outside range in rule number " << i;
+                    std::cerr << "[W]: position outside range in rule number "
+                              << i;
                 }
                 cmd += what[strnum.num+1];
             }
