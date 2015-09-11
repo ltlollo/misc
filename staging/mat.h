@@ -77,7 +77,7 @@ public:
     Mat(const Mat<T, D>&) = delete;
     Mat<T, D>& operator=(const Mat<T, D>&) = delete;
     template<typename F> void for_each(F&& f) {
-        for (size_t i = 0; i < size_t(height)*width; ++i) {
+        for (size_t i = 0; i < size_t(width)*height; ++i) {
             f(data+i);
         }
     }
