@@ -6,6 +6,26 @@
 #include <utility>
 #include <type_traits>
 
+/* Scope
+ * small matrix `Mat<T, S>` class to help ease different 2D iteration
+ * strategies, where D is `T`.
+ * `T` is the type of the soterd data (, `S` determines how the dimentions are
+ * stored, and must be able to store width*height; deault: size_t).
+ *
+ * Example(code)
+ *
+ * int i = 0;
+ * auto m = Mat<int>(100, 100);
+ * m.for_each([&](auto ep){ *ep = i++; });
+ * auto v = m[Pos<>{2, 40}];
+ * v.for_each([](auto e){ cout << *e << ' '; }, Bound<int>{-2, 2, -2, 2});
+ * cout << endl;
+ * for (int i = -2; i < 2; ++i) {
+ *     for (int j = -2; j < 2; ++j) { cout << v[i][j] << '\t'; }
+ *     cout << endl;
+ * }
+ */
+
 template<typename D=size_t>
 struct Bound {
     D wl, wr, ht, hb;
@@ -63,7 +83,7 @@ public:
     Mat(D width, D height) :
         width{width},
         height{height},
-        data{new T[size_t(width)*height]} {
+        data{new T[width*height]} {
     }
     Mat(Mat<T, D>&& rhs) noexcept : width{rhs.width}, height{rhs.height} {
         std::swap(data, rhs.data);
@@ -77,7 +97,7 @@ public:
     Mat(const Mat<T, D>&) = delete;
     Mat<T, D>& operator=(const Mat<T, D>&) = delete;
     template<typename F> void for_each(F&& f) {
-        for (size_t i = 0; i < size_t(width)*height; ++i) {
+        for (size_t i = 0; i < width*height; ++i) {
             f(data+i);
         }
     }
@@ -89,10 +109,10 @@ public:
         }
     }
     T* operator[](const D row) noexcept {
-        return data+row*width;
+        return data+width*row;
     }
     MatView<T, D> view(D row, D col) noexcept {
-        return MatView<T, D>{ width, height, data+size_t(width)*row+col };
+        return MatView<T, D>{ width, height, data+width*row+col };
     }
     MatView<T, D> operator[](const Pos<D>& ele) noexcept {
         return view(ele.row, ele.col);
@@ -101,7 +121,7 @@ public:
         return MatView<T, D>{ width, height, ele };
     }
     ~Mat() noexcept {
-        delete[] data;
+        ::operator delete[](data, width*height);
     }
 };
 
