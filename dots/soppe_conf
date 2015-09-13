@@ -1,15 +1,26 @@
 #sepa
 |||
 
-#regex
+##regex
 
+#docs
 (.+\\.(?:cbz|cbr|pdf)$)                       ||| okular \0
+
+#video
 (.+\\.(?:3g2|3gp|avi|flv|mkv|mpg|wmv|mp4)$)   ||| vlc \0
+
+#audio
 (.+\\.(?:m3u|mp3|ogg|wav)$)                   ||| vlc \0
+
+#prog
 (.+\\.(?:h|cpp|c|cc|rs)):([0-9]+):([0-9]+):?$ ||| kate -l \1 -c \2 \0
 (.+\\.(?:h|cpp|c|cc|rs)):([0-9]+):?$          ||| kate -l \1 \0
 (.+\\.(?:h|cpp|c|cc|rs)):?$                   ||| kate \0
+
+#test
 (.+\\.(?:test|exp)$)                          ||| cat -> \0
 (.+\\.(?:loop)$)                              ||| poppe \0 -
+
+#inet
 (.+(?:youtube).+)                             ||| youtube-dl -q \0 &> /dev/null
 (www.*)                                       ||| ping \0
