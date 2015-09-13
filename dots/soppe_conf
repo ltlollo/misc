@@ -3,8 +3,7 @@
 
 #regex
 
-(.+\\.(?:cbz|pdf)$)                           ||| okular 
-(.+\\.(?:cbr)$)                               ||| qcomicbook \0
+(.+\\.(?:cbz|cbr|pdf)$)                       ||| okular \0
 (.+\\.(?:3g2|3gp|avi|flv|mkv|mpg|wmv|mp4)$)   ||| vlc \0
 (.+\\.(?:m3u|mp3|ogg|wav)$)                   ||| vlc \0
 (.+\\.(?:h|cpp|c|cc|rs)):([0-9]+):([0-9]+):?$ ||| kate -l \1 -c \2 \0
