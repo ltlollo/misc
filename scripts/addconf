@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+source import_template.sh
+
+filename="${1##*/}"
+filename=`echo "$filename" | sed -re "s/^\.//g"`
+
+[[ "$filename" ]] || { echo "no file supplied" 1>&2; exit 1; }
+case "$HOME" in *:*) { echo "you monster" 1>&2; exit 1; };; esac
+
+if ls "$dots_dir/$filename" &>/dev/null; then
+    echo "[I] $filename exists, everwriting..." 1>&2
+    cp "$1" "$dots_dir/$filename"
+else
+    full=`readlink -f "$1" | sed -re"s:$HOME:\\\$HOME:g"`
+    dots=`echo "$dots_dir" | sed -re"s:$HOME:\\\$HOME:g"`
+    echo "[I] adding $filename..." 1>&2
+    cp "$1" "$dots_dir/$filename"
+    echo "cp \"$dots/$filename\" \"$full\"" >> "$dots_dir/inst"
+fi
