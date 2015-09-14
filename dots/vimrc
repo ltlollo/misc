@@ -51,9 +51,8 @@ set noerrorbells
 
 set t_Co=256
 set colorcolumn=80
-set textwidth=80
-set tw=80
-
+"set textwidth=80
+"set tw=80
 set whichwrap+=<,>,h,l,[,]
 
 set hidden

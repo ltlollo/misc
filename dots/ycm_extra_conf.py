@@ -2,12 +2,11 @@ import os
 import ycm_core
 
 flags = [
-'-Wall', '-Wextra', '-Werror', '-DNDEBUG',
-'-DUSE_CLANG_COMPLETER',
+'-Wall', '-Wextra', '-Werror', '-DNDEBUG', '-DUSE_CLANG_COMPLETER',
 '-std=c++14', '-x', 'c++',
 '-I', '.',
-#'-I', '/usr/include/',
-#'-I', '/usr/include/c++/5/',
+'-I', '/usr/include/',
+'-I', '/usr/include/c++/5/',
 ]
 
 compilation_database_folder = ''
