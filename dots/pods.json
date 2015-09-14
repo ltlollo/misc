@@ -1,0 +1,27 @@
+{
+    "podcasts": [
+        {
+            "folder": "rustyradio"       ,
+            "url": "http://rustyrad.io/feed/podcast"
+        }, {
+            "folder": "coderradio",
+            "url": "http://feeds.feedburner.com/se-radio"
+        }, {
+            "folder": "YANSS",
+            "url": "http://feeds.soundcloud.com/users/soundcloud:users:16745745/sounds.rss"
+        }, {
+            "folder": "roguelikeradio",
+            "url": "http://feeds.feedburner.com/RoguelikeRadio"
+        }, {
+            "folder": "bsdtalk",
+            "url": "http://feeds.feedburner.com/Bsdtalk"
+        }, {
+            "folder": "DFTalk",
+            "url": "http://bay12games.com/dwarves/b12_call.rss"
+        }, {
+            "folder": "TypeTheoryPodcast",
+            "url": "http://typetheorypodcast.com/feed/podcast"
+        }
+    ],
+    "folder": "/home/lorenzo/Music/Podcasts"
+}
