@@ -9,8 +9,8 @@
 /* Scope
  * small matrix `Mat<T, S>` class to help ease different 2D iteration
  * strategies, where D is `T`.
- * `T` is the type of the soterd data (, `S` determines how the dimentions are
- * stored, and must be able to store width*height; deault: size_t).
+ * `T` is the type of the contained data (, `S` determines how the dimentions
+ * are stored and must be able to represent width*height, deault: size_t).
  *
  * Example(code)
  *
@@ -20,6 +20,7 @@
  * auto v = m[Pos<>{2, 40}];
  * v.for_each([](auto e){ cout << *e << ' '; }, Bound<int>{-2, 2, -2, 2});
  * cout << endl;
+ * // or
  * for (int i = -2; i < 2; ++i) {
  *     for (int j = -2; j < 2; ++j) { cout << v[i][j] << '\t'; }
  *     cout << endl;
