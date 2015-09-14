@@ -284,7 +284,7 @@ int main(int argc, char *argv[]) {
        img_f.get_width()  <= offsets.x) {
         cerr << "[E]: first image offset must be smaller"
                 " than the first image size\n" << endl;;
-        exit(1);
+        return 1;
     }
     if (op == Enc) {
         vector<char> in(istreambuf_iterator<char>{cin}, {});
