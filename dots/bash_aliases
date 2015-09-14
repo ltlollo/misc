@@ -18,6 +18,7 @@ alias ghh='ghc -O3 -fPIC -fforce-recomp'
 alias pki='make package && su -c "dpkg -i $(ls *.deb|sort|tail -n1)"'
 alias gitc='git commit -am'
 alias gitp='git push'
+alias upod="pod $HOME/.pods.json"
 alias release='cmake -DCMAKE_BUILD_TYPE=Release ..'
 alias debug='cmake -DCMAKE_BUILD_TYPE=Debug ..'
 alias recd='recordmydesktop --compress-cache --no-cursor --no-sound --delay=2'
