@@ -1,0 +1,7 @@
+cp "$HOME/dev/experiments/misc/dots/bash_aliases" "$HOME/.bash_aliases"
+cp "$HOME/dev/experiments/misc/dots/bash_profile" "$HOME/.bash_profile"
+cp "$HOME/dev/experiments/misc/dots/Monokai.colorscheme" "$HOME/.local/share/konsole/Monokai.colorscheme"
+cp "$HOME/dev/experiments/misc/dots/Shell.profile" "$HOME/.local/share/konsole/Shell.profile"
+cp "$HOME/dev/experiments/misc/dots/soppe_conf" "$HOME/.soppe_conf"
+cp "$HOME/dev/experiments/misc/dots/vimrc" "$HOME/.vimrc"
+cp "$HOME/dev/experiments/misc/dots/ycm_extra_conf.py" "$HOME/.ycm_extra_conf.py"
