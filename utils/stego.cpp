@@ -283,7 +283,7 @@ int main(int argc, char *argv[]) {
     if(img_f.get_height() <= offsets.y ||
        img_f.get_width()  <= offsets.x) {
         cerr << "[E]: first image offset must be smaller"
-                " than the first image size\n" << endl;;
+                " than the first image size\n" << endl;
         return 1;
     }
     if (op == Enc) {
