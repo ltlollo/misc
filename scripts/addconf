@@ -3,6 +3,9 @@
 source import_template.sh
 
 filename="${1##*/}"
+case "$HOME" in *\\*) { echo "you monster" 1>&2; exit 1; };; esac
+case "$HOME" in *\$*) { echo "you monster" 1>&2; exit 1; };; esac
+
 filename=`echo "$filename" | sed -re "s/^\.//g"`
 
 [[ "$filename" ]] || { echo "no file supplied" 1>&2; exit 1; }
