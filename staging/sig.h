@@ -25,6 +25,7 @@ template<typename F, typename G, typename... Args>
 struct Sig<F, G, Pack<Args...>> {
     F f;
     G g;
+    using args_t = Pack<Args...>;
     static constexpr std::size_t Garity = Function<G>::args_t::size;
     using RetF = typename Function<F>::return_t;
     static_assert(std::is_same<RetF, void>() || Garity == 1, "wrong arity");
@@ -50,7 +51,8 @@ template<typename F, typename... Args> struct Con<F, Pack<Args...>> {
     }
 };
 
-template<typename T> struct Lazy {
+template<typename... T> struct Lazy;
+template<typename T> struct Lazy<T> {
     T val;
     constexpr auto operator()() noexcept {
         return val;
@@ -67,21 +69,42 @@ template<typename... T> struct is_sig<Sig<T...>> {
     static constexpr bool value = true;
 };
 
-template<bool> struct Pipe;
-template<> struct Pipe<true> {
+template<bool, typename... T> struct Pipe;
+template<typename T> struct Pipe<true, T> {
     template<typename F> constexpr auto operator()(F f) {
         return Con<F, typename Function<F>::args_t>{ f };
     }
 };
-
-template<> struct Pipe<false> {
+template<typename T> struct Pipe<false, T> {
     template<typename F> constexpr auto operator()(F f) {
         return Lazy<F>{ f };
     }
 };
+template<typename... T> struct Pipe<true, Sig<T...>> {
+    using P = typename Sig<T...>::args_t;
+    template<typename F> constexpr auto operator()(F f) {
+        return Con<Sig<T...>, P>{ f };
+    }
+};
+template<typename... T> struct Pipe<false, Sig<T...>> {
+    using P = typename Sig<T...>::args_t;
+    template<typename F> constexpr auto operator()(F f) {
+        return Con<Sig<T...>, P>{ f };
+    }
+};
+template<typename... T> struct Pipe<true, Con<T...>> {
+    template<typename F> constexpr auto operator()(F f) {
+        return f;
+    }
+};
+template<typename... T> struct Pipe<false, Con<T...>> {
+    template<typename F> constexpr auto operator()(F f) {
+        return f;
+    }
+};
 
 template<typename F> constexpr auto pipe(F arg) {
-    return Pipe<is_callable<F>::value || is_sig<F>::value>{}(arg);
+    return Pipe<is_callable<F>::value, F>{}(arg);
 }
 
 #endif // PIPE_H
