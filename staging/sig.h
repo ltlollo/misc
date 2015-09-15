@@ -34,8 +34,13 @@ struct Sig<F, G, Pack<Args...>> {
     constexpr auto operator()(Args... args) {
         return Compose<RetF>::call(g, f, args...);
     }
-    constexpr void disconnect() noexcept {
+    constexpr auto disconnect() noexcept {
+        auto gc = std::move(g);
         g = MakeFn<RetG, ArgsG>::get();
+        return gc;
+    }
+    constexpr auto reconnect(G val) noexcept {
+        g = val;
     }
 };
 
@@ -54,8 +59,11 @@ template<typename F, typename... Args> struct Con<F, Pack<Args...>> {
     constexpr auto operator()(Args... args) {
         return f(args...);
     }
-    constexpr void disconnect() noexcept {
-        f.disconnect();
+    constexpr auto disconnect() noexcept {
+        return f.disconnect();
+    }
+    template<typename T> constexpr auto reconnect(T t) noexcept {
+        return f.reconnect(t);
     }
 };
 
