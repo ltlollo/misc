@@ -62,13 +62,6 @@ template<typename T> struct Lazy<T> {
     }
 };
 
-template<typename... T> struct is_sig {
-    static constexpr bool value = false;
-};
-template<typename... T> struct is_sig<Sig<T...>> {
-    static constexpr bool value = true;
-};
-
 template<bool, typename... T> struct Pipe;
 template<typename T> struct Pipe<true, T> {
     template<typename F> constexpr auto operator()(F f) {
