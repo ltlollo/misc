@@ -34,8 +34,10 @@ alias es='(while read i; do echo "${i##*.}"; done< <(find -type f -name \*.\*))\
 # functions
 repeat() { while $@; do ``; done; }
 culo() { su -pc "$*"; }
-tcc() { sh -c "`sed -n -e "1{s:^\/\/::;s:\sself\(\s*$\|\s\): $1 :g;p;q}" $1`"; }
-ttc() { sh -c "`sed -n -e "2{s:^\/\/::;s:\sself\(\s*$\|\s\): $1 :g;p;q}" $1`"; }
+tcc() { [[ `file $1 | grep text\$` ]] &&
+    sh -c "`sed -n -e "1{s:^\/\/::;s:\sself\(\s*$\|\s\): $1 :g;p;q}" $1`"; }
+ttc() { [[ `file $1 | grep text\$` ]] &&
+    sh -c "`sed -n -e "2{s:^\/\/::;s:\sself\(\s*$\|\s\): $1 :g;p;q}" $1`"; }
 mon() { L=`pidof $1`; top -p ${L// /,}; }
 dev() { [[ $1 ]] && { mkdir "$HOME/dev/$1" 2>/dev/null; cd "$HOME/dev/$1"; }; }
 
