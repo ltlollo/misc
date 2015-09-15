@@ -29,8 +29,8 @@ struct Sig<F, G, Pack<Args...>> {
     static constexpr std::size_t Garity = Function<G>::args_t::size;
     using RetF = typename Function<F>::return_t;
     static_assert(std::is_same<RetF, void>() || Garity == 1, "wrong arity");
-    constexpr auto operator()(Args&&... args) {
-        return Compose<RetF>::call(g, f, std::forward<Args>(args)...);
+    constexpr auto operator()(Args... args) {
+        return Compose<RetF>::call(g, f, args...);
     }
 };
 
@@ -46,8 +46,8 @@ template<typename F, typename... Args> struct Con<F, Pack<Args...>> {
         return Con<Sig<F, G, Pack<Args...>>, Pack<Args...>>{
             Sig<F, G, Pack<Args...>>{ f, g } } ;
     }
-    constexpr auto operator()(Args&&... args) {
-        return f(std::forward<Args>(args)...);
+    constexpr auto operator()(Args... args) {
+        return f(args...);
     }
 };
 
