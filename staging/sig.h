@@ -26,11 +26,16 @@ struct Sig<F, G, Pack<Args...>> {
     F f;
     G g;
     using args_t = Pack<Args...>;
-    static constexpr std::size_t Garity = Function<G>::args_t::size;
     using RetF = typename Function<F>::return_t;
-    static_assert(std::is_same<RetF, void>() || Garity == 1, "wrong arity");
+    using RetG = typename Function<G>::return_t;
+    using ArgsG = typename Function<G>::args_t;
+    static_assert(std::is_same<RetF, void>() ||
+                  ArgsG::size == 1, "wrong arity");
     constexpr auto operator()(Args... args) {
         return Compose<RetF>::call(g, f, args...);
+    }
+    void disconnect() {
+        g = MakeFn<RetG, ArgsG>::get();
     }
 };
 
