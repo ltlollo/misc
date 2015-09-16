@@ -1,0 +1,12 @@
+* {
+  /*font-family: "Fira Code" !important;*/
+  font-family: "Unifont" !important;
+  font-weight: bolder !important;
+  -moz-font-feature-settings : "liga", "dlig" !important;
+  font-size: 101% !important;
+}
+
+h1 h2 h3 {
+    color: blue !important;
+    font-size: 101% !important;
+}

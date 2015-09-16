@@ -16,12 +16,11 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     ::before, ::after {
         background: none !important;
     }
-
     div:after {
         background-color: #272822 !important;
     }
-    html * {
-       color: inherit !important;
+    html {
+       color: #fff !important;
     }
     /*HIGHLIGHT*/
     ::-moz-selection {
@@ -30,10 +29,9 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     }
     /*SOLID BG*/
     html, body > *, tr, td, th, table, article, footer, #page,
-    ul, li, nav, section, li > *,
+    ul, li, nav, section, li > *, form,
     div > :not(a):not(button):not(input):not([class*="ytp"]):not([class*="html5"]) {
         background: #272822 !important;
-
     }
     body, nav, pre, code, header, h1 > a, h2 > a, h3 > a, dt,
     div:not([class*="ytp"]):not([class*="html5"]):after,
@@ -50,11 +48,15 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     td > img {
         opacity: 0 !important;
     }
+    img {
+        background: #888 !important;
+    }
     /*INPUT*/
     input, textarea, button, select, option, optgroup, div[class*="Input"] {
         color: #DDD !important;
         background: #3e3d32 !important;
         -moz-appearance: none !important;
+        -webkit-appearance: none !important;
     }
     /*BUTTON*/
     input[type="button"],
