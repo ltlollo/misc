@@ -143,4 +143,15 @@ template<typename F> constexpr auto pipe(F arg) noexcept {
     return Pipe<is_callable<F>::value, F>{}(arg);
 }
 
+template<size_t N> struct Chain {
+    template<typename T, typename U> constexpr static auto get(T t, U u) {
+        return t | Chain<N-1>::get(t, u);
+    }
+};
+template<> struct Chain<0> {
+    template<typename T, typename U> constexpr static auto get(T t, U u) {
+        return t | u;
+    }
+};
+
 #endif // PIPE_H
