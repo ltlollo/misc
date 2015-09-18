@@ -26,7 +26,7 @@
  * hhi.reconnect(d);           hhi(3); } {
  * auto hhi = pipe(h) | h | i; hhi(3);
  * }
- * auto hhi = pipe(hh) | i;    hhi(3); pipe(2) | hhi ; pipe(2) | i;
+ * auto hhi = pipe(hh) | i;    hhi(3); pipe(2) | hhi ; pipe(2) | hh | i;
  * auto onekhi = pipe(repeat(1000, h)) | i;         onekhi(1);
  */
 
@@ -92,14 +92,32 @@ template<typename F, typename... Args> struct Con<F, Pack<Args...>> {
     }
 };
 
+template<template<class...> class M, typename... Ret>
+struct Eat {
+    template<typename F, typename... Args>
+    constexpr static auto make(F f, Args&&... args) {
+        return M<Ret...> { f(std::forward<Args>(args)...) };
+    }
+};
+
+template<template<class...> class M>
+struct Eat<M, void> {
+    template<typename F, typename... Args>
+    constexpr static auto make(F f, Args&&... args) {
+        f(std::forward<Args>(args)...);
+        return M<void>{};
+    }
+};
+
 template<typename... T> struct Lazy;
 template<typename T> struct Lazy<T> {
     T val;
     constexpr auto operator()() noexcept {
         return val;
     }
-    template<typename G> constexpr auto operator|(G&& g) {
-        return g(std::forward<T>(val));
+    template<typename G> constexpr auto operator|(G g) {
+        return Eat<Lazy, decltype(g(std::forward<T>(val)))>
+            ::make(g, std::forward<T>(val));
     }
 };
 
