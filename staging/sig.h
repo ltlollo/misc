@@ -27,6 +27,7 @@
  * auto hhi = pipe(h) | h | i; hhi(3);
  * }
  * auto hhi = pipe(hh) | i;    hhi(3); pipe(2) | hhi ; pipe(2) | i;
+ * auto onekhi = pipe(repeat(1000, h)) | i;         onekhi(1);
  */
 
 template<typename T> struct Compose {
@@ -102,6 +103,24 @@ template<typename T> struct Lazy<T> {
     }
 };
 
+template<> struct Lazy<void> {
+    constexpr auto operator()() noexcept {}
+};
+
+template<typename F> struct Chain {
+    size_t N;
+    F f;
+    using return_t = typename Function<F>::return_t;
+    static_assert(std::is_same<return_t,
+                  t_of<Unpack<0, typename Function<F>::args_t>>>(), "");
+    constexpr return_t operator()(return_t in) {
+        for (size_t i = 0; i < N; ++i) {
+            in = f(in);
+        }
+        return in;
+    }
+};
+
 template<bool, typename... T> struct Pipe;
 template<typename T> struct Pipe<true, T> {
     template<typename F> constexpr auto operator()(F f) noexcept {
@@ -135,21 +154,27 @@ template<typename... T> struct Pipe<false, Con<T...>> {
         return f;
     }
 };
-
+template<typename T> struct Pipe<true, Chain<T>> {
+    using P = typename Chain<T>::return_t;
+    template<typename F> constexpr auto operator()(F f) noexcept {
+        return Con<Chain<T>, Pack<P>>{ f };
+    }
+};
+template<typename T> struct Pipe<false, Chain<T>> {
+    using P = typename Chain<T>::return_t;
+    template<typename F> constexpr auto operator()(F f) noexcept {
+        return Con<Chain<T>, Pack<P>>{ f };
+    }
+};
 template<typename F> constexpr auto pipe(F arg) noexcept {
     return Pipe<is_callable<F>::value, F>{}(arg);
 }
 
-/* This will bloat the executable */
-template<size_t N> struct Chain {
-    template<typename T, typename U> constexpr static auto get(T t, U u) {
-        return t | Chain<N-1>::get(t, u);
-    }
-};
-template<> struct Chain<0> {
-    template<typename T, typename U> constexpr static auto get(T, U u) {
-        return u;
-    }
-};
+template<typename F> constexpr static auto repeat(size_t n, F f) {
+    return Chain<F>{ n, f };
+}
+template<typename F> constexpr static auto repeat(F f, size_t n) {
+    return repeat(n, f);
+}
 
 #endif // PIPE_H
