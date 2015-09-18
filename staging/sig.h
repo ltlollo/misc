@@ -130,7 +130,8 @@ template<typename F> struct Chain {
     F f;
     using return_t = typename Function<F>::return_t;
     static_assert(std::is_same<return_t,
-                  t_of<Unpack<0, typename Function<F>::args_t>>>(), "");
+                  t_of<Unpack<0, typename Function<F>::args_t>>>(),
+                  "f cannot be composed with itself");
     constexpr return_t operator()(return_t in) {
         for (size_t i = 0; i < N; ++i) {
             in = f(in);
