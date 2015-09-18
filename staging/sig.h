@@ -6,7 +6,6 @@
 #include "extra/fntraits.h"
 
 /* Scope:
- *
  * Tiny pipe/signal lib
  *
  * Example(code):
@@ -116,8 +115,8 @@ template<typename T> struct Lazy<T> {
         return val;
     }
     template<typename G> constexpr auto operator|(G g) {
-        return Constr<Lazy, decltype(g(std::forward<T>(val)))>
-            ::make(g, std::forward<T>(val));
+        using Res = decltype(g(std::forward<T>(val)));
+        return Constr<Lazy, Res>::make(g, std::forward<T>(val));
     }
 };
 
@@ -189,10 +188,11 @@ template<typename F> constexpr auto pipe(F arg) noexcept {
     return Pipe<is_callable<F>::value, F>{}(arg);
 }
 
-template<typename F> constexpr static auto repeat(size_t n, F f) {
+/*TODO: remove one*/
+template<typename F> constexpr static auto repeat(size_t n, F f) noexcept {
     return Chain<F>{ n, f };
 }
-template<typename F> constexpr static auto repeat(F f, size_t n) {
+template<typename F> constexpr static auto repeat(F f, size_t n) noexcept {
     return repeat(n, f);
 }
 
