@@ -93,7 +93,7 @@ template<typename F, typename... Args> struct Con<F, Pack<Args...>> {
 };
 
 template<template<class...> class M, typename... Ret>
-struct Eat {
+struct Constr {
     template<typename F, typename... Args>
     constexpr static auto make(F f, Args&&... args) {
         return M<Ret...> { f(std::forward<Args>(args)...) };
@@ -101,7 +101,7 @@ struct Eat {
 };
 
 template<template<class...> class M>
-struct Eat<M, void> {
+struct Constr<M, void> {
     template<typename F, typename... Args>
     constexpr static auto make(F f, Args&&... args) {
         f(std::forward<Args>(args)...);
@@ -116,7 +116,7 @@ template<typename T> struct Lazy<T> {
         return val;
     }
     template<typename G> constexpr auto operator|(G g) {
-        return Eat<Lazy, decltype(g(std::forward<T>(val)))>
+        return Constr<Lazy, decltype(g(std::forward<T>(val)))>
             ::make(g, std::forward<T>(val));
     }
 };
