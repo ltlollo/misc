@@ -55,8 +55,8 @@ struct Sig<F, G, Pack<Args...>> {
     using ArgsG = typename Function<G>::args_t;
     static_assert(std::is_same<RetF, void>() ||
                   ArgsG::size == 1, "wrong arity");
-    constexpr auto operator()(Args... args) {
-        return Compose<RetF>::call(g, f, args...);
+    constexpr auto operator()(Args&&... args) {
+        return Compose<RetF>::call(g, f, std::forward<Args>(args)...);
     }
     constexpr auto disconnect() noexcept {
         auto gc = std::move(g);
@@ -80,8 +80,8 @@ template<typename F, typename... Args> struct Con<F, Pack<Args...>> {
         return Con<Sig<F, G, Pack<Args...>>, Pack<Args...>>{
             Sig<F, G, Pack<Args...>>{ f, g } } ;
     }
-    constexpr auto operator()(Args... args) {
-        return f(args...);
+    constexpr auto operator()(Args&&... args) {
+        return f(std::forward<Args>(args)...);
     }
     constexpr auto disconnect() noexcept {
         return f.disconnect();
@@ -97,8 +97,8 @@ template<typename T> struct Lazy<T> {
     constexpr auto operator()() noexcept {
         return val;
     }
-    template<typename G> constexpr auto operator|(G g) {
-        return g(val);
+    template<typename G> constexpr auto operator|(G&& g) {
+        return g(std::forward<T>(val));
     }
 };
 
