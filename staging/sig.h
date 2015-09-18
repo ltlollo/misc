@@ -15,22 +15,19 @@
  * void g() { std::cout << " world\n"; }
  * int h(int i) { return i+1; }
  * void i(int j) { std::cout << "j is " << j << '\n'; }
- * int main(int , char *[]) {
- *     auto sigf = connect(f, g);                       sigf();
- *     auto d = sigf.disconnect();                      sigf();
- *     sigf.reconnect([](){ std::cout << " what? "; }); sigf();
- *     sigf.reconnect(d);                               sigf();
- *     auto hh = connect(h, h); {
- *     auto hhi = connect(hh, i);
- *     auto d = hhi.disconnect();  hhi(3);
- *     hhi.reconnect(d);           hhi(3); } {
- *     auto hhi = pipe(h) | h | i; hhi(3);
- *     }
- *     auto hhi = pipe(hh) | i;    hhi(3); pipe(2) | hhi ; pipe(2) | i;
- *     return 0;
+ * ...
+ * auto sigf = connect(f, g);                       sigf();
+ * auto d = sigf.disconnect();                      sigf();
+ * sigf.reconnect([](){ std::cout << " what? "; }); sigf();
+ * sigf.reconnect(d);                               sigf();
+ * auto hh = connect(h, h); {
+ * auto hhi = connect(hh, i);
+ * auto d = hhi.disconnect();  hhi(3);
+ * hhi.reconnect(d);           hhi(3); } {
+ * auto hhi = pipe(h) | h | i; hhi(3);
  * }
+ * auto hhi = pipe(hh) | i;    hhi(3); pipe(2) | hhi ; pipe(2) | i;
  */
-
 
 template<typename T> struct Compose {
     template<typename G, typename F, typename... Args>
