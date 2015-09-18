@@ -29,7 +29,7 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     }
     /*SOLID BG*/
     html, body > *, tr, td, th, table, article, footer, #page,
-    ul, li, nav, section, li > *, form,
+    ul, li, nav, section, li > *, form, header, lable, blockquote,
     div > :not(a):not(button):not(input):not([class*="ytp"]):not([class*="html5"]) {
         background: #272822 !important;
     }
@@ -41,6 +41,7 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     }
     span {
         background-color: transparent !important;
+        display: inline !important;
     }
     a[href="/"]:not(:empty) {
         background: none !important;
@@ -134,5 +135,8 @@ url-prefix(file://), url(about:blank), url-prefix("about:neterror") {
     }
     .newtab-title {
         background-color: rgba(0,0,0,.75) !important;
+    }
+    .newtab-cell {
+        border: 1px solid #4c4c4c !important;
     }
 }
