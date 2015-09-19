@@ -127,8 +127,7 @@ template<> struct Lazy<void> {
 template<typename Ret, typename F> struct Chain {
     size_t N;
     F f;
-    static_assert(std::is_same<Ret, void>() ||  std::is_same<Ret,
-                  t_of<Unpack<0, args_of_t<F>>>>(),
+    static_assert(std::is_same<Ret, t_of<Unpack<0, args_of_t<F>>>>(),
                   "f cannot be composed with itself");
     constexpr Ret operator()(Ret in) {
         for (size_t i = 0; i < N; ++i) {
