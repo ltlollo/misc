@@ -122,6 +122,10 @@ template<typename T> struct Lazy<T> {
 
 template<> struct Lazy<void> {
     constexpr auto operator()() noexcept {}
+    template<typename G> constexpr auto operator|(G g) {
+        g();
+        return *this;
+    }
 };
 
 template<typename Ret, typename F> struct Chain {
