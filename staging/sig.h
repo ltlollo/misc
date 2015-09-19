@@ -150,40 +150,7 @@ template<typename T> struct Pipe<false, T> {
         return Lazy<F>{ f };
     }
 };
-template<typename... T> struct Pipe<true, Sig<T...>> {
-    using P = typename Sig<T...>::args_t;
-    template<typename F> constexpr auto operator()(F f) noexcept {
-        return Con<Sig<T...>, P>{ f };
-    }
-};
-template<typename... T> struct Pipe<false, Sig<T...>> {
-    using P = typename Sig<T...>::args_t;
-    template<typename F> constexpr auto operator()(F f) noexcept {
-        return Con<Sig<T...>, P>{ f };
-    }
-};
-template<typename... T> struct Pipe<true, Con<T...>> {
-    template<typename F> constexpr auto operator()(F f) noexcept {
-        return f;
-    }
-};
-template<typename... T> struct Pipe<false, Con<T...>> {
-    template<typename F> constexpr auto operator()(F f) noexcept {
-        return f;
-    }
-};
-template<typename T> struct Pipe<true, Chain<T>> {
-    using P = typename Chain<T>::return_t;
-    template<typename F> constexpr auto operator()(F f) noexcept {
-        return Con<Chain<T>, Pack<P>>{ f };
-    }
-};
-template<typename T> struct Pipe<false, Chain<T>> {
-    using P = typename Chain<T>::return_t;
-    template<typename F> constexpr auto operator()(F f) noexcept {
-        return Con<Chain<T>, Pack<P>>{ f };
-    }
-};
+
 template<typename F> constexpr auto pipe(F arg) noexcept {
     return Pipe<is_callable<F>::value, F>{}(arg);
 }
