@@ -50,9 +50,9 @@ struct Sig<F, G, Pack<Args...>> {
     F f;
     G g;
     using args_t = Pack<Args...>;
-    using RetF = typename Function<F>::return_t;
-    using RetG = typename Function<G>::return_t;
-    using ArgsG = typename Function<G>::args_t;
+    using RetF = ret_of_t<F>;
+    using RetG = ret_of_t<G>;
+    using ArgsG = args_of_t<G>;
     static_assert(std::is_same<RetF, void>() ||
                   ArgsG::size == 1, "wrong arity");
     constexpr auto operator()(Args&&... args) {
@@ -70,7 +70,7 @@ struct Sig<F, G, Pack<Args...>> {
 
 template<typename F, typename G>
 static constexpr auto connect(F f, G g) noexcept {
-    return Sig<F, G, typename Function<F>::args_t>{ f, g };
+    return Sig<F, G, args_of_t<F>>{ f, g };
 }
 
 template<typename F, typename P> struct Con;
@@ -124,25 +124,33 @@ template<> struct Lazy<void> {
     constexpr auto operator()() noexcept {}
 };
 
-template<typename F> struct Chain {
+template<typename Ret, typename F> struct Chain {
     size_t N;
     F f;
-    using return_t = typename Function<F>::return_t;
-    static_assert(std::is_same<return_t,
-                  t_of<Unpack<0, typename Function<F>::args_t>>>(),
+    static_assert(std::is_same<Ret, void>() ||  std::is_same<Ret,
+                  t_of<Unpack<0, args_of_t<F>>>>(),
                   "f cannot be composed with itself");
-    constexpr return_t operator()(return_t in) {
+    constexpr Ret operator()(Ret in) {
         for (size_t i = 0; i < N; ++i) {
             in = f(in);
         }
         return in;
     }
 };
+template<typename F> struct Chain<void, F> {
+    size_t N;
+    F f;
+    constexpr void operator()() {
+        for (size_t i = 0; i < N; ++i) {
+            f();
+        }
+    }
+};
 
 template<bool, typename... T> struct Pipe;
 template<typename T> struct Pipe<true, T> {
     template<typename F> constexpr auto operator()(F f) noexcept {
-        return Con<F, typename Function<F>::args_t>{ f };
+        return Con<F, args_of_t<F>>{ f };
     }
 };
 template<typename T> struct Pipe<false, T> {
@@ -157,7 +165,7 @@ template<typename F> constexpr auto pipe(F arg) noexcept {
 
 /*TODO: remove one*/
 template<typename F> constexpr static auto repeat(size_t n, F f) noexcept {
-    return Chain<F>{ n, f };
+    return Chain<ret_of_t<F>, F>{ n, f };
 }
 template<typename F> constexpr static auto repeat(F f, size_t n) noexcept {
     return repeat(n, f);
