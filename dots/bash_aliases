@@ -1,3 +1,8 @@
+# colors
+alias ls='ls --color=always'
+alias dir='dir --color=always'
+alias grep='grep --color=always'
+
 # standard
 alias ll='ls -l'
 alias la='ls -A'
