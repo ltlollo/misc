@@ -44,9 +44,9 @@ template<> struct Compose<void> {
     }
 };
 
-template<typename F, typename G, typename P> struct Sig;
+template<typename F, typename G, typename P> struct Con;
 template<typename F, typename G, typename... Args>
-struct Sig<F, G, Pack<Args...>> {
+struct Con<F, G, Pack<Args...>> {
     F f;
     G g;
     using args_t = Pack<Args...>;
@@ -70,15 +70,15 @@ struct Sig<F, G, Pack<Args...>> {
 
 template<typename F, typename G>
 static constexpr auto connect(F f, G g) noexcept {
-    return Sig<F, G, args_of_t<F>>{ f, g };
+    return Con<F, G, args_of_t<F>>{ f, g };
 }
 
-template<typename F, typename P> struct Con;
-template<typename F, typename... Args> struct Con<F, Pack<Args...>> {
+template<typename F, typename P> struct Chan;
+template<typename F, typename... Args> struct Chan<F, Pack<Args...>> {
     F f;
     template<typename G> auto operator|(G g) noexcept {
-        return Con<Sig<F, G, Pack<Args...>>, Pack<Args...>>{
-            Sig<F, G, Pack<Args...>>{ f, g } } ;
+        return Chan<Con<F, G, Pack<Args...>>, Pack<Args...>>{
+            Con<F, G, Pack<Args...>>{ f, g } } ;
     }
     constexpr auto operator()(Args&&... args) {
         return f(std::forward<Args>(args)...);
@@ -95,7 +95,7 @@ template<template<class...> class M, typename... Ret>
 struct Constr {
     template<typename F, typename... Args>
     constexpr static auto make(F f, Args&&... args) {
-        return M<Ret...> { f(std::forward<Args>(args)...) };
+        return M<Ret...>{ f(std::forward<Args>(args)...) };
     }
 };
 
@@ -108,8 +108,8 @@ struct Constr<M, void> {
     }
 };
 
-template<typename... T> struct Lazy;
-template<typename T> struct Lazy<T> {
+/*TODO: find a better name*/
+template<typename T> struct Lazy {
     T val;
     constexpr auto operator()() noexcept {
         return val;
@@ -150,20 +150,20 @@ template<typename F> struct Chain<void, F> {
     }
 };
 
-template<bool, typename... T> struct Pipe;
+template<bool, typename T> struct Pipe;
 template<typename T> struct Pipe<true, T> {
-    template<typename F> constexpr auto operator()(F f) noexcept {
-        return Con<F, args_of_t<F>>{ f };
+    template<typename F> constexpr static auto from(F f) noexcept {
+        return Chan<F, args_of_t<F>>{ f };
     }
 };
 template<typename T> struct Pipe<false, T> {
-    template<typename F> constexpr auto operator()(F f) noexcept {
+    template<typename F> constexpr static auto from(F f) noexcept {
         return Lazy<F>{ f };
     }
 };
 
-template<typename F> constexpr auto pipe(F arg) noexcept {
-    return Pipe<is_callable<F>::value, F>{}(arg);
+template<typename F> constexpr static auto pipe(F arg) noexcept {
+    return Pipe<is_callable<F>::value, F>::from(arg);
 }
 
 /*TODO: remove one*/
