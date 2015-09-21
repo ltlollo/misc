@@ -32,10 +32,12 @@
 namespace Either {
 struct Left{};
 struct Right{};
-template<bool> struct From;
-template<> struct From<true> { static Either::Left value; };
-template<> struct From<false> { static Either::Right value; };
-template<bool b> static constexpr auto from() { return From<b>::value; }
+template<bool> struct FromBool;
+template<> struct FromBool<true> { static Either::Left value; };
+template<> struct FromBool<false> { static Either::Right value; };
+template<bool b> static constexpr auto from_bool() {
+    return FromBool<b>::value;
+}
 }
 
 template<template<class...>class M1, template<class...>class... Ms1>
@@ -173,7 +175,7 @@ template<typename F> struct Chain<void, F> {
 
 template<typename F> constexpr static auto pipe(F arg) noexcept {
     return EitherT<Chan, args_of_t>::Or<Stream>
-        ::match(arg, Either::from<is_callable<F>::value>());
+        ::match(arg, Either::from_bool<is_callable<F>::value>());
 }
 
 /*TODO: remove one*/
