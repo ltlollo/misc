@@ -44,11 +44,13 @@ template<template<class...>class M1, template<class...>class... Ms1>
 struct EitherT {
     template<template<class...>class M2,template<class...>class... Ms2>
     struct Or {
-        template<typename T> constexpr static auto match(T v, Either::Right) {
-            return M2<T, Ms2<T>...>{ v };
+        template<typename... Ts>
+        constexpr static auto match(Either::Right, Ts... ts) {
+            return M2<Ts..., Ms2<Ts...>...>{ ts... };
         }
-        template<typename T> constexpr static auto match(T v, Either::Left) {
-            return M1<T, Ms1<T>...>{ v };
+        template<typename... Ts>
+        constexpr static auto match(Either::Left, Ts... ts) {
+            return M1<Ts..., Ms1<Ts...>...>{ ts... };
         }
     };
 };
@@ -175,7 +177,7 @@ template<typename F> struct Chain<void, F> {
 
 template<typename F> constexpr static auto pipe(F arg) noexcept {
     return EitherT<Chan, args_of_t>::Or<Stream>
-        ::match(arg, Either::from_bool<is_callable<F>::value>());
+        ::match(Either::from_bool<is_callable<F>::value>(), arg);
 }
 
 /*TODO: remove one*/
