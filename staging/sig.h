@@ -29,6 +29,28 @@
  * auto onekhi = pipe(repeat(1000, h)) | i;         onekhi(1);
  */
 
+namespace Either {
+struct Left{};
+struct Right{};
+template<bool> struct From;
+template<> struct From<true> { static Either::Left value; };
+template<> struct From<false> { static Either::Right value; };
+template<bool b> static constexpr auto from() { return From<b>::value; }
+}
+
+template<template<class...>class M1, template<class...>class... Ms1>
+struct EitherT {
+    template<template<class...>class M2,template<class...>class... Ms2>
+    struct Or {
+        template<typename T> constexpr static auto match(T v, Either::Right) {
+            return M2<T, Ms2<T>...>{ v };
+        }
+        template<typename T> constexpr static auto match(T v, Either::Left) {
+            return M1<T, Ms1<T>...>{ v };
+        }
+    };
+};
+
 template<typename T> struct Compose {
     template<typename G, typename F, typename... Args>
     static constexpr auto call(G g, F f, Args&&... args) {
@@ -41,6 +63,42 @@ template<> struct Compose<void> {
     static constexpr auto call(G g, F f, Args&&... args) {
        f(std::forward<Args>(args)...);
        return g();
+    }
+};
+
+template<template<class...> class M, typename... Ret>
+struct ConstrT {
+    template<typename F, typename... Args>
+    constexpr static auto make(F f, Args&&... args) {
+        return M<Ret...>{ f(std::forward<Args>(args)...) };
+    }
+};
+
+template<template<class...> class M>
+struct ConstrT<M, void> {
+    template<typename F, typename... Args>
+    constexpr static auto make(F f, Args&&... args) {
+        f(std::forward<Args>(args)...);
+        return M<void>{};
+    }
+};
+
+template<typename T> struct Stream {
+    T val;
+    constexpr auto operator()() noexcept {
+        return val;
+    }
+    template<typename G> constexpr auto operator|(G g) {
+        using Res = decltype(g(std::forward<T>(val)));
+        return ConstrT<Stream, Res>::make(g, std::forward<T>(val));
+    }
+};
+
+template<> struct Stream<void> {
+    constexpr auto operator()() noexcept {}
+    template<typename G> constexpr auto operator|(G g) {
+        g();
+        return *this;
     }
 };
 
@@ -91,43 +149,6 @@ template<typename F, typename... Args> struct Chan<F, Pack<Args...>> {
     }
 };
 
-template<template<class...> class M, typename... Ret>
-struct Constr {
-    template<typename F, typename... Args>
-    constexpr static auto make(F f, Args&&... args) {
-        return M<Ret...>{ f(std::forward<Args>(args)...) };
-    }
-};
-
-template<template<class...> class M>
-struct Constr<M, void> {
-    template<typename F, typename... Args>
-    constexpr static auto make(F f, Args&&... args) {
-        f(std::forward<Args>(args)...);
-        return M<void>{};
-    }
-};
-
-/*TODO: find a better name*/
-template<typename T> struct Lazy {
-    T val;
-    constexpr auto operator()() noexcept {
-        return val;
-    }
-    template<typename G> constexpr auto operator|(G g) {
-        using Res = decltype(g(std::forward<T>(val)));
-        return Constr<Lazy, Res>::make(g, std::forward<T>(val));
-    }
-};
-
-template<> struct Lazy<void> {
-    constexpr auto operator()() noexcept {}
-    template<typename G> constexpr auto operator|(G g) {
-        g();
-        return *this;
-    }
-};
-
 template<typename Ret, typename F> struct Chain {
     size_t N;
     F f;
@@ -150,20 +171,9 @@ template<typename F> struct Chain<void, F> {
     }
 };
 
-template<bool, typename T> struct Pipe;
-template<typename T> struct Pipe<true, T> {
-    template<typename F> constexpr static auto from(F f) noexcept {
-        return Chan<F, args_of_t<F>>{ f };
-    }
-};
-template<typename T> struct Pipe<false, T> {
-    template<typename F> constexpr static auto from(F f) noexcept {
-        return Lazy<F>{ f };
-    }
-};
-
 template<typename F> constexpr static auto pipe(F arg) noexcept {
-    return Pipe<is_callable<F>::value, F>::from(arg);
+    return EitherT<Chan, args_of_t>::Or<Stream>
+        ::match(arg, Either::from<is_callable<F>::value>());
 }
 
 /*TODO: remove one*/
