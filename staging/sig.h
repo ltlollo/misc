@@ -61,14 +61,14 @@ struct EitherT {
             return M1<Ts..., Ms1<Ts...>...>{ ts... };
         }
     };
-    struct Or {
-        template<typename T>
-        constexpr static auto match(Either::Right, T t) {
-            return t;
+    template<typename T> struct Or {
+        template<typename... Ts>
+        constexpr static auto match(Either::Right, Ts... ts) {
+            return T { ts... };
         }
-        template<typename T>
-        constexpr static auto match(Either::Left, T t) {
-            return M1<T, Ms1<T>...>{ t };
+        template<typename... Ts>
+        constexpr static auto match(Either::Left, Ts... ts) {
+            return M1<T, Ms1<T>...>{ ts... };
         }
     };
 };
