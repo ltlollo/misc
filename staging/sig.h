@@ -43,7 +43,15 @@ template<bool b> static constexpr auto from_bool() {
 template<template<class...>class M1, template<class...>class... Ms1>
 struct EitherT {
     template<template<class...>class M2,template<class...>class... Ms2>
-    struct Or {
+    struct OrT {
+        template<typename T, typename... Ts>
+        constexpr static auto match_fst(Either::Right, T t, Ts... ts) {
+            return M2<T, Ms2<T>...>{ t,  ts... };
+        }
+        template<typename T, typename... Ts>
+        constexpr static auto match_fst(Either::Left, T t, Ts... ts) {
+            return M1<T, Ms1<T>...>{ t,  ts... };
+        }
         template<typename... Ts>
         constexpr static auto match(Either::Right, Ts... ts) {
             return M2<Ts..., Ms2<Ts...>...>{ ts... };
@@ -53,22 +61,20 @@ struct EitherT {
             return M1<Ts..., Ms1<Ts...>...>{ ts... };
         }
     };
+    struct Or {
+        template<typename T>
+        constexpr static auto match(Either::Right, T t) {
+            return t;
+        }
+        template<typename T>
+        constexpr static auto match(Either::Left, T t) {
+            return M1<T, Ms1<T>...>{ t };
+        }
+    };
 };
 
-template<typename T> struct Compose {
-    template<typename G, typename F, typename... Args>
-    static constexpr auto call(G g, F f, Args&&... args) {
-       return g(f(std::forward<Args>(args)...));
-    }
-};
-
-template<> struct Compose<void> {
-    template<typename G, typename F, typename... Args>
-    static constexpr auto call(G g, F f, Args&&... args) {
-       f(std::forward<Args>(args)...);
-       return g();
-    }
-};
+template<template<class...>class M1, template<class...> class M2>
+struct FuseT { template<typename T> using typeT = M1<M2<T>>; };
 
 template<template<class...> class M, typename... Ret>
 struct ConstrT {
@@ -96,6 +102,9 @@ template<typename T> struct Stream {
         using Res = decltype(g(std::forward<T>(val)));
         return ConstrT<Stream, Res>::make(g, std::forward<T>(val));
     }
+    constexpr operator T() {
+        return val;
+    }
 };
 
 template<> struct Stream<void> {
@@ -118,7 +127,7 @@ struct Con<F, G, Pack<Args...>> {
     static_assert(std::is_same<RetF, void>() ||
                   ArgsG::size == 1, "wrong arity");
     constexpr auto operator()(Args&&... args) {
-        return Compose<RetF>::call(g, f, std::forward<Args>(args)...);
+        return ConstrT<Stream, RetF>::make(f, std::forward<Args>(args)...) | g;
     }
     constexpr auto disconnect() noexcept {
         auto gc = std::move(g);
@@ -138,7 +147,7 @@ static constexpr auto connect(F f, G g) noexcept {
 template<typename F, typename P> struct Chan;
 template<typename F, typename... Args> struct Chan<F, Pack<Args...>> {
     F f;
-    template<typename G> auto operator|(G g) noexcept {
+    template<typename G> constexpr auto operator|(G g) noexcept {
         return Chan<Con<F, G, Pack<Args...>>, Pack<Args...>>{
             Con<F, G, Pack<Args...>>{ f, g } } ;
     }
@@ -153,9 +162,9 @@ template<typename F, typename... Args> struct Chan<F, Pack<Args...>> {
     }
 };
 
-template<typename Ret, typename F> struct Chain {
-    size_t N;
+template<typename F, typename Ret> struct Chain {
     F f;
+    size_t N;
     static_assert(std::is_same<Ret, t_of<Unpack<0, args_of_t<F>>>>(),
                   "f cannot be composed with itself");
     constexpr Ret operator()(Ret in) {
@@ -165,9 +174,10 @@ template<typename Ret, typename F> struct Chain {
         return in;
     }
 };
-template<typename F> struct Chain<void, F> {
-    size_t N;
+
+template<typename F> struct Chain<F, Stream<void>> {
     F f;
+    size_t N;
     constexpr void operator()() {
         for (size_t i = 0; i < N; ++i) {
             f();
@@ -176,13 +186,15 @@ template<typename F> struct Chain<void, F> {
 };
 
 template<typename F> constexpr static auto pipe(F arg) noexcept {
-    return EitherT<Chan, args_of_t>::Or<Stream>
-        ::match(Either::from_bool<is_callable<F>::value>(), arg);
+    return EitherT<Chan, args_of_t>::OrT<Stream>
+        ::match_fst(Either::from_bool<is_callable<F>::value>(), arg);
 }
 
 /*TODO: remove one*/
 template<typename F> constexpr static auto repeat(size_t n, F f) noexcept {
-    return Chain<ret_of_t<F>, F>{ n, f };
+    constexpr bool ret_void = std::is_void<ret_of_t<F>>::value;
+    return EitherT<Chain, FuseT<Stream, ret_of_t>::typeT>::OrT<Chain, ret_of_t>
+        ::match_fst(Either::from_bool<ret_void>(), f, n);
 }
 template<typename F> constexpr static auto repeat(F f, size_t n) noexcept {
     return repeat(n, f);
