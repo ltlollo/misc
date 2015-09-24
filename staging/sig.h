@@ -30,19 +30,21 @@
  */
 
 namespace Either {
-struct Left{};
-struct Right{};
-template<bool> struct FromBool;
-template<> struct FromBool<true> { static Either::Left value; };
-template<> struct FromBool<false> { static Either::Right value; };
-template<bool b> static constexpr auto from_bool() {
-    return FromBool<b>::value;
-}
+    struct Left{};
+    struct Right{};
+    template<bool> struct FromBool;
+    template<> struct FromBool<true> { static Either::Left value; };
+    template<> struct FromBool<false> { static Either::Right value; };
+    template<bool b> static constexpr auto from_bool() {
+        return FromBool<b>::value;
+    }
 }
 
-template<template<class...>class M1, template<class...>class... Ms1>
+template<template<typename...> typename M1,
+         template<typename...> typename... Ms1>
 struct EitherT {
-    template<template<class...>class M2,template<class...>class... Ms2>
+    template<template<typename...> typename M2,
+    template<typename...> typename... Ms2>
     struct OrT {
         template<typename T, typename... Ts>
         constexpr static auto match_fst(Either::Right, T t, Ts... ts) {
@@ -73,10 +75,10 @@ struct EitherT {
     };
 };
 
-template<template<class...>class M1, template<class...> class M2>
+template<template<typename...> typename M1, template<typename...> typename M2>
 struct FuseT { template<typename T> using typeT = M1<M2<T>>; };
 
-template<template<class...> class M, typename... Ret>
+template<template<typename...> typename M, typename... Ret>
 struct ConstrT {
     template<typename F, typename... Args>
     constexpr static auto make(F f, Args&&... args) {
@@ -84,7 +86,7 @@ struct ConstrT {
     }
 };
 
-template<template<class...> class M>
+template<template<typename...> typename M>
 struct ConstrT<M, void> {
     template<typename F, typename... Args>
     constexpr static auto make(F f, Args&&... args) {
@@ -149,7 +151,8 @@ template<typename F, typename... Args> struct Chan<F, Pack<Args...>> {
     F f;
     template<typename G> constexpr auto operator|(G g) noexcept {
         return Chan<Con<F, G, Pack<Args...>>, Pack<Args...>>{
-            Con<F, G, Pack<Args...>>{ f, g } } ;
+            Con<F, G, Pack<Args...>>{ f, g }
+        };
     }
     constexpr auto operator()(Args&&... args) {
         return f(std::forward<Args>(args)...);

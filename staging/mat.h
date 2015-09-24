@@ -70,10 +70,9 @@ struct MatView {
     }
 };
 
-template<typename D=size_t>
-struct Pos {
-    D row, col;
-};
+template<typename D=size_t> struct Pos { D row, col; };
+//template<typename D=long> struct WrapVert { D value; };
+//template<typename D=long> struct WrapHoriz { D value; };
 
 template<typename T, typename D=size_t>
 struct Mat {
@@ -112,6 +111,9 @@ public:
     T* operator[](const D row) noexcept {
         return data+width*row;
     }
+    //template<typename S> T* operator[](const WrapVert<S> row) noexcept {
+    //    return data+width*((height+row.value)%height);
+    //}
     MatView<T, D> view(D row, D col) noexcept {
         return MatView<T, D>{ width, height, data+width*row+col };
     }
@@ -125,5 +127,21 @@ public:
         ::operator delete[](data, width*height);
     }
 };
+
+template<typename T, typename D, typename S>
+constexpr auto view(T* data, D width, D height, S row, S col) noexcept {
+        return MatView<T, D>{ width, height, data+width*row+col };
+}
+
+template<typename T, typename D, typename S>
+constexpr auto view(T* data, D width, D height, const Pos<S> ele) noexcept {
+        return view(ele.row, ele.col);
+}
+
+template<typename D, typename S>
+constexpr D wrap(const D dim, const S val) noexcept {
+    return (dim+val)%dim;
+}
+
 
 #endif // MAT_H
