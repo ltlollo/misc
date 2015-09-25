@@ -71,15 +71,11 @@ struct MatView {
 };
 
 template<typename D=size_t> struct Pos { D row, col; };
-//template<typename D=long> struct WrapVert { D value; };
-//template<typename D=long> struct WrapHoriz { D value; };
 
 template<typename T, typename D=size_t>
 struct Mat {
-private:
     D width, height;
     T* data{nullptr};
-public:
     Mat(D width, D height) :
         width{width},
         height{height},
@@ -111,9 +107,6 @@ public:
     T* operator[](const D row) noexcept {
         return data+width*row;
     }
-    //template<typename S> T* operator[](const WrapVert<S> row) noexcept {
-    //    return data+width*((height+row.value)%height);
-    //}
     MatView<T, D> view(D row, D col) noexcept {
         return MatView<T, D>{ width, height, data+width*row+col };
     }
@@ -143,5 +136,31 @@ constexpr D wrap(const D dim, const S val) noexcept {
     return (dim+val)%dim;
 }
 
+template<typename T, typename D>
+void copy(const Mat<T, D>& src, Mat<T, D>& dst) noexcept {
+    for (D i = 0; i < src.height; ++i) {
+        for (D j = 0; j < src.width; ++j) {
+            *(dst.data+i*src.width+j) = *(src.data+i*src.width+j);
+        }
+    }
+}
+
+template<typename T, typename D> void wrap (Mat<T, D>& mat) noexcept {
+    for (size_t i = 1; i < mat.width-1; ++i) {
+        mat[0][i] = mat[mat.height-2][i];
+    }
+    for (size_t i = 1; i < mat.width-1; ++i) {
+        mat[mat.height-1][i] = mat[1][i];
+    }
+    for (size_t i = 1; i < mat.height-1; ++i) {
+        mat[i][0] = mat[i][mat.width-2];
+    }
+    for (size_t i = 1; i < mat.height-1; ++i) {
+        mat[i][mat.width-1] = mat[i][1];
+    }
+    mat[0][0] = mat[mat.height-2][mat.width-2];
+    mat[0][mat.width-1] = mat[mat.height-2][1];
+    mat[mat.height-1][0] = mat[1][mat.width-2];
+}
 
 #endif // MAT_H
