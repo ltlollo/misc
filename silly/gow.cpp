@@ -12,7 +12,6 @@ using namespace std;
 
 random_device rd;
 default_random_engine gen(rd());
-uniform_int_distribution<uint8_t> dis(1, 9);
 
 int main(int argc, char *argv[]) {
     if (argc-1 != 1) {
