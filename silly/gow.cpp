@@ -53,7 +53,6 @@ int main(int argc, char *argv[]) {
         }
     };
     auto next = Mat<char>(mat.width, mat.height);
-    copy(mat, next);
     wrap(mat);
     auto loop = [&]() {
         zip(mat, next, {1, mat.width-2, 1, mat.height-2},
@@ -86,14 +85,17 @@ int main(int argc, char *argv[]) {
                 }
             }
         });
-        clear();
-        print(mat);
         wrap(next);
         swap(mat.data, next.data);
+        clear();
+        print(mat);
+        usleep(50000);
     };
+    clear();
+    print(mat);
+    usleep(500000);
     while (true) {
         loop();
-        usleep(50000);
     }
 }
 
