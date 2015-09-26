@@ -52,6 +52,7 @@ struct MatView {
             }
         }
     }
+    // the mask is in reverse to minimize runtime cost
     template<typename F, typename S>
     void for_each(F&& f, const Bound<S>& b, size_t mask) {
         using U = std::make_unsigned_t<S>;
