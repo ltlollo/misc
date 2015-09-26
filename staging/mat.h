@@ -5,6 +5,7 @@
 #include <new>
 #include <utility>
 #include <type_traits>
+#include <string.h>
 
 /* Scope
  * small matrix `Mat<T, S>` class to help ease different 2D iteration
@@ -42,9 +43,9 @@ struct MatView {
     T* data;
     template<typename F, typename S> void for_each(F&& f, const Bound<S>& b) {
         using U = std::make_unsigned_t<S>;
-        T* ptr = (*this)[b.wl]+b.ht;
-        U wlen = b.wr-b.wl;
-        U hlen = b.hb-b.ht;
+        T* ptr = (*this)[b.ht]+b.wl;
+        U wlen = U(b.wr-b.wl+1);
+        U hlen = U(b.hb-b.ht+1);
         for (U i = 0; i < hlen; ++i) {
             for (U j = 0; j < wlen; ++j) {
                 f(ptr+i*width+j);
@@ -54,12 +55,12 @@ struct MatView {
     template<typename F, typename S>
     void for_each(F&& f, const Bound<S>& b, size_t mask) {
         using U = std::make_unsigned_t<S>;
-        T* ptr = (*this)[b.wl]+b.ht;
-        U wlen = b.wr-b.wl;
-        U hlen = b.hb-b.ht;
+        T* ptr = (*this)[b.ht]+b.wl;
+        U wlen = U(b.wr-b.wl+1);
+        U hlen = U(b.hb-b.ht+1);
         for (U i = 0; i < hlen; ++i) {
             for (U j = 0; j < wlen; ++j) {
-                if ((mask>>(j+wlen*i))&1) {
+                if ((mask>>(wlen*i+j))&1) {
                     f(ptr+i*width+j);
                 }
             }
@@ -138,11 +139,7 @@ constexpr D wrap(const D dim, const S val) noexcept {
 
 template<typename T, typename D>
 void copy(const Mat<T, D>& src, Mat<T, D>& dst) noexcept {
-    for (D i = 0; i < src.height; ++i) {
-        for (D j = 0; j < src.width; ++j) {
-            *(dst.data+i*src.width+j) = *(src.data+i*src.width+j);
-        }
-    }
+    memcpy(dst.data, src.data, sizeof(T)*src.width*src.height);
 }
 
 template<typename T, typename D> void wrap (Mat<T, D>& mat) noexcept {
@@ -161,6 +158,27 @@ template<typename T, typename D> void wrap (Mat<T, D>& mat) noexcept {
     mat[0][0] = mat[mat.height-2][mat.width-2];
     mat[0][mat.width-1] = mat[mat.height-2][1];
     mat[mat.height-1][0] = mat[1][mat.width-2];
+}
+
+template<typename T, typename D, typename F>
+void zip(Mat<T, D>& m1, const Bound<D>& b1, Mat<T, D>& m2, const Bound<D>& b2,
+         F f) {
+    D hlen = min(b1.hb-b1.ht, b2.hb-b2.ht),
+      wlen = min(b1.wr-b1.wl, b2.wr-b2.wl);
+    for (D i = 0; i < hlen+1; ++i) {
+        for (D j = 0; j < wlen+1; ++j) {
+            f(&(m1[i+b1.ht][j+b1.wl]), &(m2[i+b2.ht][j+b2.wl]));
+        }
+    }
+}
+
+template<typename T, typename D, typename F>
+void zip(Mat<T, D>& m1, Mat<T, D>& m2, const Bound<D>& b, F f) {
+    for (D i = b.ht; i < b.hb+1; ++i) {
+        for (D j = b.wl; j < b.wr+1; ++j) {
+            f(&(m1[i][j]), &(m2[i][j]));
+        }
+    }
 }
 
 #endif // MAT_H
