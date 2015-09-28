@@ -168,8 +168,6 @@ template<typename T, typename D> void wrap (Mat<T, D>& mat) noexcept {
     }
     for (size_t i = 1; i < mat.height-1; ++i) {
         mat[i][0] = mat[i][mat.width-2];
-    }
-    for (size_t i = 1; i < mat.height-1; ++i) {
         mat[i][mat.width-1] = mat[i][1];
     }
     mat[0][0] = mat[mat.height-2][mat.width-2];
