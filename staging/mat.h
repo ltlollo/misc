@@ -18,7 +18,7 @@
  * int i = 0;
  * auto m = Mat<int>(100, 100);
  * m.for_each([&](auto ep){ *ep = i++; });
- * auto v = m[Pos<>{2, 40}];
+ * auto v = m.view(Pos<>{2, 40});
  * v.for_each([](auto e){ cout << *e << ' '; }, Bound<int>{-2, 2, -2, 2});
  * cout << endl;
  * // or
@@ -122,12 +122,12 @@ template<typename T, typename D=size_t> struct Mat {
     template<typename S, typename P> T at(const Pos<S>& ele, P proxy) {
         return at(proxy(ele, Pos<D>{width, height}));
     }
-    template<typename S> T at_toroid(const Pos<S>& ele) {
+    template<typename S> T at_toroid(const Pos<S>& ele) noexcept {
         return at(ele, [](auto ele, auto dim){
                 return Pos<D>{wrap(dim.row, ele.row), wrap(dim.col, ele.col)};
             });
     }
-    template<typename S> T at_toroid(const S row, const S col) {
+    template<typename S> T at_toroid(const S row, const S col) noexcept {
         return at_toroid(Pos<S>{ row, col });
     }
     MatView<T, D> view(D row, D col) noexcept {
