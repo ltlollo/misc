@@ -37,8 +37,12 @@ struct Erode {
     D wl, wr, ht, hb;
 };
 
-template<typename T, typename D=size_t>
-struct MatView {
+template<typename D, typename S>
+constexpr D wrap(const D dim, const S val) noexcept {
+    return (dim+val)%dim;
+}
+
+template<typename T, typename D=size_t> struct MatView {
     D width, height;
     T* data;
     template<typename F, typename S> void for_each(F&& f, const Bound<S>& b) {
@@ -74,8 +78,7 @@ struct MatView {
 
 template<typename D=size_t> struct Pos { D row, col; };
 
-template<typename T, typename D=size_t>
-struct Mat {
+template<typename T, typename D=size_t> struct Mat {
     D width, height;
     T* data{nullptr};
     Mat(D width, D height) :
@@ -109,10 +112,28 @@ struct Mat {
     T* operator[](const D row) noexcept {
         return data+width*row;
     }
+    // at calls sould be used with care
+    T at(const D row, const D col) noexcept {
+        return (*this)[row][col];
+    }
+    T at(const Pos<D>& ele) noexcept {
+        return (*this)[ele.row][ele.col];
+    }
+    template<typename S, typename P> T at(const Pos<S>& ele, P proxy) {
+        return at(proxy(ele, Pos<D>{width, height}));
+    }
+    template<typename S> T at_toroid(const Pos<S>& ele) {
+        return at(ele, [](auto ele, auto dim){
+                return Pos<D>{wrap(dim.row, ele.row), wrap(dim.col, ele.col)};
+            });
+    }
+    template<typename S> T at_toroid(const S row, const S col) {
+        return at_toroid(Pos<S>{ row, col });
+    }
     MatView<T, D> view(D row, D col) noexcept {
         return MatView<T, D>{ width, height, data+width*row+col };
     }
-    MatView<T, D> operator[](const Pos<D>& ele) noexcept {
+    MatView<T, D> view(const Pos<D>& ele) noexcept {
         return view(ele.row, ele.col);
     }
     MatView<T, D> view(T* ele) noexcept {
@@ -131,11 +152,6 @@ constexpr auto view(T* data, D width, D height, S row, S col) noexcept {
 template<typename T, typename D, typename S>
 constexpr auto view(T* data, D width, D height, const Pos<S> ele) noexcept {
         return view(ele.row, ele.col);
-}
-
-template<typename D, typename S>
-constexpr D wrap(const D dim, const S val) noexcept {
-    return (dim+val)%dim;
 }
 
 template<typename T, typename D>
