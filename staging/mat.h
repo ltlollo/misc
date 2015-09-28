@@ -112,7 +112,7 @@ template<typename T, typename D=size_t> struct Mat {
     T* operator[](const D row) noexcept {
         return data+width*row;
     }
-    // at calls sould be used with care
+    // at* calls sould be used with care
     T at(const D row, const D col) noexcept {
         return (*this)[row][col];
     }
