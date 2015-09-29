@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
                 *next_ele = dead_sym;
             }
         });
-        wrap(next);
+        if (argc < 5) { wrap(next); }
         clear();
         swap(mat.data, next.data);
         print(mat);
