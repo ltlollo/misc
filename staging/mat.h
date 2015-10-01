@@ -97,12 +97,15 @@ template<typename T, typename D=size_t> struct Mat {
     }
     Mat(const Mat<T, D>&) = delete;
     Mat<T, D>& operator=(const Mat<T, D>&) = delete;
-    template<typename F> void for_each(F&& f) {
+
+    D size() const { return height*width; }
+
+    template<typename F> void for_each(F&& f) const {
         for (size_t i = 0; i < width*height; ++i) {
             f(data+i);
         }
     }
-    template<typename F> void for_each(F&& f, const Erode<D> b) {
+    template<typename F> void for_each(F&& f, const Erode<D> b) const {
         for (auto i = b.ht; i < height-b.hb; ++i) {
             for (auto j = b.wl; j < width-b.wr; ++j) {
                 f(data+i*width+j);
