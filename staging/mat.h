@@ -191,7 +191,7 @@ void zip(Mat<T, D>& m1, const Bound<D>& b1, Mat<T, D>& m2, const Bound<D>& b2,
 }
 
 template<typename T1, typename T2, typename D, typename F>
-void zip(Mat<T1, D>& m1, Mat<T2, D>& m2, const Bound<D>& b, F f) {
+void zip(Mat<T1, D>& m1, Mat<T2, D>& m2, const Bound<D>& b, F&& f) {
     for (D i = b.ht; i < b.hb+1; ++i) {
         for (D j = b.wl; j < b.wr+1; ++j) {
             f(&(m1[i][j]), &(m2[i][j]));
