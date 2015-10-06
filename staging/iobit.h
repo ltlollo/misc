@@ -102,8 +102,9 @@ template<typename T, T eom={}> class obuf {
         if (unlikely(bpos == 0 && pos == 0)) {
             return;
         }
-        buf[pos] = T(bpos << (n_bits_v<T>-bpos));
+        buf[pos] = T(buf[pos]<<(n_bits_v<T>-bpos));
         fwrite(buf, 1, pos*sizeof(T)+(bpos != 0), f);
+        bpos = 0;
     }
 };
 
