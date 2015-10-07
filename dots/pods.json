@@ -4,9 +4,6 @@
             "folder": "rustyradio"       ,
             "url": "http://rustyrad.io/feed/podcast"
         }, {
-            "folder": "coderradio",
-            "url": "http://feeds.feedburner.com/se-radio"
-        }, {
             "folder": "YANSS",
             "url": "http://feeds.soundcloud.com/users/soundcloud:users:16745745/sounds.rss"
         }, {
