@@ -1,7 +1,7 @@
 # colors
-alias ls='ls --color=always'
-alias dir='dir --color=always'
-alias grep='grep --color=always'
+alias ls='ls --color=auto'
+alias dir='dir --color=auto'
+alias grep='grep --color=auto'
 
 # standard
 alias ll='ls -l'
