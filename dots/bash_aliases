@@ -35,6 +35,7 @@ alias deve='dev experiments'
 alias rr='repeat randopen'
 alias es='(while read i; do echo "${i##*.}"; done< <(find -type f -name \*.\*))\
           | sort | uniq -c | sort -n'
+alias provides='dpkg-query -S'
 
 # functions
 repeat() { while $@; do ``; done; }
