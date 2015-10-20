@@ -35,8 +35,7 @@ template<> struct Apply_helper<1> {
         }
     }
 };
-template<typename T, typename F>
-static auto constexpr apply(T& tp, F f) {
+template<typename T, typename F> static auto constexpr apply(T& tp, F f) {
     return Apply_helper<std::tuple_size<T>::value>::call(tp, f);
 }
 
@@ -44,11 +43,11 @@ template<typename... Ts> struct Unique;
 template<typename T, typename... Ts> struct Unique<T, T, Ts...> {
     static constexpr bool value = false;
 };
-template<typename T, typename U, typename... Ts> struct Unique<T, U, Ts...>{
+template<typename T, typename U, typename... Ts> struct Unique<T, U, Ts...> {
     static constexpr bool value =
         Unique<T, Ts...>::value && Unique<U, Ts...>::value;
 };
-template<typename T> struct Unique<T>{
+template<typename T> struct Unique<T> {
     static constexpr bool value = true;
 };
 
