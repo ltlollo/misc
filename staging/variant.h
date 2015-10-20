@@ -55,10 +55,10 @@ template<typename... Ts> struct vec_variant {
     static_assert(Unique<Ts...>::value, "non unique types");
     std::tuple<std::vector<Ts>...> data;
     template<typename F> auto foreach(F f) {
-        apply(data, f);
+        return apply(data, f);
     }
     template<typename T> auto push(T&& val) {
-        std::get<Find<T, Ts...>::value>(data).emplace_back(val);
+        return std::get<Find<T, Ts...>::value>(data).emplace_back(val);
     }
     template<typename T> auto& get() {
         return std::get<Find<T, Ts...>::value>(data);
