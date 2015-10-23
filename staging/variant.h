@@ -5,15 +5,31 @@
 #include <tuple>
 #include <functional>
 
+/* Scope
+ * Provide multi-typed container with the fastest trasversal given
+ * ammortized relocation/insertion by-type.
+ *
+ * Usage (code example)
+ * ```
+ * MultiVec<int, double, string> v;
+ * v.push(1);
+ * v.push(2.3);
+ * v.push(string("hi"));
+ * v.foreach([](auto &val) { cout << val << endl; });
+ * v.view<int, double>()
+ *  .foreach([](auto &val) { cout << val << endl; });
+ * ```
+ */
+
 template<typename T, typename... Ts> struct Find;
 template<std::size_t N, typename T, typename... Ts> struct Find_helper;
 template<std::size_t N> struct Apply_helper;
 template<typename T, typename F> static auto constexpr apply(T& tp, F f);
 template<typename... Ts> struct Unique;
-template<typename... Ts> struct Vec_variant;
-template<typename... Ts> struct Vec_variant_view;
+template<typename... Ts> struct MultiVec;
+template<typename... Ts> struct MultiVec_view;
 
-template<typename... Ts> struct Vec_variant {
+template<typename... Ts> struct MultiVec {
     static_assert(Unique<Ts...>::value, "non unique types");
     std::tuple<std::vector<Ts>...> data;
     template<typename F> auto foreach(F f) {
@@ -33,14 +49,14 @@ template<typename... Ts> struct Vec_variant {
         return &std::get<Find<T, Ts...>::value>(data);
     }
     template<typename... Us> auto view() {
-        return Vec_variant_view<Us...> { std::make_tuple(get_ptr<Us>()...) };
+        return MultiVec_view<Us...> { std::make_tuple(get_ptr<Us>()...) };
     }
     template<typename F> constexpr auto map(F f) {
         return apply(data, f);
     }
 };
 
-template<typename... Ts> struct Vec_variant_view {
+template<typename... Ts> struct MultiVec_view {
     std::tuple<std::vector<Ts>*...> data;
     template<typename F> constexpr auto map(F f) {
         return apply(data, f);

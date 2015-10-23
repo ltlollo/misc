@@ -4,7 +4,6 @@
 #include <utility>
 
 /* Scope
- *
  * Given a configuration parameter `Conf<type, size>`, a group constructor
  * function, and an optional group destruction function, the `make_iobuffer`
  * function provides a stack allocated buffer of `size` elements of `type`.

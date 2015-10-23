@@ -13,8 +13,8 @@
  * `T` is the type of the contained data (, `S` determines how the dimentions
  * are stored and must be able to represent width*height, deault: size_t).
  *
- * Example(code)
- *
+ * Usage (code example)
+ * ```
  * int i = 0;
  * auto m = Mat<int>(100, 100);
  * m.for_each([&](auto ep){ *ep = i++; });
@@ -26,6 +26,7 @@
  *     for (int j = -2; j < 2; ++j) { cout << v[i][j] << '\t'; }
  *     cout << endl;
  * }
+ * ```
  */
 
 template<typename D=size_t>
