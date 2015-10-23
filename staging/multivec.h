@@ -1,5 +1,5 @@
-#ifndef VARIANT_H
-#define VARIANT_H
+#ifndef MULTIVEC_H
+#define MULTIVEC_H
 
 #include <vector>
 #include <tuple>
@@ -117,4 +117,4 @@ template<typename T> struct Unique<T> {
 };
 
 
-#endif // VARIANT_H
+#endif // MULTIVEC_H
