@@ -17,7 +17,7 @@ template<typename... Ts> struct Vec_variant {
     static_assert(Unique<Ts...>::value, "non unique types");
     std::tuple<std::vector<Ts>...> data;
     template<typename F> auto foreach(F f) {
-        return apply(data, [=](auto &vec){
+        return map([=](auto &vec){
             for (auto &ele: vec) {
                 f(ele);
             }
@@ -32,15 +32,21 @@ template<typename... Ts> struct Vec_variant {
     template<typename T> constexpr auto* get_ptr() {
         return &std::get<Find<T, Ts...>::value>(data);
     }
-    template<typename... Us> auto get_ptrs() {
+    template<typename... Us> auto view() {
         return Vec_variant_view<Us...> { std::make_tuple(get_ptr<Us>()...) };
+    }
+    template<typename F> constexpr auto map(F f) {
+        return apply(data, f);
     }
 };
 
 template<typename... Ts> struct Vec_variant_view {
     std::tuple<std::vector<Ts>*...> data;
+    template<typename F> constexpr auto map(F f) {
+        return apply(data, f);
+    }
     template<typename F> auto foreach(F f) {
-        return apply(data, [=](auto &vec){
+        return map([=](auto &vec){
             for (auto &ele: *vec) {
                 f(ele);
             }
