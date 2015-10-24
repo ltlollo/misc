@@ -48,7 +48,7 @@ template<typename... Ts> struct MultiVec {
         return &std::get<Find<T, Ts...>::value>(data);
     }
     template<typename... Us> auto view() {
-        return MultiVec_view<Us...> { std::make_tuple(get_ptr<Us>()...) };
+        return MultiVec_view<Us...>{ std::make_tuple(get_ptr<Us>()...) };
     }
     template<typename F> constexpr auto map(F f) {
         return apply(data, f);
@@ -56,6 +56,7 @@ template<typename... Ts> struct MultiVec {
 };
 
 template<typename... Ts> struct MultiVec_view {
+    static_assert(Unique<Ts...>::value, "non unique types");
     std::tuple<std::vector<Ts>*...> data;
     template<typename F> constexpr auto map(F f) {
         return apply(data, f);
