@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <tuple>
-#include <functional>
 
 /* Scope
  * Provide multi-typed container with the fastest trasversal given
