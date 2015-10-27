@@ -10,6 +10,9 @@ alias l='ls -CF'
 alias ..='cd ..'
 alias ...='cd ../..'
 
+# bragagge
+alias play='AUDIODEV=sysdefault:CARD=PCH; play'
+
 # shortcuts
 alias sizeof='du -bh'
 alias news='tin -rg nntp.aioe.org'
