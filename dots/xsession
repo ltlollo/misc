@@ -1,0 +1,2 @@
+xsetroot -solid "#333333"
+[[ -f $HOME/.Xresources ]] && xrdb -merge $HOME/.Xresources

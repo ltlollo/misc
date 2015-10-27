@@ -1,0 +1,10 @@
+Xft.dpi: 96
+Xft.antialias: 1
+Xft.rgba: rgb
+Xft.autohint: 0
+Xft.lcdfilter: lcddefault
+Xft.hinting: 1
+Xft.hintstyle: hintfull
+
+xterm*font: -*-fixed-medium-r-*-*-18-*-*-*-*-*-iso8859-*
+xterm*title: Terminal
