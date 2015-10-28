@@ -5,6 +5,6 @@ Xft.autohint: 0
 Xft.lcdfilter: lcddefault
 Xft.hinting: 1
 Xft.hintstyle: hintfull
-
-xterm*font: -*-fixed-medium-r-*-*-18-*-*-*-*-*-iso8859-*
-xterm*title: Terminal
+xterm*faceName: monospace:size=12:antialias=true
+xterm*background: rgb:27/28/22
+xterm*locale: true
