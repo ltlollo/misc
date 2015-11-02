@@ -1,0 +1,74 @@
+@-moz-document url-prefix(ftp://),
+     url-prefix("https://"), url-prefix("http://"),
+     url(about:blank), url-prefix("about:neterror") {
+  * {
+    color: #fff !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    border: 0 none !important;
+    border-radius: 0 !important;
+    transform: none !important;
+  }
+  ::-moz-selection {
+    background-color: #444 !important;
+    border: none !important;
+  }
+  :not(body):not(div):not(a):not(button):not(img):not(textarea):not(option):not(select):not(label):not(optgroup):not(:empty),
+  ::before, ::after,
+  a:not(:empty) {
+    background: none !important;
+  }
+  input, textarea, button, select, option, optgroup, label {
+    color: #DDD !important;
+    background: #3e3d32 !important;
+  }
+  input[type="button"], input[type="submit"], input[type="reset"],
+  button {
+      background-color: #6c6a64 !important;
+  }
+  input[type="button"]:hover, input[type="submit"]:hover, input[type="reset"]:hover,
+  button:hover {
+    color: #fff !important;
+    background: #888 !important;
+  }
+  a         { color: #FF4867 !important; }
+  a:link, a > *
+            { color: #8f9d6a !important; }
+  a:visited { color: #cf6a4b !important; }
+  a:hover   { color: #FF4867 !important; }
+  a:active  { color: #FFAE00 !important; }
+  body, div:not([class*="ytp"]), td, tr, table, tbody {
+    background: #272822 !important;
+    box-shadow: none !important;
+  }
+}
+
+@-moz-document url(about:newtab), url(about:privatebrowsing) {
+  * {
+      background-color: transparent !important;
+      color: #fff !important;
+      text-shadow: none !important;
+      box-shadow: none !important;
+      border-radius: 0px !important;
+      outline: none !important;
+      border: none !important;
+  }
+  input[id="newtab-search-text"] {
+      color: #DDD !important;
+      background: none #3e3d32 !important;
+  }
+  html, body, window, #newtab-margin-bottom {
+      background: #272822 !important;
+      color: #fff ! important
+  }
+  #newtab-search-container {
+     visibility: hidden !important;
+  }
+  #newtab-scrollbox, .newtab-title {
+      background: none !important;
+  }
+  .newtab-cell {
+      border: 1px solid #4c4c4c !important;
+  }
+}

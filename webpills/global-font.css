@@ -1,11 +1,12 @@
-* {
-  font-family: "Unifont" !important;
-  font-weight: bolder !important;
-  -moz-font-feature-settings : "liga", "dlig" !important;
-  font-size: 101% !important;
-}
-
-h1 h2 h3 {
-    color: blue !important;
-    font-size: 101% !important;
+@-moz-document url-prefix(http://), url-prefix(https://), url-prefix(ftp://),
+url-prefix(file://), url(about:blank), url-prefix("about:") {
+  * {
+    font-family: "ProfontWindows" !important;
+    font-weight: normal !important;
+    font-size: 18px !important;
+  }
+  h, h1, h2, h3, h4 {
+      color: #FF4867 !important;
+      font-size: 101% !important;
+  }
 }
