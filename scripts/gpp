@@ -4,13 +4,15 @@ elines=3
 file="${1%.cpp}"
 rest=${@:2}
 
-mainopts="-Ofast -mtune=native -fno-rtti"
-loopopts="-floop-interchange -ftree-loop-distribution -floop-strip-mine -floop-block"
+mainopts="-Ofast -mtune=native -fno-rtti -DNDEBUG -s"
+loopopts="-floop-interchange -ftree-loop-distribution -floop-strip-mine \
+    -floop-block"
 restopts="-flto=8 -ftree-vectorize"
 
-OWarn="-Wall -Wextra -Wconversion -pedantic"
+OWarn="-Wall -Wextra -Wconversion -pedantic -fno-pretty-templates"
 OOpts="${mainopts} ${loopopts} ${restopts}"
 OOut="-fmax-errors=$elines"
 OSec="-fstack-protector-all"
+OTmpl="-ftemplate-depth=50000"
 
-g++-5 -std=c++14 $file.cpp $OWarn $OOpts $OOut $OSec -pthread -o $file $rest
+g++-5 -std=c++17 $file.cpp $OWarn $OOpts $OOut $OSec $OTmpl -pthread -o $file $rest

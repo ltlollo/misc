@@ -8,7 +8,7 @@ cd "$HOME/dev/scripts/bash"
 if [[ -f "$1" ]]; then
     vim $1 && exit 0
 else
-    cp $template_sh $1 && vim $1 && chmod u+x $1 && exit 0
+    cp "$template_sh" $1 && vim $1 && chmod u+x $1 && exit 0
 fi
 exit 1
 
