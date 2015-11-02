@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+while read \i; do
+    echo $i; (
+        read -n1 \_;
+        while read -n1 \j; do [[ $j ]] && echo $j;
+     done;) <<< "$i"
+done <<< "${@^^}"
+
