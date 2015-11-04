@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
             printf("%s\n", in.c_str());
         } else {
             if (env.empty()) {
-                env = std::string(in.data()+1) + '\n';
+                env = std::string(in.data()+1);
             } else {
                 cmd += std::string(in.data()+1) + '\n';
             }
