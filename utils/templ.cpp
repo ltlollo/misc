@@ -12,14 +12,13 @@ int main(int argc, char *argv[]) {
     std::string cmd, in, env;
     char quot = (argc-1) ? argv[1][0] : '#';
     while (std::getline(std::cin, in)) {
-        if (in.empty()) {
-            printf("\n");
-        } else if (in[0] != quot) {
-            if (!cmd.empty()) {
+        if (in.empty() || in[0] != quot) {
+            if (!env.empty()) {
                 if ((exec = popen(env.c_str(), "w")) == NULL) {
                     err(1, "%s", env.c_str());
                 }
-                if (fwrite(cmd.c_str(), 1, cmd.size(), exec) != cmd.size()) {
+                if (!cmd.empty() && fwrite(cmd.c_str(), 1, cmd.size(), exec)
+                    != cmd.size()) {
                     (void)pclose(exec);
                     err(1, "%s", env.c_str());
                 }
