@@ -7,6 +7,8 @@
 #include <locale>
 #include <random>
 #include <unistd.h>
+#include <thread>
+#include <stdio.h>
 #include "mat.h"
 
 using namespace std;
@@ -16,12 +18,16 @@ default_random_engine gen(rd());
 
 bool bitmap[512];
 
+#define UNSAFE_ACCESS(x) const_cast<volatile decltype(x)>(x)
+
 void init_bitmap() noexcept {
-    auto d = bernoulli_distribution(std::generate_canonical<double, 8>(gen));
-    for (auto& e: bitmap) { e = d(gen); }
+    auto d = bernoulli_distribution(generate_canonical<double, 8>(gen));
+    for (auto& e: bitmap) { UNSAFE_ACCESS(e) = d(gen); }
 }
 
 wchar_t rk() { return uniform_int_distribution<wchar_t>(0x4E00, 0x9FC0)(gen); }
+
+constexpr double avg_luma() { return 0.299*82+0.587*204+0.114*82; }
 
 int main(int argc, char *argv[]) {
     if (argc-1 < 1) {
@@ -53,9 +59,24 @@ int main(int argc, char *argv[]) {
     };
     init_bitmap();
     auto mat = Mat<wchar_t>(w+2, h+2);
-    fill(mat.data, mat.data+mat.width*mat.height, dead_sym);
+    fill(mat.data, mat.data+mat.size(), dead_sym);
     auto next = Mat<wchar_t>(mat.width, mat.height);
-    fill(next.data, next.data+next.height*next.width, dead_sym);
+    fill(next.data, next.data+next.size(), dead_sym);
+    auto ipop_rat = [&](const auto& m) {
+        size_t n = 1;
+        m.for_each([&](auto* ele) { if (is_alive(*ele)) ++n; });
+        return m.size()/double(n);
+    };
+    auto nclear = [&](const auto& m) {
+        auto  ip = ipop_rat(m);
+        if (ip > 3) ip = 3;
+        unsigned r = (50*(0.23*ip))/0.23,
+                 g = (100*(0.54*ip))/0.54,
+                 b = (50*(0.31*ip))/0.31;
+        if (r>255) r = 255; if (g>255) g = 255; if (b>255) b = 255;
+        wcout << "\033[2J\033[1;1H\033[38;2;" << r << ";" << g << ";" << b
+            << ";48;2;0;0;0m";
+    };
     auto loop = [&]() {
         zip(mat, next, {1, mat.width-2, 1, mat.height-2},
             [&](auto* mat_ele, auto* next_ele) {
@@ -69,7 +90,7 @@ int main(int argc, char *argv[]) {
                              (uint16_t(is_alive(vw[ri][rj]))<<(count++)));
                 }
             }
-            if (bitmap[pattern]) {
+            if (UNSAFE_ACCESS(bitmap[pattern])) {
                 if (alive) {
                     alive = uniform_int_distribution<uint8_t>(1, alive)(gen);
                     count = 0;
@@ -90,14 +111,27 @@ int main(int argc, char *argv[]) {
             }
         });
         if (argc < 5) { wrap(next); }
-        clear();
+        nclear(next);
         swap(mat.data, next.data);
         print(mat);
         usleep(50000);
     };
-    for (unsigned i = 0;;) {
-        loop();
-        if (f && !(++i%f)) { init_bitmap(); }
+    if (f) {
+        for (unsigned i = 0;;) {
+            loop();
+            if (!(++i%f)) { init_bitmap(); }
+        }
+    } else {
+        std::thread([](){
+            for(int c = 0;;) {
+                if ((c = getchar()) == '\n') {
+                    init_bitmap();
+                }
+            }
+        }).detach();
+        while(true) {
+            loop();
+        }
     }
 }
 
