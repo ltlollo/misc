@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <thread>
 #include <stdio.h>
+#include <atomic>
 #include "mat.h"
 
 using namespace std;
@@ -16,13 +17,11 @@ using namespace std;
 random_device rd;
 default_random_engine gen(rd());
 
-bool bitmap[512];
-
-#define UNSAFE_ACCESS(x) const_cast<volatile decltype(x)>(x)
+std::atomic_bool bitmap[512];
 
 void init_bitmap() noexcept {
     auto d = bernoulli_distribution(generate_canonical<double, 8>(gen));
-    for (auto& e: bitmap) { UNSAFE_ACCESS(e) = d(gen); }
+    for (auto& e: bitmap) { e = d(gen); }
 }
 
 wchar_t rk() { return uniform_int_distribution<wchar_t>(0x4E00, 0x9FC0)(gen); }
@@ -90,7 +89,7 @@ int main(int argc, char *argv[]) {
                              (uint16_t(is_alive(vw[ri][rj]))<<(count++)));
                 }
             }
-            if (UNSAFE_ACCESS(bitmap[pattern])) {
+            if (bitmap[pattern]) {
                 if (alive) {
                     alive = uniform_int_distribution<uint8_t>(1, alive)(gen);
                     count = 0;

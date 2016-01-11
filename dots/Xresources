@@ -6,5 +6,6 @@ Xft.lcdfilter: lcddefault
 Xft.hinting: 1
 Xft.hintstyle: hintfull
 xterm*faceName: xft:monospace:size=12:antialias=true:autohint=true
+xterm*faceNameDoublesize: xft:Droid Sans Japanese:style=Regular
 xterm*background: rgb:27/28/22
 xterm*locale: true
