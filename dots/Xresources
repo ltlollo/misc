@@ -9,3 +9,7 @@ xterm*faceName: xft:monospace:size=12:antialias=true:autohint=true
 xterm*faceNameDoublesize: xft:Droid Sans Japanese:style=Regular
 xterm*background: rgb:27/28/22
 xterm*locale: true
+xterm*selectToClipboard: true
+xterm*vt100.translations: #override \
+    Ctrl Shift <KeyPress> C: copy-selection(CLIPBOARD) \n \
+    Ctrl Shift <KeyPress> V: insert-selection(CLIPBOARD) \n
