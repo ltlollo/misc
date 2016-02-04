@@ -12,8 +12,26 @@ struct Ele {
     Val value;
 };
 
-bool compare(Ele::Key f, Ele::Key s) {
-    return f < s;
+constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
+    unsigned i = 0;
+    Ele::Key v = f^s;
+    for (; i < 64; ++i) {
+        if (((v>>i)&1)) {
+            break;
+        }
+    }
+    return i;
+}
+
+constexpr unsigned suffix(Ele::Key f, Ele::Key s) {
+    unsigned i = 0;
+    Ele::Key v = f^s;
+    for (; i < 64; ++i) {
+        if ((v>>(63-i))&1) {
+            break;
+        }
+    }
+    return i;
 }
 
 struct Stack {
@@ -21,15 +39,16 @@ struct Stack {
     static constexpr auto relax = std::memory_order_relaxed;
     static constexpr auto consume = std::memory_order_consume;
     static constexpr auto acquire = std::memory_order_acquire;
-    static constexpr unsigned bufsize = 64+1;
+
     static constexpr unsigned backup = 3;
     Ele::Key id;
-    Ele buf[bufsize] = {};
-    Ele* init = buf;
+    Ele* init;
+    unsigned size;
     std::atomic<Ele*> curr;
     std::mutex m;
 
-    constexpr Stack(Ele::Key id) : id{id}, curr{nullptr} {
+    bool compare(const Ele::Key f, const Ele::Key s) {
+        return prefix(id, f) > prefix(id, s);
     }
     bool insert(const Ele::Key key, const Ele::Val& value) {
         Ele* it;
@@ -53,7 +72,7 @@ struct Stack {
         if (compare(it->key, key)) {
             return false;
         }
-        if (++it == init + bufsize) {
+        if (++it == init + size) {
             return false;
         }
         it->key.store(key, relax);
@@ -90,6 +109,26 @@ struct Stack {
         }
         res.err = (it == nullptr);
         return res;
+    }
+};
+
+struct Cache {
+    Ele::Key id;
+    Ele buf[64/2*(64+1)];
+    Stack lines[64];
+    Cache(Ele::Key id) : id{id} {
+        Ele* it = buf;
+        for(unsigned i = 0; i < 64; ++i) {
+            auto& line = lines[i];
+            line.init = it;
+            line.size = size(i);
+            line.curr = nullptr;
+            line.id = id^(1ull<<(63-i));
+            it += size(i);
+        }
+    }
+    static constexpr unsigned size(unsigned pos) {
+        return 64-pos;
     }
 };
 
