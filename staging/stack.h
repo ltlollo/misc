@@ -88,7 +88,7 @@ struct Stack {
                 res.value = it->value;
             }
         }
-        res.err = false;
+        res.err = (it != nullptr);
         return res;
     }
 };
