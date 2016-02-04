@@ -7,7 +7,8 @@
 struct Ele {
     using Key = std::uint64_t;
     using Val = struct { std::uint64_t f, s; };
-    using Res = struct { bool err = true; Key key; Val value; };
+    using Data = struct { Key key; Val value; };
+    using Res = struct { bool err = true; Data data; };
     std::atomic<Key> key;
     Val value;
 };
@@ -103,8 +104,8 @@ struct Stack {
         {
             Guard lock(m);
             if ((it = curr.load(relax)) != nullptr) {
-                res.key = it->key.load(relax);
-                res.value = it->value;
+                res.data.key = it->key.load(relax);
+                res.data.value = it->value;
             }
         }
         res.err = (it == nullptr);
@@ -133,6 +134,10 @@ struct Cache {
     int line(Ele::Key key) {
         auto res = prefix(key, id);
         return (res == 64) ? -1 : res;
+    }
+    auto request(const Ele::Data& who, unsigned what) {
+        lines[line(who.key)].insert(who.key, who.value);
+        return lines[what].front();
     }
 };
 
