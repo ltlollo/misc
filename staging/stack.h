@@ -12,7 +12,7 @@ struct Ele {
     Val value;
 };
 
-constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
+constexpr unsigned suffix(const Ele::Key f, const Ele::Key s) {
     unsigned i = 0;
     Ele::Key v = f^s;
     for (; i < 64; ++i) {
@@ -23,7 +23,7 @@ constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
     return i;
 }
 
-constexpr unsigned suffix(Ele::Key f, Ele::Key s) {
+constexpr unsigned prefix(Ele::Key f, Ele::Key s) {
     unsigned i = 0;
     Ele::Key v = f^s;
     for (; i < 64; ++i) {
@@ -129,6 +129,10 @@ struct Cache {
     }
     static constexpr unsigned size(unsigned pos) {
         return 64-pos;
+    }
+    int line(Ele::Key key) {
+        auto res = prefix(key, id);
+        return (res == 64) ? -1 : res;
     }
 };
 
