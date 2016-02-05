@@ -24,7 +24,7 @@ constexpr unsigned suffix(const Ele::Key f, const Ele::Key s) {
     return i;
 }
 
-constexpr unsigned prefix(Ele::Key f, Ele::Key s) {
+constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
     unsigned i = 0;
     Ele::Key v = f^s;
     for (; i < 64; ++i) {
@@ -128,15 +128,17 @@ struct Cache {
             it += size(i);
         }
     }
-    static constexpr unsigned size(unsigned pos) {
+    static constexpr unsigned size(const unsigned pos) {
         return 64-pos;
     }
     int line(Ele::Key key) {
         auto res = prefix(key, id);
         return (res == 64) ? -1 : res;
     }
-    /* caller must check who.key differs from id for now */
-    auto request(const Ele::Data& who, unsigned what) {
+    Ele::Res request(const Ele::Data& who, const unsigned what) {
+        if (who.key == id) {
+            return Ele::Res{};
+        }
         lines[line(who.key)].insert(who.key, who.value);
         return lines[what].front();
     }
