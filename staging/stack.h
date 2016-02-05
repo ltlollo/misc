@@ -135,6 +135,7 @@ struct Cache {
         auto res = prefix(key, id);
         return (res == 64) ? -1 : res;
     }
+    /* caller must check who.key differs from id for now */
     auto request(const Ele::Data& who, unsigned what) {
         lines[line(who.key)].insert(who.key, who.value);
         return lines[what].front();
