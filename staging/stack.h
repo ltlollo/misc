@@ -13,25 +13,35 @@ struct Ele {
     Val value;
 };
 
-constexpr unsigned suffix(const Ele::Key f, const Ele::Key s) {
-    unsigned i = 0;
-    Ele::Key v = f^s;
-    for (; i < 64; ++i) {
-        if (((v>>i)&1)) {
-            break;
-        }
+constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) noexcept {
+    auto v = f^s;
+    if (v == 0) {
+        return 64;
     }
+    unsigned i = 0, range = 32;
+    do {
+        if (v>>range) {
+            v>>=range;
+        } else {
+            i += range;
+        }
+    } while(range /= 2);
     return i;
 }
 
-constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
-    unsigned i = 0;
-    Ele::Key v = f^s;
-    for (; i < 64; ++i) {
-        if ((v>>(63-i))&1) {
-            break;
-        }
+constexpr unsigned suffix(const Ele::Key f, const Ele::Key s) noexcept {
+    auto v = f^s;
+    if (v == 0) {
+        return 64;
     }
+    unsigned i = 0, range = 32;
+    do {
+        if (v<<range) {
+            v <<= range;
+        } else {
+            i += range;
+        }
+    } while (range /= 2);
     return i;
 }
 
