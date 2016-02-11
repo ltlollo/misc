@@ -13,7 +13,7 @@ struct Option {
     T data;
 };
 
-template<typename T, typename Err>
+template<typename Err, typename T>
 struct Result {
     Err err;
     T data;
@@ -42,11 +42,6 @@ enum class GetErr {
     Broken = 2,
 };
 
-Result<Ele::Data, GetErr> get(const Ele::Data& , unsigned) {
-    Result<Ele::Data, GetErr> res = {GetErr::None, {}};
-    return res;
-}
-
 constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
     auto v = f^s;
     if (v == 0) {
@@ -63,6 +58,18 @@ constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
     return i;
 }
 
+enum Op : uint8_t {
+        Ping, Pong, Get, Close
+};
+
+struct __attribute__((__packed__)) Msg {
+        Op op;
+        uint64_t self;
+        uint8_t n;
+};
+
+static_assert(sizeof(Msg) == 10, "wrong packing")
+
 constexpr unsigned suffix(const Ele::Key f, const Ele::Key s) {
     auto v = f^s;
     if (v == 0) {
@@ -77,6 +84,15 @@ constexpr unsigned suffix(const Ele::Key f, const Ele::Key s) {
         }
     } while (range /= 2);
     return i;
+}
+
+Result<GetErr, Ele::Data> get(const Ele::Data& ele, unsigned n) {
+    Result<GetErr, Ele::Data> res = {GetErr::None, {}};
+
+    if (prefix(ele.key, res.data.key) != n) {
+        res.err = GetErr::Broken;
+    }
+    return res;
 }
 
 struct Stack {
@@ -214,7 +230,7 @@ struct Cache {
         insert(who);
         return res = lines[what].front();
     }
-    Result<Ele::Val, SearchErr> search(Ele::Key key) {
+    Result<SearchErr, Ele::Val> search(Ele::Key key) {
         if (id == key) {
             return {SearchErr::Self, {}};
         }
@@ -225,7 +241,7 @@ struct Cache {
         if (ele.data.key == key) {
             return {SearchErr::Ok, ele.data.value};
         }
-        Result<Ele::Data, GetErr> resp;
+        Result<GetErr, Ele::Data> resp;
         do {
             resp = get(ele.data, prefix(resp.data.key, key));
             if (resp.err == GetErr::Ok) {
