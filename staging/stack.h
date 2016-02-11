@@ -32,19 +32,21 @@ bool operator==(const Ele::Val& f, const Ele::Val& s) {
     return memcmp(&f, &s, sizeof(Ele::Val));
 }
 
+constexpr uint8_t Ok = 0;
+
 enum class SearchErr {
-    Ok = 0,
+    Ok = Ok,
     None = 1,
     Self = 2,
 };
 enum class GetErr {
-    Ok = 0,
+    Ok = Ok,
     None = 1,
     Broken = 2,
 };
 
 constexpr unsigned size(const unsigned pos) {
-    return 64-pos;
+    return 64 - pos;
 }
 
 constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
@@ -69,8 +71,8 @@ enum Op : uint8_t {
 
 struct __attribute__((__packed__)) PackedMsg {
     Op op;
-    Ele::Key key;
     uint8_t n;
+    Ele::Key key;
     Ele::Val value;
 };
 
@@ -167,18 +169,18 @@ struct Stack {
         }
         return false;
     }
-    bool remove(const Ele::Data& ele) {
+    bool remove(const Ele::Key key, const Ele::Val& value) {
         Ele* it;
         if ((it = curr.load(consume)) == nullptr
-            || it->key.load(acquire) != ele.key) {
+            || it->key.load(acquire) != key) {
             return false;
         }
         Guard lock(m);
         if ((it = curr.load(relax)) == nullptr) {
             return false;
         }
-        if (it->key.load(relax) == ele.key
-            && it->value == ele.value) {
+        if (it->key.load(relax) == key
+            && it->value == value) {
             if (it == init) {
                 curr.store(nullptr, relax);
             } else {
@@ -187,6 +189,9 @@ struct Stack {
             return true;
         }
         return false;
+    }
+    bool remove(const Ele::Data& ele) {
+        return remove(ele.key, ele.value);
     }
     Option<Ele::Data> front() {
         Option<Ele::Data> res = {};
@@ -269,35 +274,28 @@ struct Cache {
     bool insert(const Ele::Data& ele) {
         return insert(ele.key, ele.value);
     }
-    bool remove(const Ele::Key k) {
-        return lines[line(k)].remove(k);
+    bool remove(const Ele::Key key) {
+        return lines[line(key)].remove(key);
+    }
+    bool remove(const Ele::Key key, const Ele::Val& value) {
+        return lines[line(key)].remove(key, value);
     }
     bool remove(const Ele::Data& ele) {
         return lines[line(ele.key)].remove(ele);
     }
     int pong(const Ele::Val value, uint8_t err = 0) {
-        PackedMsg msg = {
-            Pong,
-            id,
-            err,
-            {}
-        };
+        PackedMsg msg = {Pong, err, id, {}};
         return sendmsg(value, msg);
     }
     int conn(const Ele::Val& value) {
-        PackedMsg msg = {
-            Conn,
-            id,
-            0,
-            {}
-        };
+        PackedMsg msg = {Conn, Ok, id, {}};
         if (sendmsg(value, msg)) {
             return -1;
         }
         if (recvmsg(value, msg)) {
             return -1;
         }
-        if (msg.n || msg.key == id) {
+        if (msg.n != Ok || msg.key == id) {
             return -1;
         }
         insert(msg.key, value);
@@ -305,12 +303,7 @@ struct Cache {
     }
     Result<GetErr, Ele::Data> get(const Ele::Data& ele, const unsigned n) {
         Result<GetErr, Ele::Data> res;
-        PackedMsg msg = {
-            Get,
-            id,
-            0,
-            {}
-        };
+        PackedMsg msg = {Get, Ok, id, {}};
         if (sendmsg(ele.value, msg)) {
             return {GetErr::Broken, {}};
         }
@@ -330,12 +323,7 @@ struct Cache {
         switch(msg.op) {
         case Conn:
             if (search(msg.key).err == SearchErr::None) {
-                resp = {
-                    Pong,
-                    id,
-                    0,
-                    {}
-                };
+                resp = {Pong, Ok, id, {}};
                 if (sendmsg(value, msg) == 0) {
                     insert(msg.key, value);
                 }
@@ -344,23 +332,16 @@ struct Cache {
         case Get:
             if (msg.n < 64) {
                 Option<Ele::Data> ele = lines[msg.n].front();
-                resp = {
-                    Pong,
-                    ele.data.key,
-                    ele.err,
-                    ele.data.value
-                };
+                resp = {Pong, ele.err, ele.data.key, ele.data.value};
                 sendmsg(value, msg);
             }
             break;
         case Probe:
-            resp = {
-                Pong,
-                id,
-                0,
-                {}
-            };
+            resp = {Pong, Ok, id, {}};
             sendmsg(value, msg);
+            break;
+        case Close:
+            remove(msg.key, value);
             break;
         default: break;
         }
