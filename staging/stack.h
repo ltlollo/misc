@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <byteswap.h>
 
 template<typename T>
 struct Option {
@@ -42,6 +43,10 @@ enum class GetErr {
     Broken = 2,
 };
 
+constexpr unsigned size(const unsigned pos) {
+    return 64-pos;
+}
+
 constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
     auto v = f^s;
     if (v == 0) {
@@ -59,16 +64,46 @@ constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
 }
 
 enum Op : uint8_t {
-        Ping, Pong, Get, Close
+        Conn, Pong, Get, Close, Probe
 };
 
-struct __attribute__((__packed__)) Msg {
-        Op op;
-        uint64_t self;
-        uint8_t n;
+struct __attribute__((__packed__)) PackedMsg {
+    Op op;
+    uint64_t self;
+    uint8_t n;
 };
 
-static_assert(sizeof(Msg) == 10, "wrong packing")
+struct Msg {
+    Op op;
+    uint64_t self;
+    uint8_t n;
+};
+
+Msg unpack(const PackedMsg& msg) {
+    Msg res;
+    res.op = msg.op;
+#if  __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    res.self = bswap_64(msg.self);
+#else
+    res.self = msg.self;
+#endif
+    res.n = msg.n;
+    return res;
+}
+
+PackedMsg pack(const Msg& msg) {
+    PackedMsg res;
+    res.op = msg.op;
+#if  __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    res.self = bswap_64(msg.self);
+#else
+    res.self = msg.self;
+#endif
+    res.n = msg.n;
+    return res;
+}
+
+static_assert(sizeof(PackedMsg) == 10, "wrong packing");
 
 constexpr unsigned suffix(const Ele::Key f, const Ele::Key s) {
     auto v = f^s;
@@ -182,7 +217,7 @@ struct Stack {
         }
         return false;
     }
-    auto front() {
+    Option<Ele::Data> front() {
         Option<Ele::Data> res = {};
         Ele* it;
         if ((it = curr.load(consume)) == nullptr) {
@@ -214,9 +249,6 @@ struct Cache {
             line.id = id^(1ull<<(63-i));
             it += size(i);
         }
-    }
-    static constexpr unsigned size(const unsigned pos) {
-        return 64-pos;
     }
     int line(Ele::Key key) {
         auto res = prefix(key, id);
