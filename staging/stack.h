@@ -14,6 +14,10 @@ struct Option {
     T data;
 };
 
+struct Addr {
+    uint8_t addr[17];
+};
+
 template<typename Err, typename T>
 struct Result {
     Err err;
@@ -22,14 +26,17 @@ struct Result {
 
 struct Ele {
     using Key = std::uint64_t;
-    using Val = sockaddr_storage;
+    using Val = Addr;
     using Data = struct { Key key; Val value; };
     std::atomic<Key> key;
     Val value;
 };
 
 bool operator==(const Ele::Val& f, const Ele::Val& s) {
-    return memcmp(&f, &s, sizeof(Ele::Val));
+    if (f.addr[0] != s.addr[0]) {
+        return false;
+    }
+    return memcmp(f.addr+1, s.addr+1, f.addr[0] ? 16 : 4);
 }
 
 constexpr uint8_t Ok = 0;
