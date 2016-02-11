@@ -64,7 +64,7 @@ constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
 }
 
 enum Op : uint8_t {
-        Conn, Pong, Get, Close, Probe
+    Conn, Pong, Get, Close, Probe
 };
 
 struct __attribute__((__packed__)) PackedMsg {
@@ -121,6 +121,18 @@ constexpr unsigned suffix(const Ele::Key f, const Ele::Key s) {
     return i;
 }
 
+int sendmsg(const Ele::Val& value, const PackedMsg& msg) {
+    (void)msg;
+    (void)value;
+    return -1;
+}
+
+int recvmsg(const Ele::Val& value, PackedMsg& msg) {
+    (void)msg;
+    (void)value;
+    return -1;
+}
+
 Result<GetErr, Ele::Data> get(const Ele::Data& ele, unsigned n) {
     Result<GetErr, Ele::Data> res = {GetErr::None, {}};
 
@@ -158,8 +170,7 @@ struct Stack {
             return false;
         }
         Guard lock(m);
-        it = curr.load(relax);
-        if (it == nullptr) {
+        if ((it = curr.load(relax)) == nullptr) {
             init->key.store(key, relax);
             init->value = value;
             curr.store(init, relax);
@@ -176,7 +187,7 @@ struct Stack {
         curr.store(it, relax);
         return true;
     }
-    bool remove(const Ele::Key& key) {
+    bool remove(const Ele::Key key) {
         Ele* it;
         if ((it = curr.load(consume)) == nullptr
             || it->key.load(acquire) != key) {
@@ -285,21 +296,50 @@ struct Cache {
                 };
                 break;
             }
-        } while (64-prefix(ele.data.key, key));
+        } while (64 - prefix(ele.data.key, key));
         if (!ele.err) {
             return {SearchErr::Ok, ele.data.value};
         } else {
             return {SearchErr::None, {}};
         }
     }
-    bool insert(const Ele::Data& ele) {
-        return lines[line(ele.key)].insert(ele.key, ele.value);
+    bool insert(const Ele::Key key, const Ele::Val& value) {
+        return lines[line(key)].insert(key, value);
     }
-    bool remove(const Ele::Key& k) {
+    bool insert(const Ele::Data& ele) {
+        return insert(ele.key, ele.value);
+    }
+    bool remove(const Ele::Key k) {
         return lines[line(k)].remove(k);
     }
     bool remove(const Ele::Data& ele) {
         return lines[line(ele.key)].remove(ele);
+    }
+    int pong(const Ele::Val value, uint8_t err = 0) {
+        PackedMsg msg = {
+            Pong,
+            id,
+            err
+        };
+        return sendmsg(value, msg);
+    }
+    int conn(const Ele::Val& value) {
+        PackedMsg msg = {
+            Conn,
+            id,
+            0,
+        };
+        if (sendmsg(value, msg)) {
+            return -1;
+        }
+        if (recvmsg(value, msg)) {
+            return -1;
+        }
+        if (msg.n || msg.self == id) {
+            return -1;
+        }
+        insert(msg.self, value);
+        return 0;
     }
 };
 
