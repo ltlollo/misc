@@ -69,41 +69,10 @@ enum Op : uint8_t {
 
 struct __attribute__((__packed__)) PackedMsg {
     Op op;
-    uint64_t self;
+    Ele::Key key;
     uint8_t n;
+    Ele::Val value;
 };
-
-struct Msg {
-    Op op;
-    uint64_t self;
-    uint8_t n;
-};
-
-Msg unpack(const PackedMsg& msg) {
-    Msg res;
-    res.op = msg.op;
-#if  __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    res.self = bswap_64(msg.self);
-#else
-    res.self = msg.self;
-#endif
-    res.n = msg.n;
-    return res;
-}
-
-PackedMsg pack(const Msg& msg) {
-    PackedMsg res;
-    res.op = msg.op;
-#if  __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    res.self = bswap_64(msg.self);
-#else
-    res.self = msg.self;
-#endif
-    res.n = msg.n;
-    return res;
-}
-
-static_assert(sizeof(PackedMsg) == 10, "wrong packing");
 
 constexpr unsigned suffix(const Ele::Key f, const Ele::Key s) {
     auto v = f^s;
@@ -131,15 +100,6 @@ int recvmsg(const Ele::Val& value, PackedMsg& msg) {
     (void)msg;
     (void)value;
     return -1;
-}
-
-Result<GetErr, Ele::Data> get(const Ele::Data& ele, unsigned n) {
-    Result<GetErr, Ele::Data> res = {GetErr::None, {}};
-
-    if (prefix(ele.key, res.data.key) != n) {
-        res.err = GetErr::Broken;
-    }
-    return res;
 }
 
 struct Stack {
@@ -319,7 +279,8 @@ struct Cache {
         PackedMsg msg = {
             Pong,
             id,
-            err
+            err,
+            {}
         };
         return sendmsg(value, msg);
     }
@@ -328,6 +289,7 @@ struct Cache {
             Conn,
             id,
             0,
+            {}
         };
         if (sendmsg(value, msg)) {
             return -1;
@@ -335,11 +297,73 @@ struct Cache {
         if (recvmsg(value, msg)) {
             return -1;
         }
-        if (msg.n || msg.self == id) {
+        if (msg.n || msg.key == id) {
             return -1;
         }
-        insert(msg.self, value);
+        insert(msg.key, value);
         return 0;
+    }
+    Result<GetErr, Ele::Data> get(const Ele::Data& ele, const unsigned n) {
+        Result<GetErr, Ele::Data> res;
+        PackedMsg msg = {
+            Get,
+            id,
+            0,
+            {}
+        };
+        if (sendmsg(ele.value, msg)) {
+            return {GetErr::Broken, {}};
+        }
+        if (recvmsg(ele.value, msg)) {
+            return {GetErr::Broken, {}};
+        }
+        if (msg.n != 0) {
+            return {GetErr::None, {}};
+        }
+        if (prefix(ele.key, res.data.key) != n) {
+            return {GetErr::Broken, {}};
+        }
+        return {GetErr::Ok, {msg.key, msg.value}};
+    }
+    void process(const Ele::Val& value, const PackedMsg& msg) {
+        PackedMsg resp;
+        switch(msg.op) {
+        case Conn:
+            if (search(msg.key).err == SearchErr::None) {
+                resp = {
+                    Pong,
+                    id,
+                    0,
+                    {}
+                };
+                if (sendmsg(value, msg) == 0) {
+                    insert(msg.key, value);
+                }
+            }
+            break;
+        case Get:
+            if (msg.n < 64) {
+                Option<Ele::Data> ele = lines[msg.n].front();
+                resp = {
+                    Pong,
+                    ele.data.key,
+                    ele.err,
+                    ele.data.value
+                };
+                sendmsg(value, msg);
+            }
+            break;
+        case Probe:
+            resp = {
+                Pong,
+                id,
+                0,
+                {}
+            };
+            sendmsg(value, msg);
+            break;
+        default: break;
+        }
     }
 };
 
