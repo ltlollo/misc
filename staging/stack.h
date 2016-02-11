@@ -4,10 +4,12 @@
 #include <atomic>
 #include <mutex>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 template<typename T>
 struct Option {
-    uint8_t err = 1;
+    uint8_t err = true;
     T data;
 };
 
@@ -19,7 +21,7 @@ struct Result {
 
 struct Ele {
     using Key = std::uint64_t;
-    using Val = struct { std::uint64_t f, s; };
+    using Val = sockaddr_storage;
     using Data = struct { Key key; Val value; };
     std::atomic<Key> key;
     Val value;
@@ -45,7 +47,7 @@ Result<Ele::Data, GetErr> get(const Ele::Data& , unsigned) {
     return res;
 }
 
-constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) noexcept {
+constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) {
     auto v = f^s;
     if (v == 0) {
         return 64;
@@ -61,7 +63,7 @@ constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) noexcept {
     return i;
 }
 
-constexpr unsigned suffix(const Ele::Key f, const Ele::Key s) noexcept {
+constexpr unsigned suffix(const Ele::Key f, const Ele::Key s) {
     auto v = f^s;
     if (v == 0) {
         return 64;
@@ -130,8 +132,7 @@ struct Stack {
             return false;
         }
         Guard lock(m);
-        it = curr.load(relax);
-        if (it == nullptr) {
+        if ((it = curr.load(relax)) == nullptr) {
             return false;
         }
         if (it->key.load(relax) == key) {
@@ -151,8 +152,7 @@ struct Stack {
             return false;
         }
         Guard lock(m);
-        it = curr.load(relax);
-        if (it == nullptr) {
+        if ((it = curr.load(relax)) == nullptr) {
             return false;
         }
         if (it->key.load(relax) == ele.key
@@ -214,7 +214,7 @@ struct Cache {
         insert(who);
         return res = lines[what].front();
     }
-    Result<Ele::Val, SearchErr> search(Ele::Key key) noexcept {
+    Result<Ele::Val, SearchErr> search(Ele::Key key) {
         if (id == key) {
             return {SearchErr::Self, {}};
         }
@@ -231,6 +231,7 @@ struct Cache {
             if (resp.err == GetErr::Ok) {
                 insert(ele.data = resp.data);
             } else {
+                ele.err = true;
                 if (resp.err == GetErr::Broken) {
                     remove(ele.data);
                 };
@@ -243,7 +244,7 @@ struct Cache {
             return {SearchErr::None, {}};
         }
     }
-    bool insert(const Ele::Data& ele) noexcept {
+    bool insert(const Ele::Data& ele) {
         return lines[line(ele.key)].insert(ele.key, ele.value);
     }
     bool remove(const Ele::Key& k) {
