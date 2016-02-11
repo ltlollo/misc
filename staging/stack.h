@@ -3,15 +3,47 @@
 
 #include <atomic>
 #include <mutex>
+#include <string.h>
+
+template<typename T>
+struct Option {
+    uint8_t err = 1;
+    T data;
+};
+
+template<typename T, typename Err>
+struct Result {
+    Err err;
+    T data;
+};
 
 struct Ele {
     using Key = std::uint64_t;
     using Val = struct { std::uint64_t f, s; };
     using Data = struct { Key key; Val value; };
-    using Res = struct { bool err = true; Data data; };
     std::atomic<Key> key;
     Val value;
 };
+
+bool operator==(const Ele::Val& f, const Ele::Val& s) {
+    return memcmp(&f, &s, sizeof(Ele::Val));
+}
+
+enum class SearchErr {
+    Ok = 0,
+    None = 1,
+    Self = 2,
+};
+enum class GetErr {
+    Ok = 0,
+    None = 1,
+    Broken = 2,
+};
+
+Result<Ele::Data, GetErr> get(const Ele::Data& , unsigned) {
+    Result<Ele::Data, GetErr> res = {GetErr::None, {}};
+    return res;
+}
 
 constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) noexcept {
     auto v = f^s;
@@ -21,7 +53,7 @@ constexpr unsigned prefix(const Ele::Key f, const Ele::Key s) noexcept {
     unsigned i = 0, range = 32;
     do {
         if (v>>range) {
-            v>>=range;
+            v >>= range;
         } else {
             i += range;
         }
@@ -92,9 +124,13 @@ struct Stack {
         return true;
     }
     bool remove(const Ele::Key& key) {
-        /* removal is rare, no need to avoid lock */
+        Ele* it;
+        if ((it = curr.load(consume)) == nullptr
+            || it->key.load(acquire) != key) {
+            return false;
+        }
         Guard lock(m);
-        Ele* it = curr.load(relax);
+        it = curr.load(relax);
         if (it == nullptr) {
             return false;
         }
@@ -108,9 +144,34 @@ struct Stack {
         }
         return false;
     }
-    Ele::Res front() {
-        Ele::Res res = {};
+    bool remove(const Ele::Data& ele) {
         Ele* it;
+        if ((it = curr.load(consume)) == nullptr
+            || it->key.load(acquire) != ele.key) {
+            return false;
+        }
+        Guard lock(m);
+        it = curr.load(relax);
+        if (it == nullptr) {
+            return false;
+        }
+        if (it->key.load(relax) == ele.key
+            && it->value == ele.value) {
+            if (it == init) {
+                curr.store(nullptr, relax);
+            } else {
+                curr.store(it-1, relax);
+            }
+            return true;
+        }
+        return false;
+    }
+    auto front() {
+        Option<Ele::Data> res = {};
+        Ele* it;
+        if ((it = curr.load(consume)) == nullptr) {
+            return res;
+        }
         {
             Guard lock(m);
             if ((it = curr.load(relax)) != nullptr) {
@@ -145,12 +206,51 @@ struct Cache {
         auto res = prefix(key, id);
         return (res == 64) ? -1 : res;
     }
-    Ele::Res request(const Ele::Data& who, const unsigned what) {
+    Option<Ele::Data> request(const Ele::Data& who, const unsigned what) {
+        Option<Ele::Data> res = {};
         if (who.key == id) {
-            return Ele::Res{};
+            return res;
         }
-        lines[line(who.key)].insert(who.key, who.value);
-        return lines[what].front();
+        insert(who);
+        return res = lines[what].front();
+    }
+    Result<Ele::Val, SearchErr> search(Ele::Key key) noexcept {
+        if (id == key) {
+            return {SearchErr::Self, {}};
+        }
+        auto ele = lines[line(key)].front();
+        if (ele.err) {
+            return {SearchErr::None, {}};
+        }
+        if (ele.data.key == key) {
+            return {SearchErr::Ok, ele.data.value};
+        }
+        Result<Ele::Data, GetErr> resp;
+        do {
+            resp = get(ele.data, prefix(resp.data.key, key));
+            if (resp.err == GetErr::Ok) {
+                insert(ele.data = resp.data);
+            } else {
+                if (resp.err == GetErr::Broken) {
+                    remove(ele.data);
+                };
+                break;
+            }
+        } while (64-prefix(ele.data.key, key));
+        if (!ele.err) {
+            return {SearchErr::Ok, ele.data.value};
+        } else {
+            return {SearchErr::None, {}};
+        }
+    }
+    bool insert(const Ele::Data& ele) noexcept {
+        return lines[line(ele.key)].insert(ele.key, ele.value);
+    }
+    bool remove(const Ele::Key& k) {
+        return lines[line(k)].remove(k);
+    }
+    bool remove(const Ele::Data& ele) {
+        return lines[line(ele.key)].remove(ele);
     }
 };
 
