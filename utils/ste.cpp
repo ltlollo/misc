@@ -124,14 +124,14 @@ static int getk() {
 
 
 struct Ed {
-    unsigned cols, rows, pgstep, step;
+    unsigned cols, rows, pgstep, tstep;
     unsigned pagey  = 0, pagex  = 0;
     unsigned y      = 0, x      = 0;
     unsigned ry     = 0, rx     = 0;
     bool restore = true;
     std::vector<std::vector<char>> t;
     Ed(unsigned c, unsigned r) : cols{c}, rows{r}, pgstep{rows/2},
-        step{cols/4 > 4 ? 4 : cols/4} {
+        tstep{cols/4 > 4 ? 4 : cols/4} {
         rstscr();
     }
     unsigned absx() const { return pagex + x; }
@@ -147,14 +147,17 @@ struct Ed {
             return;
         }
         for (auto j = i->begin() + px + x;
-             j < i->end() && j < i->begin() + px + cols; ++j) {
+             j < i->begin() + px + cols; ++j) {
+            if (j >= i->end()) {
+                clearr();
+                break;
+            }
             if (*j && *j != '\t') {
                 putchar(*j);
             } else {
                 putchar(' ');
             }
         }
-        clearr();
     }
     void refresh(unsigned py, unsigned px, unsigned y = 0) {
         move(y, 0);
@@ -185,7 +188,8 @@ struct Ed {
         move(y-=step, x);
     }
     void mvl(unsigned step = 1) {
-        if (absx() == 0) {
+        if (absx() < step) {
+            move(y, x = 0);
             return;
         }
         if (x < step && pagex) {
@@ -320,7 +324,7 @@ void start() {
             fred.cols = w.ws_col;
             fred.rows = w.ws_row-1;
             fred.pgstep = fred.cols/2;
-            fred.step = w.ws_col/4 > 4 ? 4 : w.ws_col/4;
+            fred.tstep = w.ws_col/4 > 4 ? 4 : w.ws_col/4;
             need_redraw = false;
             signal(SIGWINCH, handlesig);
             continue;
@@ -333,10 +337,10 @@ void start() {
             cb(key::down):      fred.rst(); fred.mvd();             fred.sav();
             cb(key::left):      fred.mvl();                         fred.sav();
             cb(key::right):     fred.mvr();                         fred.sav();
-            cb(key::shup):      fred.mvu(fred.step);                fred.sav();
-            cb(key::shdown):    fred.mvd(fred.step);                fred.sav();
-            cb(key::shright):   fred.mvr(fred.step);                fred.sav();
-            cb(key::shleft):    fred.mvl(fred.step);                fred.sav();
+            cb(key::shup):      fred.mvu(fred.tstep);                fred.sav();
+            cb(key::shdown):    fred.mvd(fred.tstep);                fred.sav();
+            cb(key::shright):   fred.mvr(fred.tstep);                fred.sav();
+            cb(key::shleft):    fred.mvl(fred.tstep);                fred.sav();
             cb(key::pgup):      fred.x = 0; fred.mvu(fred.pgstep);  fred.sav();
             cb(key::pgdown):    fred.x = 0; fred.mvd(fred.pgstep);  fred.sav();
             cb(key::back):      fred.del();
