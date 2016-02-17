@@ -124,13 +124,14 @@ static int getk() {
 
 
 struct Ed {
-    unsigned cols, rows, pgstep;
+    unsigned cols, rows, pgstep, step;
     unsigned pagey  = 0, pagex  = 0;
     unsigned y      = 0, x      = 0;
     unsigned ry     = 0, rx     = 0;
     bool restore = true;
     std::vector<std::vector<char>> t;
-    Ed(unsigned c, unsigned r) : cols{c}, rows{r}, pgstep{rows/2} {
+    Ed(unsigned c, unsigned r) : cols{c}, rows{r}, pgstep{rows/2},
+        step{cols/4 > 4 ? 4 : cols/4} {
         rstscr();
     }
     unsigned absx() const { return pagex + x; }
@@ -141,13 +142,13 @@ struct Ed {
     void refreshline(unsigned py, unsigned px, unsigned y, unsigned x = 0) {
         move(y, x);
         auto i = t.begin() + py + y;
-        if (i >= t.end()) {
+        if (i >= t.end() || i->empty()) {
             clearr();
             return;
         }
         for (auto j = i->begin() + px + x;
              j < i->end() && j < i->begin() + px + cols; ++j) {
-            if (*j) {
+            if (*j && *j != '\t') {
                 putchar(*j);
             } else {
                 putchar(' ');
@@ -183,24 +184,26 @@ struct Ed {
         }
         move(y-=step, x);
     }
-    void mvl() {
+    void mvl(unsigned step = 1) {
         if (absx() == 0) {
             return;
         }
-        if (x == 0 && pagex) {
+        if (x < step && pagex) {
             refresh(pagey, pagex -= cols);
-            move(y, x = cols - 1);
+            move(y, x = cols - step + x);
+            sav();
             return;
         }
-        move(y, --x);
+        move(y, x-=step);
     }
-    void mvr() {
-        if (x == cols-1) {
+    void mvr(unsigned step = 1) {
+        if (cols - 1 < x + step) {
             refresh(pagey, pagex += cols);
-            move(y, x = 0);
+            move(y, x = x + step - cols);
+            sav();
             return;
         }
-        move(y, ++x);
+        move(y, x += step);
     }
     void insert(char c) {
         if (t.size() <= absy()) {
@@ -232,7 +235,19 @@ struct Ed {
            mvl();
            return;
         }
-        l->erase(l->begin() + absx() - 1);
+        auto it = l->begin() + absx() -1;
+        if (*it == '\t') {
+            auto rit = std::make_reverse_iterator(it+1);
+            auto re = std::find_if(rit, l->rend(), [](auto& c) {
+                return c != '\t';
+            });
+            unsigned d = (unsigned)std::distance(rit, re);
+            l->erase(re.base(), rit.base());
+            refreshline(pagey, pagex, y);
+            mvl(d);
+            return;
+        }
+        l->erase(it);
         refreshline(pagey, pagex, y, x - 1);
         mvl();
     }
@@ -305,6 +320,7 @@ void start() {
             fred.cols = w.ws_col;
             fred.rows = w.ws_row-1;
             fred.pgstep = fred.cols/2;
+            fred.step = w.ws_col/4 > 4 ? 4 : w.ws_col/4;
             need_redraw = false;
             signal(SIGWINCH, handlesig);
             continue;
@@ -317,10 +333,10 @@ void start() {
             cb(key::down):      fred.rst(); fred.mvd();             fred.sav();
             cb(key::left):      fred.mvl();                         fred.sav();
             cb(key::right):     fred.mvr();                         fred.sav();
-            cb(key::shup):      fred.mvu(4);                        fred.sav();
-            cb(key::shdown):    fred.mvd(4);                        fred.sav();
-            cb(key::shright):   r4(fred.mvr());                     fred.sav();
-            cb(key::shleft):    r4(fred.mvl());                     fred.sav();
+            cb(key::shup):      fred.mvu(fred.step);                fred.sav();
+            cb(key::shdown):    fred.mvd(fred.step);                fred.sav();
+            cb(key::shright):   fred.mvr(fred.step);                fred.sav();
+            cb(key::shleft):    fred.mvl(fred.step);                fred.sav();
             cb(key::pgup):      fred.x = 0; fred.mvu(fred.pgstep);  fred.sav();
             cb(key::pgdown):    fred.x = 0; fred.mvd(fred.pgstep);  fred.sav();
             cb(key::back):      fred.del();
@@ -328,7 +344,7 @@ void start() {
             cb(key::del):       fred.rm();
             cb('$'):            fred.refresh();
             cb('@'):            fred.handlecmd();
-            cb(key::tab):       r4(fred.insert(' '));               fred.sav();
+            cb(key::tab):       r4(fred.insert('\t'));              fred.sav();
             }
         }
     } while (ch != key::f1);
