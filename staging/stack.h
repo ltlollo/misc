@@ -25,7 +25,7 @@ struct Result {
 };
 
 struct Ele {
-    using Key = std::uint64_t;
+    using Key = uint64_t;
     using Val = Addr;
     using Data = struct { Key key; Val value; };
     std::atomic<Key> key;
