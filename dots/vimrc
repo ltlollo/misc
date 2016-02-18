@@ -9,7 +9,18 @@ call vundle#end()
 
 let g:ycm_auto_start_csharp_server = 0
 let g:ycm_confirm_extra_conf = 0
+let g:ycm_show_diagnostics_ui = 0
 nnoremap <leader>jd :YcmCompleter GoTo<CR>
+
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+let g:syntastic_cpp_compiler = 'g++'
+let g:syntastic_cpp_compiler_options = '-std=c++1z'
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
 
 highlight LongLine ctermbg=DarkYellow guibg=DarkYellow
 highlight WhitespaceEOL ctermbg=DarkYellow guibg=DarkYellow
@@ -57,7 +68,10 @@ set whichwrap+=<,>,h,l,[,]
 
 set hidden
 
-map <leader>pp :setlocal paste!<cr>
+"map <leader>pp :setlocal paste!<cr>
+
+vmap <C-c> y:call system("xclip -i -selection clipboard", getreg("\""))<CR>:call system("xclip -i", getreg("\""))<CR>
+nmap <C-i> :call setreg("\"",system("xclip -o -selection clipboard"))<CR>p
 
 augroup filetype
   au! BufRead,BufNewFile *.ll     set filetype=llvm
@@ -65,3 +79,4 @@ augroup END
 augroup filetype
   au! BufRead,BufNewFile *.td     set filetype=tablegen
 augroup END
+
