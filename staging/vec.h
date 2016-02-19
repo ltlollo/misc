@@ -150,7 +150,8 @@ template<Init T> bool make(Vec<T>& vec, const size_t size) {
     vec.reserved = size;
     return true;
 }
-DnCont{T} bool join(T& dst, T& src) {
+template<DnCont T, DnCont U>
+bool merge(T& dst, U& src) {
     size_t ns = dst.size + src.size;
     if (reserve(dst, ns) == false) {
         return false;
@@ -187,14 +188,16 @@ DnCont{T} bool pusham(T& dst, const auto& ele, size_t initn = 1) {
     return true;
 }
 
-Cont{C} void del(C& vec) requires Del<typename C::Ele> {
+Cont{C} void del(C& vec)
+requires Del<typename C::Ele> {
     for (size_t i = 0; i < vec.size; ++i) {
         del(vec[i]);
     }
     free(vec.data);
     init(vec);
 }
-Cont{C} void del(C& vec) requires NoDel<typename C::Ele> {
+Cont{C} void del(C& vec)
+requires NoDel<typename C::Ele> {
     free(vec.data);
     init(vec);
 }
@@ -401,11 +404,13 @@ void init(FixVec<auto>& vec) {
     vec.data        = nullptr;
 }
 
-DnCont{C} bool copy(C& src, C& dst) requires Copy<typename C::Ele> {
+template<DnCont T, DnCont U>
+bool copy(T& dst, U& src)
+requires Copy<typename T::Ele> {
     if (reserve(dst, src.size) == false) {
         return false;
     }
-    mem::cpy(src.data, dst.data, src.size);
+    mem::cpy(dst.data, src.data, src.size);
     size_t i = 0;
     for (; i < src.size; ++i) {
         if (copy(src[i], dst[i]) == false) {
@@ -416,11 +421,13 @@ DnCont{C} bool copy(C& src, C& dst) requires Copy<typename C::Ele> {
     dst.size = i;
     return true;
 }
-DnCont{C} bool copy(C& src, C& dst) requires NoCopy<typename C::Ele> {
+template<DnCont T, DnCont U>
+bool copy(T& dst, U& src)
+requires NoCopy<typename T::Ele> {
     if (reserve(dst, src.size) == false) {
         return false;
     }
-    mem::cpy(src.data, dst.data, src.size);
+    mem::cpy(dst.data, src.data, src.size);
     dst.size = src.size;
     return true;
 }
