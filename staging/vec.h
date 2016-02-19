@@ -270,9 +270,8 @@ void cutoff(MuVec<T, N>& vec, size_t size) {
     }
     vec.size = size;
 }
-template<template<typename> typename C, typename T>
-requires DnCont<C<T>> && Del<T>
-void cutoff(C<T>& vec, size_t size) {
+DnCont{C} void cutoff(C& vec, size_t size)
+requires Del<typename C::Ele> {
     if (vec.size < size) {
         return;
     }
@@ -281,23 +280,39 @@ void cutoff(C<T>& vec, size_t size) {
     }
     vec.size = size;
 }
-template<template<typename> typename C, typename T>
-requires DnCont<C<T>> && NoDel<T>
-void cutoff(C<T>& vec, size_t size) {
+DnCont{C} void cutoff(C& vec, size_t size)
+requires NoDel<typename C::Ele> {
     if (vec.size < size) {
         return;
     }
     vec.size = size;
 }
-template<typename T, size_t N>
+template<Del T, size_t N>
 void shrink(MuVec<T, N>& vec, size_t size) {
     if (vec.size < size) {
         return;
     }
-    if (Del<T>) {
-        for (size_t i = size; i < vec.size; i++) {
-            del(vec[i]);
-        }
+    for (size_t i = size; i < vec.size; i++) {
+        del(vec[i]);
+    }
+    vec.size = size;
+    if (vec.reserved  == N) {
+        return;
+    } else if (vec.reserved > N && size > N) {
+        mem::ralloc(vec.data, vec.reserved, vec.size);
+        vec.reserved = size;
+        return;
+    } else {
+        mem::cpy(vec.data, vec.mem, size);
+        free(vec.data);
+        vec.data = vec.mem;
+        vec.reserved = N;
+    }
+}
+template<NoDel T, size_t N>
+void shrink(MuVec<T, N>& vec, size_t size) {
+    if (vec.size < size) {
+        return;
     }
     vec.size = size;
     if (vec.reserved  == N) {
