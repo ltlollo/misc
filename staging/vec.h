@@ -406,7 +406,7 @@ void init(FixVec<auto>& vec) {
 
 template<DnCont T, DnCont U>
 bool copy(T& dst, U& src)
-requires Copy<typename T::Ele> {
+requires Copy<typename U::Ele> {
     if (reserve(dst, src.size) == false) {
         return false;
     }
@@ -423,7 +423,7 @@ requires Copy<typename T::Ele> {
 }
 template<DnCont T, DnCont U>
 bool copy(T& dst, U& src)
-requires NoCopy<typename T::Ele> {
+requires NoCopy<typename U::Ele> {
     if (reserve(dst, src.size) == false) {
         return false;
     }
