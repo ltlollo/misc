@@ -18,34 +18,61 @@ template<typename T> concept bool Init    = requires(T d) {
 template<typename T> concept bool At      = requires(T cont, size_t i) {
     { cont[i]       } -> auto
 };
+template<typename T> concept bool Copy    = requires(T d) {
+    { copy(d, d)    } -> bool
+};
 
 template<typename T> concept bool NoReloc = !Reloc<T>;
 template<typename T> concept bool NoDel   = !Del<T>;
 template<typename T> concept bool NoInit  = !Init<T>;
 template<typename T> concept bool NoAt    = !At<T>;
+template<typename T> concept bool NoCopy  = !Copy<T>;
 
-template<typename T> concept bool Cont    = requires(T c, size_t i) {
+template<typename T> concept bool Cont    =
+requires(T c, size_t i, typename T::Ele e) {
+    { make(c, i, e) } -> bool;
+    { init(c)       } -> void;
     { c.size        } -> size_t;
-    { make(c, i, c[0]) } -> bool;
-    requires At<T>;
+    { c[i]          } -> typename T::Ele;
 };
 
 template<typename T> concept bool DnCont  = requires(T c, const size_t i) {
-    { c.reserved    } -> size_t;
     { reserve(c, i) } -> bool;
+    { c.reserved    } -> size_t;
     requires Cont<T>;
 };
 
 namespace mem {
-
-template<NoReloc T> T* ualloc(const size_t n) {
+namespace raw {
+template<typename T> T* ualloc(const size_t n) {
     return (T*)malloc(n * sizeof(T));
 }
-template<NoReloc T> T* zalloc(const size_t n) {
+template<typename T> T* zalloc(const size_t n) {
     return (T*)calloc(n, sizeof(T));
 }
-template<NoReloc T> T* ralloc(T* raw, const size_t, const size_t n) {
+template<typename T> T* ralloc(T* raw, const size_t, const size_t n) {
     return (T*)realloc(raw, n * sizeof(T));
+}
+}
+
+template<typename T> T* ualloc(const size_t n) {
+    return raw::ualloc<T>(n);
+}
+template<NoReloc T> T* zalloc(const size_t n) {
+    return raw::zalloc<T>(n);
+}
+template<NoReloc T> T* ralloc(T* raw, const size_t _, const size_t n) {
+    return raw::ralloc(raw, _, n);
+}
+template<Reloc T> T* ralloc(T* raw, const size_t os, const size_t ns) {
+    T *res;
+    if ((res = raw::ralloc(raw, os, ns)) == nullptr) {
+        return res;
+    }
+    for (size_t i = os; i < ns; ++i) {
+        reloc(res[i]);
+    }
+    return res;
 }
 template<NoReloc T> void cpy(T* dst, T* src, const size_t size) {
     memcpy(dst, src, size * sizeof(T));
@@ -59,16 +86,6 @@ template<Reloc T> void cpy(T* dst, T* src, const size_t size) {
 template<typename T> bool iszero(const T& ele) {
     char zero[sizeof(T)] = {0};
     return bcmp(&zero, &ele, sizeof(T)) == 0;
-}
-template<Reloc T> T* ralloc(T* raw, const size_t os, const size_t ns) {
-    T *res;
-    if ((res = mem::ralloc(raw, ns)) == nullptr) {
-        return res;
-    }
-    for (size_t i = os; i < ns; ++i) {
-        reloc(res[i]);
-    }
-    return res;
 }
 template<typename T> T *ealloc(const T& ele, const size_t size) {
     if (mem::iszero(ele))  {
@@ -90,12 +107,16 @@ template<typename T> void ezero(T* raw, const size_t size) {
 }
 
 template<typename T> struct Vec {
+    using  Ele      = T;
     size_t size     = 0;
     size_t reserved = 0;
     T*     data     = nullptr;
     T& operator[](size_t i) { return data[i]; }
 };
 bool make(Vec<NoReloc>& vec, const size_t size, const NoReloc& ele) {
+    if (vec.size) {
+        return false;
+    }
     if ((vec.data = mem::ealloc(ele, size)) == nullptr) {
         return false;
     }
@@ -104,6 +125,9 @@ bool make(Vec<NoReloc>& vec, const size_t size, const NoReloc& ele) {
     return true;
 }
 bool reserve(Vec<auto>& vec, const size_t ns) {
+    if (ns < vec.reserved) {
+        return true;
+    }
     auto res = mem::ralloc(vec.data, vec.size, ns);
     if (res == nullptr) {
         return false;
@@ -113,6 +137,9 @@ bool reserve(Vec<auto>& vec, const size_t ns) {
     return true;
 }
 template<Init T> bool make(Vec<T>& vec, const size_t size) {
+    if (vec.size) {
+        return false;
+    }
     if ((vec.data = mem::ualloc<T>(size)) == nullptr) {
         return false;
     }
@@ -125,10 +152,8 @@ template<Init T> bool make(Vec<T>& vec, const size_t size) {
 }
 DnCont{T} bool join(T& dst, T& src) {
     size_t ns = dst.size + src.size;
-    if (ns > dst.reserved) {
-        if (reserve(dst, ns) == false) {
-            return false;
-        }
+    if (reserve(dst, ns) == false) {
+        return false;
     }
     mem::cpy(dst.data + dst.size, src.data, src.size);
     src.size = 0;
@@ -161,15 +186,19 @@ DnCont{T} bool pusham(T& dst, const auto& ele, size_t initn = 1) {
     dst[dst.size++] = ele;
     return true;
 }
-void del(Vec<Del>& vec) {
+
+Cont{C} void del(C& vec) requires Del<typename C::Ele> {
     for (size_t i = 0; i < vec.size; ++i) {
         del(vec[i]);
     }
     free(vec.data);
+    init(vec);
 }
-void del(Vec<NoDel>& vec) {
+Cont{C} void del(C& vec) requires NoDel<typename C::Ele> {
     free(vec.data);
+    init(vec);
 }
+
 void init(Vec<auto>& vec) {
     vec.size        = 0;
     vec.reserved    = 0;
@@ -177,6 +206,7 @@ void init(Vec<auto>& vec) {
 }
 
 template<typename T, size_t N = 16> struct MuVec {
+    using  Ele      = T;
     size_t size     = 0;
     size_t reserved = N;
     T*     data     = mem;
@@ -187,11 +217,14 @@ template<size_t N> void init(MuVec<auto, N>& vec) {
     vec.size        = 0;
     vec.reserved    = N;
     vec.data        = vec.mem;
-    vec.mem         = {0};
+    memset(vec.mem, 0, sizeof(vec.mem));
 }
 template<size_t N>
 bool make(MuVec<NoReloc, N>& vec, const size_t size, const NoReloc& ele) {
-    if (size <= N) {
+    if (vec.size) {
+        return false;
+    }
+    if (vec.reserved > size) {
         for (size_t i = 0; i< N; ++i) {
             vec[i] = ele;
         }
@@ -205,10 +238,86 @@ bool make(MuVec<NoReloc, N>& vec, const size_t size, const NoReloc& ele) {
     vec.reserved = size;
     return true;
 }
-template<size_t N> void reloc(MuVec<auto, N>& vec) {
-    if (vec.size < N) {
-        vec.data = vec.mem;
+template<Init T, size_t N> bool make(MuVec<T, N>& vec, const size_t size) {
+    if (vec.size) {
+        return false;
     }
+    if (reserve(vec, size) == false) {
+        return false;
+    }
+    for (size_t i = 0; i < size; ++i) {
+        init(vec[i]);
+    }
+    vec.size = size;
+    return true;
+}
+template<typename T, size_t N>
+requires Del<T>
+void cutoff(MuVec<T, N>& vec, size_t size) {
+    if (vec.size < size) {
+        return;
+    }
+    for (size_t i = size; i < vec.size; i++) {
+        del(vec[i]);
+    }
+    vec.size = size;
+}
+template<typename T, size_t N>
+requires NoDel<T>
+void cutoff(MuVec<T, N>& vec, size_t size) {
+    if (vec.size < size) {
+        return;
+    }
+    vec.size = size;
+}
+template<template<typename> typename C, typename T>
+requires DnCont<C<T>> && Del<T>
+void cutoff(C<T>& vec, size_t size) {
+    if (vec.size < size) {
+        return;
+    }
+    for (size_t i = size; i < vec.size; i++) {
+        del(vec[i]);
+    }
+    vec.size = size;
+}
+template<template<typename> typename C, typename T>
+requires DnCont<C<T>> && NoDel<T>
+void cutoff(C<T>& vec, size_t size) {
+    if (vec.size < size) {
+        return;
+    }
+    vec.size = size;
+}
+template<typename T, size_t N>
+void shrink(MuVec<T, N>& vec, size_t size) {
+    if (vec.size < size) {
+        return;
+    }
+    if (Del<T>) {
+        for (size_t i = size; i < vec.size; i++) {
+            del(vec[i]);
+        }
+    }
+    vec.size = size;
+    if (vec.reserved  == N) {
+        return;
+    } else if (vec.reserved > N && size > N) {
+        mem::ralloc(vec.data, vec.reserved, vec.size);
+        vec.reserved = size;
+        return;
+    } else {
+        mem::cpy(vec.data, vec.mem, size);
+        free(vec.data);
+        vec.data = vec.mem;
+        vec.reserved = N;
+    }
+}
+template<size_t N> void reloc(MuVec<auto, N>& vec) {
+    if (vec.reserved > N) {
+        return;
+    }
+    vec.data = vec.mem;
 }
 template<size_t N> void del(MuVec<Del, N>& vec) {
     for (size_t i = 0; i < vec.size; ++i) {
@@ -217,15 +326,20 @@ template<size_t N> void del(MuVec<Del, N>& vec) {
     if (vec.size > N) {
         free(vec.data);
     }
+    init(vec);
 }
 template<size_t N> void del(MuVec<NoDel, N>& vec) {
     if (vec.size > N) {
         free(vec.data);
     }
+    init(vec);
 }
 template<typename T, size_t N>
 bool reserve(MuVec<T, N>& vec, const size_t ns) {
     T *res;
+    if (ns < vec.reserved) {
+        return true;
+    }
     if (vec.size < N) {
         if ((res = mem::ualloc<T>(ns)) != nullptr) {
             mem::cpy(res, vec.data, vec.size);
@@ -242,6 +356,7 @@ bool reserve(MuVec<T, N>& vec, const size_t ns) {
 }
 
 template<typename T> struct FixVec {
+    using  Ele      = T;
     size_t size     = 0;
     T*     data     = nullptr;
     T& operator[](size_t i) { return data[i]; }
@@ -254,6 +369,9 @@ bool make(FixVec<NoReloc>& vec, const size_t size, const NoReloc& ele) {
     return true;
 }
 template<Init T> bool make(FixVec<T>& vec, const size_t size) {
+    if (vec.size) {
+        return false;
+    }
     if ((vec.data = mem::ualloc<T>(size)) == nullptr) {
         return false;
     }
@@ -263,18 +381,34 @@ template<Init T> bool make(FixVec<T>& vec, const size_t size) {
     vec.size = size;
     return true;
 }
-void del(FixVec<Del>& vec) {
-    for (size_t i = 0; i < vec.size; ++i) {
-        del(vec[i]);
-    }
-    free(vec.data);
-}
-void del(FixVec<NoDel>& vec) {
-    free(vec.data);
-}
 void init(FixVec<auto>& vec) {
     vec.size        = 0;
     vec.data        = nullptr;
 }
+
+DnCont{C} bool copy(C& src, C& dst) requires Copy<typename C::Ele> {
+    if (reserve(dst, src.size) == false) {
+        return false;
+    }
+    mem::cpy(src.data, dst.data, src.size);
+    size_t i = 0;
+    for (; i < src.size; ++i) {
+        if (copy(src[i], dst[i]) == false) {
+            dst.size = i;
+            return false;
+        }
+    }
+    dst.size = i;
+    return true;
+}
+DnCont{C} bool copy(C& src, C& dst) requires NoCopy<typename C::Ele> {
+    if (reserve(dst, src.size) == false) {
+        return false;
+    }
+    mem::cpy(src.data, dst.data, src.size);
+    dst.size = src.size;
+    return true;
+}
+
 
 }
