@@ -432,5 +432,36 @@ requires NoCopy<typename U::Ele> {
     return true;
 }
 
+DnCont{T} bool resize(T& vec, const size_t n, const NoReloc& ele) {
+    if (vec.size == n) {
+    } else if (vec.size > n) {
+        cutoff(vec, n);
+    } else {
+        if (reserve(vec, n) == false) {
+            return false;
+        }
+        for (size_t i = vec.size; i < n; ++i) {
+            vec[i] = ele;
+        }
+    }
+    vec.size = n;
+    return true;
+}
+DnCont{T} bool resize(T& vec, const size_t n)
+requires Init<typename T::Ele> {
+    if (vec.size == n) {
+    } else if (vec.size > n) {
+        cutoff(vec, n);
+    } else {
+        if (reserve(vec, n) == false) {
+            return false;
+        }
+        for (size_t i = vec.size; i < n; ++i) {
+            init(vec[i]);
+        }
+    }
+    vec.size = n;
+    return true;
+}
 
 }
