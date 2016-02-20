@@ -32,7 +32,7 @@ font pango:monospace 10
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec i3-sensible-terminal
+bindsym $mod+Return exec "cd `xcwd`; i3-sensible-terminal"
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -162,6 +162,7 @@ bar {
 bindsym $mod+x exec 'xombrero'
 bindsym $mod+m exec 'thunar'
 bindsym $mod+i exec 'iceweasel'
+bindsym $mod+u exec "mpv `xclip -selection clipboard -out`"
 
 set $Locker i3lock && sleep 1
 
