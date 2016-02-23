@@ -68,7 +68,8 @@ set whichwrap+=<,>,h,l,[,]
 
 set hidden
 
-"map <leader>pp :setlocal paste!<cr>
+map <C-K> :pyf /usr/share/vim/addons/syntax/clang-format-3.8.py<cr>
+imap <C-K> <c-o>:pyf /usr/share/vim/addons/syntax/clang-format-3.8.py<cr>
 
 vmap <C-c> y:call system("xclip -i -selection clipboard", getreg("\""))<CR>:call system("xclip -i", getreg("\""))<CR>
 nmap <C-i> :call setreg("\"",system("xclip -o -selection clipboard"))<CR>p
