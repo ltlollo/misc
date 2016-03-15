@@ -17,10 +17,8 @@ using Shape = std::vector<sf::Vertex>;
 using Shapes = std::vector<Shape>;
 
 sf::Vertex mid(const sf::Vertex &fst, const sf::Vertex &snd) {
-    return {{(fst.position.x + snd.position.x) / 2.f,
-             (fst.position.y + snd.position.y) / 2.f}};
+    return (snd.position - fst.position) / 2.f;
 }
-
 sf::Vertex divvec(const sf::Vertex &fst, const sf::Vertex &snd, float of = 1.f,
                   float n = 2.f) {
     return (snd.position - fst.position) * (of / n) + fst.position;
@@ -59,12 +57,9 @@ void drawShapes(sf::RenderWindow &win, const Shapes &shapes) {
 sf::Vertex calc_center(const Shape &shape) {
     sf::Vector2f c{0.f, 0.f};
     for (const auto &it : shape) {
-        c.x += it.position.x;
-        c.y += it.position.y;
+        c += it.position;
     }
-    c.x /= float(shape.size());
-    c.y /= float(shape.size());
-    return {c};
+    return c /= float(shape.size());
 }
 
 bool is_vertex(char it) { return (it >= 'A' && it <= 'Z'); }
