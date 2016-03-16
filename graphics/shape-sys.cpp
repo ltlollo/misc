@@ -1,4 +1,4 @@
-// gdd self $(pkg-config --libs sfml-all)
+// gpp self $(pkg-config --libs sfml-all)
 // ./shape-sys
 
 #include <SFML/Graphics.hpp>
@@ -42,15 +42,18 @@ auto join(const auto &seq, auto &&ele, auto p) {
 auto join(const auto &seq, auto &&ele) {
     return join(seq, ele, [](auto it) { return *it; });
 }
-void drawShapes(sf::RenderWindow &win, const Shapes &shapes) {
+void draw_shape(sf::RenderWindow &win, const Shape &shape) {
+    for (unsigned i = 0; i < shape.size() - 1; ++i) {
+        win.draw(&shape[i], 2, sf::Lines);
+    }
+    if (shape.size() > 2) {
+        auto last = Shape{shape[shape.size() - 1], shape[0]};
+        win.draw(&last[0], 2, sf::Lines);
+    }
+}
+void draw_shapes(sf::RenderWindow &win, const Shapes &shapes) {
     for (const auto &shape : shapes) {
-        for (unsigned i = 0; i < shape.size() - 1; ++i) {
-            win.draw(&shape[i], 2, sf::Lines);
-        }
-        if (shape.size() > 2) {
-            auto last = Shape{shape[shape.size() - 1], shape[0]};
-            win.draw(&last[0], 2, sf::Lines);
-        }
+        draw_shape(win, shape);
     }
 }
 
@@ -76,7 +79,7 @@ auto remove_spaces(const std::string &str) {
 
 struct Rule {
     bool identity{false}, opt_noadjmids{true}, opt_nocenter{true};
-    unsigned type{0};
+    size_t type{0}, self_cycle;
     std::string lhs;
     std::vector<std::string> vrhs;
     std::unordered_map<char, sf::Vertex> vmap;
@@ -132,7 +135,14 @@ struct Rule {
         vrhs.erase(std::remove_if(begin(vrhs), end(vrhs),
                                   [](const auto &it) { return it.empty(); }),
                    end(vrhs));
-
+        self_cycle = std::distance(
+            std::find_if(std::begin(vrhs), std::end(vrhs),
+                         [&](const auto &s) {
+                             return s.size() == type &&
+                                    std::all_of(std::begin(s), std::end(s),
+                                                is_vertex);
+                         }),
+            std::begin(vrhs));
         if (!lhs.empty()) {
             if (!is_vertex(lhs[0])) {
                 throw std::runtime_error("Must start with a vertex");
@@ -142,9 +152,13 @@ struct Rule {
             lhs.push_back(lhs[0]);
         }
     }
-    Shapes apply(const Shape &shape);
+    Shapes apply(sf::RenderWindow &win, const Shape &shape);
     void calc_mids();
-    auto to_string() const { return lhs + '>' + join(vrhs, ","); }
+
+    auto to_string() const {
+        using str = char[1];
+        return lhs + '>' + join(vrhs, str{','});
+    }
 };
 
 void Rule::calc_mids() {
@@ -162,16 +176,16 @@ void Rule::calc_mids() {
             while (is_mid(*it)) {
                 ++it;
             }
-            unsigned n_mids = std::distance(it_mb, it);
-            for (unsigned i = 0; i < n_mids; ++i) {
+            size_t n_mids = std::distance(it_mb, it);
+            for (size_t i = 0; i < n_mids; ++i) {
                 vmap[*(it_mb + i)] = divvec(vmap[*(it_mb - 1)], vmap[*(it)],
-                                            (i + 1), (n_mids + 1));
+                                            float(i + 1), float(n_mids + 1));
             }
         }
     }
 }
 
-Shapes Rule::apply(const Shape &shape) {
+Shapes Rule::apply(sf::RenderWindow &win, const Shape &shape) {
     if (identity) {
         return {shape};
     }
@@ -192,19 +206,23 @@ Shapes Rule::apply(const Shape &shape) {
     if (!opt_nocenter) {
         vmap['.'] = calc_center(shape);
     }
-    for (const auto &it : vrhs) {
+    for (size_t i = 0; i < vrhs.size(); ++i) {
         auto curr_shape = Shape{};
-        curr_shape.reserve(it.size());
-        for (const auto &sv : it) {
+        curr_shape.reserve(vrhs[i].size());
+        for (const auto &sv : vrhs[i]) {
             curr_shape.push_back(vmap[sv]);
         }
-        res.push_back(move(curr_shape));
+        if (i != self_cycle) {
+            res.push_back(move(curr_shape));
+        } else {
+            draw_shape(win, curr_shape);
+        }
     }
     return res;
 }
 
 struct Grammar {
-    std::unordered_map<unsigned, Rule> pmap;
+    std::unordered_map<size_t, Rule> pmap;
     Grammar(const std::vector<Rule> &rules) {
         for (auto it_f = begin(rules); it_f < end(rules) - 1; ++it_f) {
             for (auto it_s = it_f + 1; it_s != end(rules); ++it_s) {
@@ -218,26 +236,30 @@ struct Grammar {
             pmap[it.type] = it;
         }
     }
-    Shapes next(const Shape &shape) { return pmap[shape.size()].apply(shape); }
-    Shapes iterate(const Shapes &state) {
+    Shapes next(sf::RenderWindow &win, const Shape &shape) {
+        return pmap[shape.size()].apply(win, shape);
+    }
+    Shapes iterate(sf::RenderWindow &win, const Shapes &state) {
         auto shapes = Shapes{};
         auto curr = Shapes{};
         for (const auto &it : state) {
-            curr = this->next(it);
+            curr = this->next(win, it);
             shapes.insert(end(shapes), std::make_move_iterator(begin(curr)),
                           std::make_move_iterator(end(curr)));
         }
         return shapes;
     }
-    Shapes iterate(const Shapes &state, unsigned depth) {
+    Shapes iterate(sf::RenderWindow &win, const Shapes &state,
+                   unsigned depth) {
         auto res = state;
         for (unsigned i = 0; i < depth; ++i) {
-            res = move(this->iterate(res));
+            res = move(this->iterate(win, res));
         }
         return res;
     }
     auto to_string() const {
-        return join(pmap, ";",
+        using str = char[1];
+        return join(pmap, str{';'},
                     [](auto r) { return (r->second.to_string()); });
     }
 };
@@ -265,15 +287,15 @@ int main(int, char *[]) {
     sf::Event event;
     auto g = Grammar{{{{"AabBcdCefDgh>ABCD,hABcc,AafDD,bBCee,dCDgg"}},
                       {{"ABabCDEcd>ABad,cbCE,dabc"}}}};
+    auto gc = Grammar{{{{"ABCDE>"}}}};
     auto first = Shapes{{{{0.f + off, 0.f + off}},
-                         {{0.f + off, 1000.f + off}},
-                         {{1000.f + off, 1000.f + off}},
-                         {{1000.f + off, 0.f + off}}}};
-    auto shapes = g.iterate(first, 8);
-    shapes = Grammar{{{{"ABCDE>"}}}}.iterate(shapes);
-
+                         {{0.f + off, wh - off}},
+                         {{ww - off, wh - off}},
+                         {{ww - off, 0.f + off}}}};
     window.clear();
-    drawShapes(window, shapes);
+    auto shapes = g.iterate(window, first, 10);
+    shapes = gc.iterate(window, shapes);
+    draw_shapes(window, shapes);
     while (window.isOpen()) {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
