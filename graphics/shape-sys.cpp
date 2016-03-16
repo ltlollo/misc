@@ -10,18 +10,16 @@
 #include <unordered_map>
 #include <vector>
 
-constexpr float off{10.f};
-constexpr unsigned wh{1020}, ww{1020};
+constexpr float off{0.f};
+constexpr unsigned wh{1000}, ww{1000};
 
-using Shape = std::vector<sf::Vertex>;
+using Vertex = sf::Vector2f;
+using Shape = std::vector<Vertex>;
 using Shapes = std::vector<Shape>;
 
-sf::Vertex mid(const sf::Vertex &fst, const sf::Vertex &snd) {
-    return (snd.position - fst.position) / 2.f;
-}
-sf::Vertex divvec(const sf::Vertex &fst, const sf::Vertex &snd, float of = 1.f,
-                  float n = 2.f) {
-    return (snd.position - fst.position) * (of / n) + fst.position;
+auto mid(const Vertex &f, const Vertex &s) { return (s - f) / 2.f; }
+auto divvec(const Vertex &f, const Vertex &s, float p = 1.f, float n = 2.f) {
+    return (s - f) * (p / n) + f;
 }
 auto join(const auto &seq, auto &&ele, auto p) {
     using Res = decltype(p(std::cbegin(seq)));
@@ -43,12 +41,16 @@ auto join(const auto &seq, auto &&ele) {
     return join(seq, ele, [](auto it) { return *it; });
 }
 void draw_shape(sf::RenderWindow &win, const Shape &shape) {
+    sf::Vertex arr[2];
     for (unsigned i = 0; i < shape.size() - 1; ++i) {
-        win.draw(&shape[i], 2, sf::Lines);
+        arr[0].position = shape[i];
+        arr[1].position = shape[i + 1];
+        win.draw(arr, 2, sf::Lines);
     }
     if (shape.size() > 2) {
-        auto last = Shape{shape[shape.size() - 1], shape[0]};
-        win.draw(&last[0], 2, sf::Lines);
+        arr[0].position = shape[shape.size() - 1];
+        arr[1].position = shape[0];
+        win.draw(arr, 2, sf::Lines);
     }
 }
 void draw_shapes(sf::RenderWindow &win, const Shapes &shapes) {
@@ -57,10 +59,10 @@ void draw_shapes(sf::RenderWindow &win, const Shapes &shapes) {
     }
 }
 
-sf::Vertex calc_center(const Shape &shape) {
-    sf::Vector2f c{0.f, 0.f};
+auto calc_center(const Shape &shape) {
+    Vertex c{0.f, 0.f};
     for (const auto &it : shape) {
-        c += it.position;
+        c += it;
     }
     return c /= float(shape.size());
 }
@@ -82,7 +84,7 @@ struct Rule {
     size_t type{0}, self_cycle;
     std::string lhs;
     std::vector<std::string> vrhs;
-    std::unordered_map<char, sf::Vertex> vmap;
+    std::unordered_map<char, Vertex> vmap;
     Rule() : identity{true} {
         /* The identity rule Rule().apply(shape) is \shape -> [shape]
          * used by Grammar::map<n-of-gons, Rule> when n-gon is not in the map
@@ -283,19 +285,24 @@ struct Grammar {
  */
 
 int main(int, char *[]) {
-    sf::RenderWindow window{{ww, wh}, "shapes"};
+    sf::VideoMode vmode{ww, wh};
+    sf::RenderWindow window(vmode, "", sf::Style::Titlebar);
+    window.clear();
+    window.display();
+
     sf::Event event;
     auto g = Grammar{{{{"AabBcdCefDgh>ABCD,hABcc,AafDD,bBCee,dCDgg"}},
                       {{"ABabCDEcd>ABad,cbCE,dabc"}}}};
     auto gc = Grammar{{{{"ABCDE>"}}}};
-    auto first = Shapes{{{{0.f + off, 0.f + off}},
-                         {{0.f + off, wh - off}},
-                         {{ww - off, wh - off}},
-                         {{ww - off, 0.f + off}}}};
-    window.clear();
-    auto shapes = g.iterate(window, first, 10);
-    shapes = gc.iterate(window, shapes);
-    draw_shapes(window, shapes);
+    auto first = Shapes{{{0.f + off, 0.f + off},
+                         {0.f + off, wh - off},
+                         {ww - off, wh - off},
+                         {ww - off, 0.f + off}}};
+
+    {
+        auto shapes = g.iterate(window, first, 12);
+        draw_shapes(window, shapes);
+    }
     while (window.isOpen()) {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
