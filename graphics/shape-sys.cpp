@@ -291,13 +291,12 @@ struct Grammar {
               return Rule(std::string(b, e));
           })) {}
     Grammar(const std::vector<Rule> &rules) {
-        for (auto it_f = std::begin(rules); it_f < std::end(rules) - 1;
-             ++it_f) {
-            for (auto it_s = it_f + 1; it_s != std::end(rules); ++it_s) {
-                if (it_f->poly_type == it_s->poly_type) {
+        for (auto it = std::begin(rules); it < std::end(rules) - 1; ++it) {
+            for (auto it_ = it + 1; it_ != std::end(rules); ++it_) {
+                if (it->poly_type == it_->poly_type) {
                     throw std::runtime_error("Non unique rule: " +
-                                             to_str(it_f->lhs) + " " +
-                                             to_str(it_s->lhs));
+                                             to_str(it->lhs) + " " +
+                                             to_str(it_->lhs));
                 }
             }
         }
@@ -312,7 +311,7 @@ struct Grammar {
         auto shapes = Shapes{};
         auto curr = Shapes{};
         for (const auto &it : state) {
-            curr = this->next(win, it);
+            curr = next(win, it);
             shapes.insert(std::end(shapes),
                           std::make_move_iterator(std::begin(curr)),
                           std::make_move_iterator(std::end(curr)));
@@ -323,7 +322,7 @@ struct Grammar {
                    unsigned depth) {
         auto res = state;
         for (unsigned i = 0; i < depth; ++i) {
-            res = std::move(this->iterate(win, res));
+            res = std::move(iterate(win, res));
         }
         return res;
     }
