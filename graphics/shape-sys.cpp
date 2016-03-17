@@ -1,21 +1,22 @@
-// gpp self $(pkg-config --libs sfml-all)
+// gpp self $(pkg-config --libs sfml-all) -lboost_timer -lboost_system
 // ./shape-sys
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <algorithm>
-#include <cmath>
-#include <iostream>
 #include <iterator>
-#include <unordered_map>
-#include <vector>
+#include <boost/container/flat_map.hpp>
+#include <boost/container/small_vector.hpp>
+#include <boost/timer/timer.hpp>
 
 constexpr float off{0.f};
 constexpr unsigned wh{1000}, ww{1000};
 
+template <typename T, typename U> using Map = boost::container::flat_map<T, U>;
+template <typename T> using UVec = boost::container::small_vector<T, 8>;
 using Vertex = sf::Vector2f;
-using Shape = std::vector<Vertex>;
-using Shapes = std::vector<Shape>;
+using Shape = boost::container::vector<Vertex>;
+using Shapes = boost::container::vector<Shape>;
 
 auto mid(const Vertex &f, const Vertex &s) { return (s - f) / 2.f; }
 auto divvec(const Vertex &f, const Vertex &s, float p = 1.f, float n = 2.f) {
@@ -39,6 +40,11 @@ auto join(const auto &seq, auto &&ele, auto p) {
 }
 auto join(const auto &seq, auto &&ele) {
     return join(seq, ele, [](auto it) { return *it; });
+}
+auto to_str(const UVec<char> &v) {
+    std::string res;
+    std::copy(std::begin(v), std::end(v), std::back_inserter(res));
+    return res;
 }
 void draw_shape(sf::RenderWindow &win, const Shape &shape) {
     sf::Vertex arr[2];
@@ -73,18 +79,18 @@ bool is_mid(char it) { return (it >= 'a' && it <= 'z'); }
 
 auto remove_spaces(const std::string &str) {
     auto res = str;
-    res.erase(std::remove_if(begin(res), end(res),
+    res.erase(std::remove_if(std::begin(res), std::end(res),
                              [](const auto &it) { return it == ' '; }),
-              end(res));
+              std::end(res));
     return res;
 }
 
 struct Rule {
     bool identity{false}, opt_noadjmids{true}, opt_nocenter{true};
     size_t type{0}, self_cycle;
-    std::string lhs;
-    std::vector<std::string> vrhs;
-    std::unordered_map<char, Vertex> vmap;
+    UVec<char> lhs;
+    UVec<UVec<char>> vrhs;
+    Map<char, Vertex> vmap;
     Rule() : identity{true} {
         /* The identity rule Rule().apply(shape) is \shape -> [shape]
          * used by Grammar::map<n-of-gons, Rule> when n-gon is not in the map
@@ -94,28 +100,28 @@ struct Rule {
     }
     Rule(const std::string &rule_copy) {
         std::string rule = remove_spaces(rule_copy);
-        auto it = std::find(begin(rule), end(rule), '>');
+        auto it = std::find(std::begin(rule), std::end(rule), '>');
         if (it > end(rule) - 1) {
             throw std::runtime_error("No sparator\nHint: lhs>[rhs]");
         }
-        std::string rhs = {it + 1, end(rule)};
-        lhs = {begin(rule), it};
-        type = std::count_if(begin(lhs), end(lhs), is_vertex);
+        std::string rhs = {it + 1, std::end(rule)};
+        std::copy(std::begin(rule), it, std::back_inserter(lhs));
+        type = std::count_if(std::begin(lhs), std::end(lhs), is_vertex);
         for (const auto &it : rhs) {
-            if (std::none_of(begin(lhs), end(lhs), [&](const auto &s) {
-                    return (s == it) || it == ',' || it == '.';
-                })) {
+            if (std::none_of(std::begin(lhs), std::end(lhs),
+                             [&](const auto &s) {
+                                 return (s == it) || it == ',' || it == '.';
+                             })) {
                 throw std::runtime_error("Unknown symbol: " + std::string{it});
             }
             if (it == '.') {
                 opt_nocenter = false;
             }
         }
-        auto adj_mids =
-            std::adjacent_find(begin(lhs), end(lhs), [](char f, char s) {
-                return is_mid(f) && is_mid(s);
-            });
-        if (adj_mids != end(lhs)) {
+        auto adj_mids = std::adjacent_find(
+            std::begin(lhs), std::end(lhs),
+            [](char f, char s) { return is_mid(f) && is_mid(s); });
+        if (adj_mids != std::end(lhs)) {
             this->opt_noadjmids = false;
         }
         if (type < 2 && lhs.size() != type) {
@@ -124,19 +130,19 @@ struct Rule {
         if (!type && !opt_nocenter) {
             throw std::runtime_error("Center can't be calculated");
         }
-        std::string curr;
-        for (auto it = begin(rhs); it != end(rhs); ++it) {
+        UVec<char> curr;
+        for (auto it = std::begin(rhs); it != std::end(rhs); ++it) {
             if (*it == ',') {
-                vrhs.push_back(move(curr));
+                vrhs.push_back(std::move(curr));
                 curr = {};
             } else {
                 curr.push_back(*it);
             }
         }
-        vrhs.push_back(move(curr));
-        vrhs.erase(std::remove_if(begin(vrhs), end(vrhs),
+        vrhs.push_back(std::move(curr));
+        vrhs.erase(std::remove_if(std::begin(vrhs), std::end(vrhs),
                                   [](const auto &it) { return it.empty(); }),
-                   end(vrhs));
+                   std::end(vrhs));
         self_cycle = std::distance(
             std::find_if(std::begin(vrhs), std::end(vrhs),
                          [&](const auto &s) {
@@ -159,7 +165,7 @@ struct Rule {
 
     auto to_string() const {
         using str = char[1];
-        return lhs + '>' + join(vrhs, str{','});
+        return to_str(lhs) + '>' + to_str(join(vrhs, str{','}));
     }
 };
 
@@ -167,13 +173,13 @@ void Rule::calc_mids() {
     if (opt_noadjmids) {
         // optimized mid point calculation, if there's only one
         // it's halfway between the adjacent vertices
-        for (auto it = begin(lhs); it != end(lhs); ++it) {
+        for (auto it = std::begin(lhs); it != std::end(lhs); ++it) {
             if (is_mid(*it)) {
                 vmap[*it] = mid(vmap[*(it - 1)], vmap[*(it + 1)]);
             }
         }
     } else {
-        for (auto it = begin(lhs); it != end(lhs); ++it) {
+        for (auto it = std::begin(lhs); it != std::end(lhs); ++it) {
             auto it_mb = it;
             while (is_mid(*it)) {
                 ++it;
@@ -196,7 +202,7 @@ Shapes Rule::apply(sf::RenderWindow &win, const Shape &shape) {
         return res;
     }
     res.reserve(vrhs.size());
-    unsigned i = 0;
+    size_t i = 0;
     for (const auto &it : shape) {
         while (!is_vertex(lhs[i])) {
             ++i;
@@ -215,7 +221,7 @@ Shapes Rule::apply(sf::RenderWindow &win, const Shape &shape) {
             curr_shape.push_back(vmap[sv]);
         }
         if (i != self_cycle) {
-            res.push_back(move(curr_shape));
+            res.push_back(std::move(curr_shape));
         } else {
             draw_shape(win, curr_shape);
         }
@@ -224,13 +230,15 @@ Shapes Rule::apply(sf::RenderWindow &win, const Shape &shape) {
 }
 
 struct Grammar {
-    std::unordered_map<size_t, Rule> pmap;
+    Map<size_t, Rule> pmap;
     Grammar(const std::vector<Rule> &rules) {
-        for (auto it_f = begin(rules); it_f < end(rules) - 1; ++it_f) {
-            for (auto it_s = it_f + 1; it_s != end(rules); ++it_s) {
+        for (auto it_f = std::begin(rules); it_f < std::end(rules) - 1;
+             ++it_f) {
+            for (auto it_s = it_f + 1; it_s != std::end(rules); ++it_s) {
                 if (it_f->type == it_s->type) {
-                    throw std::runtime_error("Non unique rule: " + it_f->lhs +
-                                             " " + it_s->lhs);
+                    throw std::runtime_error("Non unique rule: " +
+                                             to_str(it_f->lhs) + " " +
+                                             to_str(it_s->lhs));
                 }
             }
         }
@@ -246,8 +254,9 @@ struct Grammar {
         auto curr = Shapes{};
         for (const auto &it : state) {
             curr = this->next(win, it);
-            shapes.insert(end(shapes), std::make_move_iterator(begin(curr)),
-                          std::make_move_iterator(end(curr)));
+            shapes.insert(std::end(shapes),
+                          std::make_move_iterator(std::begin(curr)),
+                          std::make_move_iterator(std::end(curr)));
         }
         return shapes;
     }
@@ -255,7 +264,7 @@ struct Grammar {
                    unsigned depth) {
         auto res = state;
         for (unsigned i = 0; i < depth; ++i) {
-            res = move(this->iterate(win, res));
+            res = std::move(this->iterate(win, res));
         }
         return res;
     }
@@ -300,6 +309,7 @@ int main(int, char *[]) {
                          {ww - off, 0.f + off}}};
 
     {
+        boost::timer::auto_cpu_timer measure(std::cerr);
         auto shapes = g.iterate(window, first, 12);
         draw_shapes(window, shapes);
     }
