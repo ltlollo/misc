@@ -144,7 +144,7 @@ auto remove_spaces(const std::string &str) {
 
 struct Rule {
     bool identity{false}, opt_noadjmids{true}, opt_nocenter{true};
-    size_t type{0}, self_cycle;
+    size_t poly_type{0}, self_cycle;
     UVec<char> lhs;
     UVec<UVec<char>> vrhs;
     Map<char, Vertex> vmap;
@@ -170,7 +170,7 @@ Rule::Rule(const std::string &rule_copy) {
     }
     std::string rhs = {it + 1, std::end(rule)};
     std::copy(std::begin(rule), it, std::back_inserter(lhs));
-    type = std::count_if(std::begin(lhs), std::end(lhs), is_vertex);
+    poly_type = std::count_if(std::begin(lhs), std::end(lhs), is_vertex);
     for (const auto &it : rhs) {
         if (std::none_of(std::begin(lhs), std::end(lhs), [&](const auto &s) {
                 return (s == it) || it == ',' || it == '.';
@@ -188,10 +188,10 @@ Rule::Rule(const std::string &rule_copy) {
     if (adj_mids != std::end(lhs)) {
         this->opt_noadjmids = false;
     }
-    if (type < 2 && lhs.size() != type) {
+    if (poly_type < 2 && lhs.size() != poly_type) {
         throw std::runtime_error("Points cannot be devided");
     }
-    if (!type && !opt_nocenter) {
+    if (!poly_type && !opt_nocenter) {
         throw std::runtime_error("Center can't be calculated");
     }
     UVec<char> curr;
@@ -210,7 +210,7 @@ Rule::Rule(const std::string &rule_copy) {
     self_cycle = std::distance(
         std::find_if(std::begin(vrhs), std::end(vrhs),
                      [&](const auto &s) {
-                         return s.size() == type &&
+                         return s.size() == poly_type &&
                                 std::all_of(std::begin(s), std::end(s),
                                             is_vertex);
                      }),
@@ -294,7 +294,7 @@ struct Grammar {
         for (auto it_f = std::begin(rules); it_f < std::end(rules) - 1;
              ++it_f) {
             for (auto it_s = it_f + 1; it_s != std::end(rules); ++it_s) {
-                if (it_f->type == it_s->type) {
+                if (it_f->poly_type == it_s->poly_type) {
                     throw std::runtime_error("Non unique rule: " +
                                              to_str(it_f->lhs) + " " +
                                              to_str(it_s->lhs));
@@ -302,7 +302,7 @@ struct Grammar {
             }
         }
         for (const auto &it : rules) {
-            pmap[it.type] = it;
+            pmap[it.poly_type] = it;
         }
     }
     Shapes next(sf::RenderWindow &win, const Shape &shape) {
