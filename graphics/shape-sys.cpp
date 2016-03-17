@@ -4,10 +4,10 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <algorithm>
-#include <iterator>
 #include <boost/container/flat_map.hpp>
 #include <boost/container/small_vector.hpp>
 #include <boost/timer/timer.hpp>
+#include <iterator>
 
 constexpr float off{0.f};
 constexpr unsigned wh{1000}, ww{1000};
@@ -22,7 +22,7 @@ auto mid(const Vertex &f, const Vertex &s) { return (s - f) / 2.f; }
 auto div(const Vertex &f, const Vertex &s, float p = 1.f, float n = 2.f) {
     return (s - f) * (p / n) + f;
 }
-auto join(auto &&s, auto &&ele, auto p) {
+auto join_seq(auto &&s, auto &&ele, auto p) {
     auto seq = std::move(s);
     using Res = decltype(p(std::begin(seq)));
     Res res;
@@ -41,8 +41,62 @@ auto join(auto &&s, auto &&ele, auto p) {
                std::make_move_iterator(std::end(te)));
     return res;
 }
+auto join_seq(auto &&seq, auto &&ele) {
+    return join_seq(seq, ele, [](auto it) { return *it; });
+}
+auto join(auto &&s, auto &&ele, auto p) {
+    auto seq = std::move(s);
+    using Res = decltype(p(std::begin(seq)));
+    Res res;
+    if (std::size(seq) == 0) {
+        return res;
+    }
+    auto ei = std::begin(seq);
+    for (size_t i = 0; i < std::size(seq) - 1; ++i, ++ei) {
+        auto te = p(ei);
+        res.insert(std::end(res), std::make_move_iterator(std::begin(te)),
+                   std::make_move_iterator(std::end(te)));
+        res.push_back(ele);
+    }
+    auto te = p(ei);
+    res.insert(std::end(res), std::make_move_iterator(std::begin(te)),
+               std::make_move_iterator(std::end(te)));
+    return res;
+}
 auto join(auto &&seq, auto &&ele) {
     return join(seq, ele, [](auto it) { return *it; });
+}
+auto split(auto &&v, auto &&at, auto p) {
+    auto seq = std::move(v);
+    using It = decltype(std::begin(seq));
+    using Res = decltype(p(std::begin(seq), std::begin(seq)));
+    std::vector<Res> res;
+    It b, e = std::begin(seq);
+    do {
+        if ((b = e) == std::end(seq)) {
+            break;
+        }
+        e = std::find(b, std::end(seq), at);
+        res.emplace_back(
+            p(std::make_move_iterator(b), std::make_move_iterator(e)));
+    } while (++e < std::end(seq));
+    return res;
+}
+auto split_seq(auto &&v, auto &&at, auto p) {
+    auto seq = std::move(v);
+    using It = decltype(std::begin(seq));
+    using Res = decltype(p(std::begin(seq), std::begin(seq)));
+    std::vector<Res> res;
+    It b, e = std::begin(seq);
+    do {
+        if ((b = e) == std::end(seq)) {
+            break;
+        }
+        e = std::search(b, std::end(seq), std::begin(at), std::end(at));
+        res.emplace_back(
+            p(std::make_move_iterator(b), std::make_move_iterator(e)));
+    } while (e += std::size(at) < std::end(seq));
+    return res;
 }
 auto to_str(const UVec<char> &v) {
     std::string res;
@@ -106,8 +160,7 @@ struct Rule {
     void calc_mids();
 };
 auto to_str(const Rule &r) {
-    using s = char[1];
-    return to_str(r.lhs) + '>' + to_str(join(r.vrhs, s{','}));
+    return to_str(r.lhs) + '>' + to_str(join(r.vrhs, ','));
 }
 Rule::Rule(const std::string &rule_copy) {
     std::string rule = remove_spaces(rule_copy);
@@ -119,19 +172,19 @@ Rule::Rule(const std::string &rule_copy) {
     std::copy(std::begin(rule), it, std::back_inserter(lhs));
     type = std::count_if(std::begin(lhs), std::end(lhs), is_vertex);
     for (const auto &it : rhs) {
-        if (std::none_of(std::begin(lhs), std::end(lhs),
-                         [&](const auto &s) {
-                             return (s == it) || it == ',' || it == '.';
-                         })) {
+        if (std::none_of(std::begin(lhs), std::end(lhs), [&](const auto &s) {
+                return (s == it) || it == ',' || it == '.';
+            })) {
             throw std::runtime_error("Unknown symbol: " + std::string{it});
         }
         if (it == '.') {
             opt_nocenter = false;
         }
     }
-    auto adj_mids = std::adjacent_find(
-        std::begin(lhs), std::end(lhs),
-        [](char f, char s) { return is_mid(f) && is_mid(s); });
+    auto adj_mids =
+        std::adjacent_find(std::begin(lhs), std::end(lhs), [](char f, char s) {
+            return is_mid(f) && is_mid(s);
+        });
     if (adj_mids != std::end(lhs)) {
         this->opt_noadjmids = false;
     }
@@ -233,6 +286,10 @@ Shapes Rule::apply(sf::RenderWindow &win, const Shape &shape) {
 
 struct Grammar {
     Map<size_t, Rule> pmap;
+    Grammar(const std::string &str)
+        : Grammar(split(str, ';', [](auto b, auto e) {
+              return Rule(std::string(b, e));
+          })) {}
     Grammar(const std::vector<Rule> &rules) {
         for (auto it_f = std::begin(rules); it_f < std::end(rules) - 1;
              ++it_f) {
@@ -272,8 +329,7 @@ struct Grammar {
     }
 };
 auto to_str(const Grammar &g) {
-    using s = char[1];
-    return join(g.pmap, s{';'}, [](auto r) { return to_str(r->second); });
+    return join(g.pmap, ';', [](auto r) { return to_str(r->second); });
 }
 
 /* grammar explanation
@@ -297,13 +353,11 @@ auto to_str(const Grammar &g) {
 int main(int, char *argv[]) {
     sf::VideoMode vmode{ww, wh};
     sf::RenderWindow window(vmode, argv[0], sf::Style::Titlebar);
+    sf::Event event;
     window.clear();
     window.display();
-
-    sf::Event event;
-    auto g = Grammar{{{{"AabBcdCefDgh>ABCD,hABcc,AafDD,bBCee,dCDgg"}},
-                      {{"ABabCDEcd>ABad,cbCE,dabc"}}}};
-    auto gc = Grammar{{{{"ABCDE>"}}}};
+    auto g = Grammar("ABCD>AB.,BC.,CD.,DA.;"
+                     "AaBnnnnncnCndnnnnn>acd,Aad,aBc,dcC");
     auto first = Shapes{{{0.f + off, 0.f + off},
                          {0.f + off, wh - off},
                          {ww - off, wh - off},
@@ -311,7 +365,7 @@ int main(int, char *argv[]) {
 
     {
         boost::timer::auto_cpu_timer measure(std::cerr);
-        auto shapes = g.iterate(window, first, 12);
+        auto shapes = g.iterate(window, first, 8);
         draw_shapes(window, shapes);
     }
     while (window.isOpen()) {
