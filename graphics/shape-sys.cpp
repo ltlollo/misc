@@ -22,23 +22,26 @@ auto mid(const Vertex &f, const Vertex &s) { return (s - f) / 2.f; }
 auto div(const Vertex &f, const Vertex &s, float p = 1.f, float n = 2.f) {
     return (s - f) * (p / n) + f;
 }
-auto join(const auto &seq, auto &&ele, auto p) {
-    using Res = decltype(p(std::cbegin(seq)));
+auto join(auto &&s, auto &&ele, auto p) {
+    auto seq = std::move(s);
+    using Res = decltype(p(std::begin(seq)));
     Res res;
-    if (seq.empty()) {
+    if (std::size(seq) == 0) {
         return res;
     }
-    auto ei = std::cbegin(seq);
+    auto ei = std::begin(seq);
     for (size_t i = 0; i < std::size(seq) - 1; ++i, ++ei) {
         auto te = p(ei);
-        std::copy(std::cbegin(te), std::cend(te), std::back_inserter(res));
+        res.insert(std::end(res), std::make_move_iterator(std::begin(te)),
+                   std::make_move_iterator(std::end(te)));
         std::copy(std::cbegin(ele), std::cend(ele), std::back_inserter(res));
     }
     auto te = p(ei);
-    std::copy(std::cbegin(te), std::cend(te), std::back_inserter(res));
+    res.insert(std::end(res), std::make_move_iterator(std::begin(te)),
+               std::make_move_iterator(std::end(te)));
     return res;
 }
-auto join(const auto &seq, auto &&ele) {
+auto join(auto &&seq, auto &&ele) {
     return join(seq, ele, [](auto it) { return *it; });
 }
 auto to_str(const UVec<char> &v) {
@@ -98,74 +101,75 @@ struct Rule {
          * shape is retuned in the form of [shape] (by apply).
          */
     }
-    Rule(const std::string &rule_copy) {
-        std::string rule = remove_spaces(rule_copy);
-        auto it = std::find(std::begin(rule), std::end(rule), '>');
-        if (it > end(rule) - 1) {
-            throw std::runtime_error("No sparator\nHint: lhs>[rhs]");
-        }
-        std::string rhs = {it + 1, std::end(rule)};
-        std::copy(std::begin(rule), it, std::back_inserter(lhs));
-        type = std::count_if(std::begin(lhs), std::end(lhs), is_vertex);
-        for (const auto &it : rhs) {
-            if (std::none_of(std::begin(lhs), std::end(lhs),
-                             [&](const auto &s) {
-                                 return (s == it) || it == ',' || it == '.';
-                             })) {
-                throw std::runtime_error("Unknown symbol: " + std::string{it});
-            }
-            if (it == '.') {
-                opt_nocenter = false;
-            }
-        }
-        auto adj_mids = std::adjacent_find(
-            std::begin(lhs), std::end(lhs),
-            [](char f, char s) { return is_mid(f) && is_mid(s); });
-        if (adj_mids != std::end(lhs)) {
-            this->opt_noadjmids = false;
-        }
-        if (type < 2 && lhs.size() != type) {
-            throw std::runtime_error("Points cannot be devided");
-        }
-        if (!type && !opt_nocenter) {
-            throw std::runtime_error("Center can't be calculated");
-        }
-        UVec<char> curr;
-        for (auto it = std::begin(rhs); it != std::end(rhs); ++it) {
-            if (*it == ',') {
-                vrhs.push_back(std::move(curr));
-                curr = {};
-            } else {
-                curr.push_back(*it);
-            }
-        }
-        vrhs.push_back(std::move(curr));
-        vrhs.erase(std::remove_if(std::begin(vrhs), std::end(vrhs),
-                                  [](const auto &it) { return it.empty(); }),
-                   std::end(vrhs));
-        self_cycle = std::distance(
-            std::find_if(std::begin(vrhs), std::end(vrhs),
-                         [&](const auto &s) {
-                             return s.size() == type &&
-                                    std::all_of(std::begin(s), std::end(s),
-                                                is_vertex);
-                         }),
-            std::begin(vrhs));
-        if (!lhs.empty()) {
-            if (!is_vertex(lhs[0])) {
-                throw std::runtime_error("Must start with a vertex");
-            }
-            // this is a microopt, see(*)
-            lhs.reserve(lhs.size() + 1);
-            lhs.push_back(lhs[0]);
-        }
-    }
+    Rule(const std::string &rule_copy);
     Shapes apply(sf::RenderWindow &win, const Shape &shape);
     void calc_mids();
 };
 auto to_str(const Rule &r) {
     using s = char[1];
     return to_str(r.lhs) + '>' + to_str(join(r.vrhs, s{','}));
+}
+Rule::Rule(const std::string &rule_copy) {
+    std::string rule = remove_spaces(rule_copy);
+    auto it = std::find(std::begin(rule), std::end(rule), '>');
+    if (it > end(rule) - 1) {
+        throw std::runtime_error("No sparator\nHint: lhs>[rhs]");
+    }
+    std::string rhs = {it + 1, std::end(rule)};
+    std::copy(std::begin(rule), it, std::back_inserter(lhs));
+    type = std::count_if(std::begin(lhs), std::end(lhs), is_vertex);
+    for (const auto &it : rhs) {
+        if (std::none_of(std::begin(lhs), std::end(lhs),
+                         [&](const auto &s) {
+                             return (s == it) || it == ',' || it == '.';
+                         })) {
+            throw std::runtime_error("Unknown symbol: " + std::string{it});
+        }
+        if (it == '.') {
+            opt_nocenter = false;
+        }
+    }
+    auto adj_mids = std::adjacent_find(
+        std::begin(lhs), std::end(lhs),
+        [](char f, char s) { return is_mid(f) && is_mid(s); });
+    if (adj_mids != std::end(lhs)) {
+        this->opt_noadjmids = false;
+    }
+    if (type < 2 && lhs.size() != type) {
+        throw std::runtime_error("Points cannot be devided");
+    }
+    if (!type && !opt_nocenter) {
+        throw std::runtime_error("Center can't be calculated");
+    }
+    UVec<char> curr;
+    for (auto it = std::begin(rhs); it != std::end(rhs); ++it) {
+        if (*it == ',') {
+            vrhs.push_back(std::move(curr));
+            curr = {};
+        } else {
+            curr.push_back(*it);
+        }
+    }
+    vrhs.push_back(std::move(curr));
+    vrhs.erase(std::remove_if(std::begin(vrhs), std::end(vrhs),
+                              [](const auto &it) { return it.empty(); }),
+               std::end(vrhs));
+    self_cycle = std::distance(
+        std::find_if(std::begin(vrhs), std::end(vrhs),
+                     [&](const auto &s) {
+                         return s.size() == type &&
+                                std::all_of(std::begin(s), std::end(s),
+                                            is_vertex);
+                     }),
+        std::begin(vrhs));
+    if (!lhs.empty()) {
+        if (!is_vertex(lhs[0])) {
+            throw std::runtime_error("Must start with a vertex");
+        }
+        // this is a microopt, see(*)
+        lhs.reserve(lhs.size() + 1);
+        lhs.push_back(lhs[0]);
+    }
 }
 void Rule::calc_mids() {
     if (opt_noadjmids) {
