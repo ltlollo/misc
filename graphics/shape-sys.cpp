@@ -273,7 +273,7 @@ struct Grammar {
 };
 auto to_str(const Grammar &g) {
     using s = char[1];
-    return (join(g.pmap, s{';'}, [](auto r) { return to_str(r->second); }));
+    return join(g.pmap, s{';'}, [](auto r) { return to_str(r->second); });
 }
 
 /* grammar explanation
