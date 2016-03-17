@@ -269,7 +269,7 @@ struct Grammar {
 };
 auto to_str(const Grammar &g) {
     using s = char[1];
-    return join(g.pmap, s{';'}, [](auto r) { return (to_str(r->second)); });
+    return (join(g.pmap, s{';'}, [](auto r) { return to_str(r->second); }));
 }
 
 /* grammar explanation
@@ -290,9 +290,9 @@ auto to_str(const Grammar &g) {
  *        ( ex: "ABC>", "AdBC>" is not allowed )
  */
 
-int main(int, char *[]) {
+int main(int, char *argv[]) {
     sf::VideoMode vmode{ww, wh};
-    sf::RenderWindow window(vmode, "", sf::Style::Titlebar);
+    sf::RenderWindow window(vmode, argv[0], sf::Style::Titlebar);
     window.clear();
     window.display();
 
