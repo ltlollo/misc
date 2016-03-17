@@ -19,7 +19,7 @@ using Shape = boost::container::vector<Vertex>;
 using Shapes = boost::container::vector<Shape>;
 
 auto mid(const Vertex &f, const Vertex &s) { return (s - f) / 2.f; }
-auto divvec(const Vertex &f, const Vertex &s, float p = 1.f, float n = 2.f) {
+auto div(const Vertex &f, const Vertex &s, float p = 1.f, float n = 2.f) {
     return (s - f) * (p / n) + f;
 }
 auto join(const auto &seq, auto &&ele, auto p) {
@@ -162,13 +162,11 @@ struct Rule {
     }
     Shapes apply(sf::RenderWindow &win, const Shape &shape);
     void calc_mids();
-
-    auto to_string() const {
-        using str = char[1];
-        return to_str(lhs) + '>' + to_str(join(vrhs, str{','}));
-    }
 };
-
+auto to_str(const Rule &r) {
+    using s = char[1];
+    return to_str(r.lhs) + '>' + to_str(join(r.vrhs, s{','}));
+}
 void Rule::calc_mids() {
     if (opt_noadjmids) {
         // optimized mid point calculation, if there's only one
@@ -186,8 +184,8 @@ void Rule::calc_mids() {
             }
             size_t n_mids = std::distance(it_mb, it);
             for (size_t i = 0; i < n_mids; ++i) {
-                vmap[*(it_mb + i)] = divvec(vmap[*(it_mb - 1)], vmap[*(it)],
-                                            float(i + 1), float(n_mids + 1));
+                vmap[*(it_mb + i)] = div(vmap[*(it_mb - 1)], vmap[*(it)],
+                                         float(i + 1), float(n_mids + 1));
             }
         }
     }
@@ -268,12 +266,11 @@ struct Grammar {
         }
         return res;
     }
-    auto to_string() const {
-        using str = char[1];
-        return join(pmap, str{';'},
-                    [](auto r) { return (r->second.to_string()); });
-    }
 };
+auto to_str(const Grammar &g) {
+    using s = char[1];
+    return join(g.pmap, s{';'}, [](auto r) { return (to_str(r->second)); });
+}
 
 /* grammar explanation
  * def: RULE := LHS '>' RHS
@@ -324,7 +321,7 @@ int main(int, char *[]) {
                     window.close();
                     break;
                 case sf::Keyboard::S:
-                    window.capture().saveToFile(g.to_string() + ".png");
+                    window.capture().saveToFile(to_str(g) + ".png");
                     break;
                 default:
                     break;
