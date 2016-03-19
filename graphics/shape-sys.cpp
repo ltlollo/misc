@@ -103,7 +103,7 @@ auto to_str(const UVec<char> &v) {
     std::copy(std::begin(v), std::end(v), std::back_inserter(res));
     return res;
 }
-void draw_shape(sf::RenderWindow &win, const Shape &shape) {
+void draw(sf::RenderWindow &win, const Shape &shape) {
     sf::Vertex arr[2];
     for (unsigned i = 0; i < shape.size() - 1; ++i) {
         arr[0].position = shape[i];
@@ -116,9 +116,9 @@ void draw_shape(sf::RenderWindow &win, const Shape &shape) {
         win.draw(arr, 2, sf::Lines);
     }
 }
-void draw_shapes(sf::RenderWindow &win, const Shapes &shapes) {
+void draw(sf::RenderWindow &win, const Shapes &shapes) {
     for (const auto &shape : shapes) {
-        draw_shape(win, shape);
+        draw(win, shape);
     }
 }
 
@@ -278,14 +278,14 @@ Shapes Rule::apply(sf::RenderWindow &win, const Shape &shape) {
         if (i != self_cycle) {
             res.push_back(std::move(curr_shape));
         } else {
-            draw_shape(win, curr_shape);
+            draw(win, curr_shape);
         }
     }
     return res;
 }
 
 struct Grammar {
-    Map<size_t, Rule> pmap;
+    Map<unsigned, Rule> pmap;
     Grammar(const std::string &str)
         : Grammar(split(str, ';', [](auto b, auto e) {
               return Rule(std::string(b, e));
@@ -365,7 +365,7 @@ int main(int, char *argv[]) {
     {
         boost::timer::auto_cpu_timer measure(std::cerr);
         auto shapes = g.iterate(window, first, 8);
-        draw_shapes(window, shapes);
+        draw(window, shapes);
     }
     while (window.isOpen()) {
         while (window.pollEvent(event)) {
