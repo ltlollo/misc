@@ -1,19 +1,27 @@
-#include <vector>
-#include <stdexcept>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <thread>
 #include <algorithm>
 #include <atomic>
-#include <unistd.h>
-#include <termio.h>
 #include <err.h>
-#include <stdio.h>
 #include <fcntl.h>
+#include <fstream>
+#include <iostream>
 #include <signal.h>
+#include <stdexcept>
+#include <stdio.h>
+#include <string>
+#include <termio.h>
+#include <thread>
+#include <unistd.h>
 #include <unordered_map>
+#include <vector>
 
+using Text = std::vector<std::vector<char>>;
+
+struct Session {
+    std::string fname;
+    Text text;
+    unsigned y, x;
+    unsigned pagey, pagex;
+};
 
 static int in = STDIN_FILENO;
 static int out = STDOUT_FILENO;
@@ -22,21 +30,18 @@ std::atomic<bool> need_redraw;
 static inline void clear() { printf("\033[2J"); }
 static inline void clearline() { printf("\033[2K"); }
 static inline void clearr() { printf("\033[0K"); }
-static inline void move(unsigned y, unsigned x) {
-    printf("\033[%d;%dH", y + 1, x + 1);
-}
 static inline void handlesig(int) {
     signal(SIGWINCH, SIG_IGN);
     need_redraw = true;
 }
 static inline void rstscr() {
     clear();
-    move(0, 0);
+    printf("\033[1;1H");
 }
 
-static void setattrs(const bool rst) {
+static void setattrs(const bool rstcurs) {
     static termios old, curr;
-    if (!rst) {
+    if (!rstcurs) {
         rstscr();
         tcsetattr(in, TCSANOW, &old);
         return;
@@ -64,7 +69,7 @@ static inline int readch(const int fd) {
 
 enum key : int {
     tab = '\t',
-    nl = 13,
+    nl = '\n',
     del = 126,
     back,
     up = -999,
@@ -72,7 +77,7 @@ enum key : int {
     right,
     left,
     home,
-    insert,
+    ins,
     dead,
     end,
     pgup,
@@ -98,6 +103,9 @@ enum key : int {
 static int getk() {
     int k, x;
     if ((k = readch(in)) != 033) {
+        if (k == 13) {
+            return nl;
+        }
         return k;
     }
     if ((k = readch(in)) == 79) {
@@ -125,250 +133,514 @@ static int getk() {
     return 0;
 }
 
-struct Ed {
-    unsigned cols, rows, pgstep, tstep;
-    unsigned pagey = 0, pagex = 0;
-    unsigned y = 0, x = 0;
-    unsigned ry = 0, rx = 0;
-    bool restore = true;
-    std::vector<std::vector<char>> t;
-    Ed() {}
-    Ed(unsigned c, unsigned r)
-        : cols{c}, rows{r}, pgstep{rows / 2},
-          tstep{cols / 4 > 4 ? 4 : cols / 4} {
-        rstscr();
-    }
-    unsigned absx() const { return pagex + x; }
-    unsigned absy() const { return pagey + y; }
-    void rst() {
-        if (restore) {
-            y = ry;
-            x = rx;
-        }
-    }
-    void sav() {
-        if (restore) {
-            ry = y;
-            rx = x;
-        }
-    }
-
-    void refreshline(unsigned py, unsigned px, unsigned y, unsigned x = 0) {
-        move(y, x);
-        auto i = t.begin() + py + y;
-        if (i >= t.end() || i->empty()) {
-            clearr();
-            return;
-        }
-        for (auto j = i->begin() + px + x; j < i->begin() + px + cols; ++j) {
-            if (j >= i->end()) {
-                clearr();
-                break;
-            }
-            if (*j && *j != '\t') {
-                putchar(*j);
-            } else {
-                putchar(' ');
-            }
-        }
-    }
-    void refresh(unsigned py, unsigned px, unsigned y = 0) {
-        move(y, 0);
-        for (unsigned i = 0; i < rows; ++i) {
-            refreshline(py, px, i);
-        }
-    }
-    void mvd(unsigned step = 1) {
-        if (y + step > rows - 1) {
-            refresh(pagey += step, pagex);
-            move(y, x);
-            return;
-        }
-        move(y += step, x);
-    }
-    void mvu(unsigned step = 1) {
-        if (absy() < step) {
-            t.insert(t.begin(), step, std::vector<char>());
-            refresh(pagey, pagex);
-            move(y, x);
-            return;
-        }
-        if (y < step) {
-            refresh(pagey -= step, pagex);
-            move(y, x);
-            return;
-        }
-        move(y -= step, x);
-    }
-    void mvl(unsigned step = 1) {
-        if (absx() < step) {
-            move(y, x = 0);
-            return;
-        }
-        if (x < step && pagex) {
-            refresh(pagey, pagex -= cols);
-            move(y, x = cols - step + x);
-            sav();
-            return;
-        }
-        move(y, x -= step);
-    }
-    void mvr(unsigned step = 1) {
-        if (cols - 1 < x + step) {
-            refresh(pagey, pagex += cols);
-            move(y, x = x + step - cols);
-            sav();
-            return;
-        }
-        move(y, x += step);
-    }
-    void insert(char c) {
-        if (t.size() <= absy()) {
-            t.resize(absy() + 1);
-        }
-        auto &l = t[absy()];
-        if (l.size() <= absx()) {
-            l.resize(absx());
-        }
-        l.insert(l.begin() + absx(), c);
-        refreshline(pagey, pagex, y, x);
-        mvr();
-    }
-    void del() {
-        if (t.size() <= absy()) {
-            return;
-        }
-        auto l = t.begin() + absy();
-        if (std::all_of(l->begin(), l->end(),
-                        [](auto &c) { return c == 0; })) {
-            t.erase(l);
-            refresh(pagey, pagex, y);
-            move(y, x);
-            return;
-        }
-        if (absx() == 0) {
-            return;
-        }
-        if (l->size() <= absx() - 1) {
-            mvl();
-            return;
-        }
-        auto it = l->begin() + absx() - 1;
-        if (*it == '\t') {
-            auto rit = std::make_reverse_iterator(it + 1);
-            auto re = std::find_if(rit, l->rend(),
-                                   [](auto &c) { return c != '\t'; });
-            unsigned d = (unsigned)std::distance(rit, re);
-            l->erase(re.base(), rit.base());
-            refreshline(pagey, pagex, y);
-            mvl(d);
-            return;
-        }
-        l->erase(it);
-        refreshline(pagey, pagex, y, x - 1);
-        mvl();
-    }
-    void rm() {
-        if (t.size() <= absy()) {
-            return;
-        }
-        auto l = t.begin() + absy();
-        if (std::all_of(l->begin(), l->end(),
-                        [](auto &c) { return c == 0; })) {
-            t.erase(l);
-            refresh(pagey, pagex, y);
-            move(y, x);
-            return;
-        }
-        if (l->size() <= absx()) {
-            return;
-        }
-        l->erase(l->begin() + absx());
-        refreshline(pagey, pagex, y, x);
-        move(y, x);
-    }
-    void nl() {
-        if (t.size() <= absy() + 1) {
-            t.resize(absy() + 1);
-        }
-        auto v = std::vector<char>();
-        if (absx() < t[absy()].size()) {
-            auto b = std::make_move_iterator(t[absy()].begin() + absx());
-            auto e = std::make_move_iterator(t[absy()].end());
-            v.resize(absx());
-            v.insert(v.end(), b, e);
-            t[absy()].resize(absx());
-        }
-        t.insert(t.begin() + absy() + 1, std::move(v));
-        refresh(pagey, pagex, y);
-        rst();
-        mvd();
-    }
-    void refresh() {
-        refresh(pagey, pagex);
-        move(y, x);
-    }
-
-    void handlecmd() {
-        int k;
-        move(cols - 1, 0);
-        clearline();
-        while ((k = getk()) && std::isprint(k)) {
-            putchar(k);
-        }
-        move(y, x);
-    }
+struct CurrText {
+    std::string name;
+    std::string fname;
+    Text &text;
+    unsigned y = 0;
+    unsigned x = 0;
+    unsigned pagey = 0;
+    unsigned pagex = 0;
+    CurrText(std::string n, Session &s)
+        : name{n}, fname{s.fname}, text{s.text}, y{s.y}, x{s.x} {}
 };
+struct Ed {
+    using Map = std::unordered_map<std::string, Session>;
+    unsigned cols, rows, pgstep, tstep;
+    unsigned ry = 0, rx = 0;
+    unsigned winofy = 0, winofx = 0;
+    bool restore = true;
+    Map workspace;
+    CurrText curr;
+    Ed() : curr{"", workspace[""]} {}
+    Ed(unsigned cols, unsigned rows, unsigned winofy, unsigned winofx)
+        : cols{cols}, rows{rows}, winofy{winofx}, winofx{winofx},
+          curr{"", workspace[""]} {}
+};
+static inline void move(const Ed &ed, unsigned y, unsigned x) {
+    printf("\033[%d;%dH", ed.winofy + y + 1, ed.winofx + x + 1);
+}
 
-#define cb(x) break; case (x)
-#define r4(x) do{ x; x; x; x; } while(0)
+void init(Ed &ed) {
+    winsize w;
+    ioctl(out, TIOCGWINSZ, &w);
+    ed.cols = w.ws_col;
+    ed.rows = w.ws_row - 1;
+    ed.pgstep = ed.cols / 2;
+    ed.tstep = w.ws_col / 4 > 4 ? 4 : w.ws_col / 4;
+}
 
+void rstcurs(Ed &ed) {
+    if (ed.restore) {
+        ed.curr.y = ed.ry;
+        ed.curr.x = ed.rx;
+    }
+}
+void savecurs(Ed &ed) {
+    if (ed.restore) {
+        ed.ry = ed.curr.y;
+        ed.rx = ed.curr.x;
+    }
+}
+unsigned absx(const Ed &ed) { return ed.curr.pagex + ed.curr.x; }
+unsigned absy(const Ed &ed) { return ed.curr.pagey + ed.curr.y; }
+void refreshline(const Ed &ed, unsigned py, unsigned px, unsigned y,
+                 unsigned x = 0) {
+    move(ed, y, x);
+    auto i = ed.curr.text.begin() + py + y;
+    if (i >= ed.curr.text.end() || i->empty()) {
+        clearr();
+        return;
+    }
+    for (auto j = i->begin() + px + x; j < i->begin() + px + ed.cols; ++j) {
+        if (j >= i->end()) {
+            clearr();
+            break;
+        }
+        if (*j && *j != '\t') {
+            putchar(*j);
+        } else {
+            putchar(' ');
+        }
+    }
+}
+void refresh(const Ed &ed, unsigned py, unsigned px, unsigned y = 0) {
+    move(ed, y, 0);
+    for (unsigned i = 0; i < ed.rows; ++i) {
+        refreshline(ed, py, px, i);
+    }
+}
+void refresh(const Ed &ed) {
+    refresh(ed, ed.curr.pagey, ed.curr.pagex);
+    move(ed, ed.curr.y, ed.curr.x);
+}
+void rmch(Ed &ed) {
+    if (ed.curr.text.size() <= absy(ed)) {
+        return;
+    }
+    auto l = ed.curr.text.begin() + absy(ed);
+    if (std::all_of(l->begin(), l->end(), [](auto &c) { return c == 0; })) {
+        ed.curr.text.erase(l);
+        refresh(ed, ed.curr.pagey, ed.curr.pagex, ed.curr.y);
+        move(ed, ed.curr.y, ed.curr.x);
+        return;
+    }
+    if (l->size() <= absx(ed)) {
+        return;
+    }
+    l->erase(l->begin() + absx(ed));
+    refreshline(ed, ed.curr.pagey, ed.curr.pagex, ed.curr.y, ed.curr.x);
+    move(ed, ed.curr.y, ed.curr.x);
+}
+void mvleft(Ed &ed, unsigned step = 1) {
+    if (absx(ed) < step) {
+        move(ed, ed.curr.y, ed.curr.x = 0);
+        return;
+    }
+    if (ed.curr.x < step && ed.curr.pagex) {
+        refresh(ed, ed.curr.pagey, ed.curr.pagex -= ed.cols);
+        move(ed, ed.curr.y, ed.curr.x = ed.cols - step + ed.curr.x);
+        savecurs(ed);
+        return;
+    }
+    move(ed, ed.curr.y, ed.curr.x -= step);
+}
+void mvright(Ed &ed, unsigned step = 1) {
+    if (ed.cols - 1 < ed.curr.x + step) {
+        refresh(ed, ed.curr.pagey, ed.curr.pagex += ed.cols);
+        move(ed, ed.curr.y, ed.curr.x = ed.curr.x + step - ed.cols);
+        savecurs(ed);
+        return;
+    }
+    move(ed, ed.curr.y, ed.curr.x += step);
+}
+void mvdown(Ed &ed, unsigned step = 1) {
+    if (ed.curr.y + step > ed.rows - 1) {
+        refresh(ed, ed.curr.pagey += step, ed.curr.pagex);
+        move(ed, ed.curr.y, ed.curr.x);
+        return;
+    }
+    move(ed, ed.curr.y += step, ed.curr.x);
+}
+void mvup(Ed &ed, unsigned step = 1) {
+    if (absy(ed) < step) {
+        ed.curr.text.insert(ed.curr.text.begin(), step, std::vector<char>());
+        refresh(ed, ed.curr.pagey, ed.curr.pagex);
+        move(ed, ed.curr.y, ed.curr.x);
+        return;
+    }
+    if (ed.curr.y < step) {
+        refresh(ed, ed.curr.pagey -= step, ed.curr.pagex);
+        move(ed, ed.curr.y, ed.curr.x);
+        return;
+    }
+    move(ed, ed.curr.y -= step, ed.curr.x);
+}
+void nocnl(Ed &ed) {
+    if (ed.curr.text.size() <= absy(ed) + 1) {
+        ed.curr.text.resize(absy(ed) + 1);
+    }
+    ed.curr.text.insert(ed.curr.text.begin() + absy(ed) + 1,
+                        std::vector<char>());
+    refresh(ed, ed.curr.pagey, ed.curr.pagex, ed.curr.y);
+    ed.curr.x = 0;
+    mvdown(ed);
+}
+void delch(Ed &ed) {
+    if (ed.curr.text.size() <= absy(ed)) {
+        return;
+    }
+    auto l = ed.curr.text.begin() + absy(ed);
+    if (std::all_of(l->begin(), l->end(), [](auto &c) { return c == 0; })) {
+        ed.curr.text.erase(l);
+        refresh(ed, ed.curr.pagey, ed.curr.pagex, ed.curr.y);
+        move(ed, ed.curr.y, ed.curr.x);
+        return;
+    }
+    if (absx(ed) == 0) {
+        return;
+    }
+    if (l->size() <= absx(ed) - 1) {
+        mvleft(ed);
+        return;
+    }
+    auto it = l->begin() + absx(ed) - 1;
+    if (*it == '\t') {
+        auto rit = std::make_reverse_iterator(it + 1);
+        auto re =
+            std::find_if(rit, l->rend(), [](auto &c) { return c != '\t'; });
+        unsigned d = (unsigned)std::distance(rit, re);
+        l->erase(re.base(), rit.base());
+        refreshline(ed, ed.curr.pagey, ed.curr.pagex, ed.curr.y);
+        mvleft(ed, d);
+        return;
+    }
+    l->erase(it);
+    refreshline(ed, ed.curr.pagey, ed.curr.pagex, ed.curr.y, ed.curr.x - 1);
+    mvleft(ed);
+}
+void showmsg(const Ed &ed, const char *msg) {
+    move(ed, ed.cols - 1, 0);
+    clearline();
+    printf("%s", msg);
+    move(ed, ed.curr.y, ed.curr.x);
+}
+void insert(Ed &ed, char c, unsigned times = 1) {
+    if (ed.curr.text.size() <= absy(ed)) {
+        ed.curr.text.resize(absy(ed) + 1);
+    }
+    auto &l = ed.curr.text[absy(ed)];
+    if (l.size() <= absx(ed)) {
+        l.resize(absx(ed));
+    }
+    l.insert(l.begin() + absx(ed), times, c);
+    refreshline(ed, ed.curr.pagey, ed.curr.pagex, ed.curr.y, ed.curr.x);
+    mvright(ed, times);
+}
+void nobreaknl(Ed &ed) {
+    if (ed.curr.text.size() <= absy(ed) + 1) {
+        ed.curr.text.resize(absy(ed) + 1);
+    }
+    auto v = std::vector<char>();
+    if (absx(ed) < ed.curr.text[absy(ed)].size()) {
+        auto &l = ed.curr.text[absy(ed)];
+        auto b = std::make_move_iterator(l.begin() + absx(ed));
+        auto e = std::make_move_iterator(l.end());
+        v.resize(absx(ed));
+        v.insert(v.end(), b, e);
+        ed.curr.text[absy(ed)].resize(absx(ed));
+    }
+    ed.curr.text.insert(ed.curr.text.begin() + absy(ed) + 1, std::move(v));
+    refresh(ed, ed.curr.pagey, ed.curr.pagex, ed.curr.y);
+    rstcurs(ed);
+    mvdown(ed);
+}
+void stream(Ed &ed, FILE *p) {
+    auto restore = ed.restore;
+    ed.restore = false;
+    int c;
+    while ((c = fgetc(p)) != EOF) {
+        if (std::isprint(c)) {
+            insert(ed, (char)c);
+            continue;
+        }
+        switch (c) {
+        default:
+            insert(ed, ' ');
+            break;
+        case (key::nl):
+            nocnl(ed);
+            break;
+        case (key::tab):
+            insert(ed, '\t', 4);
+        }
+    }
+    ed.restore = restore;
+    savecurs(ed);
+}
+bool isemptycurr(const Ed &ed) {
+    if (ed.curr.text.begin() + absy(ed) >= ed.curr.text.end()) {
+        return true;
+    }
+    auto l = ed.curr.text.begin() + absy(ed);
+    if (std::all_of(l->begin(), l->end(), [](auto &c) { return c == 0; })) {
+        return true;
+    }
+    if (absx(ed) == 0) {
+        return true;
+    }
+    return false;
+}
+
+void exec(Ed &ed, const unsigned y, unsigned x) {
+    static std::vector<char> cmd;
+    const auto &text = ed.curr.text;
+    if (y >= text.size()) {
+        return;
+    }
+    if (x >= text[y].size()) {
+        return;
+    }
+    auto restore = ed.restore;
+    ed.restore = false;
+    cmd.resize(0);
+    for (const auto &c : text[y]) {
+        if (c == 0) {
+            cmd.push_back(' ');
+        } else {
+            cmd.push_back(c);
+        }
+    }
+    cmd.push_back(0);
+    showmsg(ed, cmd.data());
+    auto p = popen(cmd.data(), "r");
+    if (p != nullptr) {
+        nocnl(ed);
+        stream(ed, p);
+        fclose(p);
+    }
+    ed.restore = restore;
+    savecurs(ed);
+}
+void exec(Ed &ed) {
+    rstcurs(ed);
+    return exec(ed, absy(ed), absx(ed));
+}
+void mvupbound(Ed &ed, unsigned step = 1) {
+    if (absy(ed) < step) {
+        return;
+    }
+    if (ed.curr.y < step) {
+        refresh(ed, ed.curr.pagey -= step, ed.curr.pagex);
+        move(ed, ed.curr.y, ed.curr.x);
+        return;
+    }
+    move(ed, ed.curr.y -= step, ed.curr.x);
+}
+void mvdownbound(Ed &ed, unsigned step = 1) {
+    if (absy(ed) + step < ed.curr.text.size()) {
+        refresh(ed, ed.curr.pagey += step, ed.curr.pagex);
+        move(ed, ed.curr.y, ed.curr.x);
+        return;
+    }
+    if (ed.curr.y + step > ed.rows - 1) {
+        return;
+    }
+    move(ed, ed.curr.y += step, ed.curr.x);
+}
+void fillstr(const Text &text, std::vector<char> &str) {
+    if (text.size() < 2) {
+        str.push_back(0);
+        return;
+    }
+    for (const auto &ch : text[text.size() - 2]) {
+        if (std::isprint(ch)) {
+            str.push_back(ch);
+        } else {
+            str.push_back(' ');
+        }
+    }
+    str.push_back(0);
+}
+void savesession(Ed &ed) {
+    Session &s = ed.workspace[ed.curr.name];
+    s.text = ed.curr.text;
+    s.y = ed.curr.y;
+    s.x = ed.curr.x;
+    s.pagey = ed.curr.pagey;
+    s.pagex = ed.curr.pagex;
+    s.fname = ed.curr.fname;
+}
+void opensession(Ed &ed, const std::string &name) {
+    savesession(ed);
+    Session &s = ed.workspace[name];
+    ed.curr.text = s.text;
+    ed.curr.y = s.y;
+    ed.curr.x = s.x;
+    ed.curr.pagey = s.pagey;
+    ed.curr.pagex = s.pagex;
+    ed.curr.fname = s.fname;
+    ed.curr.name = name;
+    refresh(ed);
+    savecurs(ed);
+}
+void handlecmd(Ed &ed) {
+    static Ed line;
+    static std::vector<char> cmd;
+    char str[121];
+    line.restore = false;
+    line.cols = ed.cols;
+    line.rows = 1;
+    line.winofy = ed.cols - 2;
+    line.winofx = 0;
+    line.cols = ed.cols;
+    int ch;
+    move(ed, line.winofy, line.winofx);
+    auto err = [&] {
+        while ((ch = getk())) {
+            switch (ch) {
+            default:
+                insert(line, (char)ch);
+                break;
+            case (key::up):
+                mvupbound(line);
+                break;
+            case (key::down):
+                mvdownbound(line);
+                break;
+            case (key::left):
+                mvleft(line);
+                break;
+            case (key::right):
+                mvright(line);
+                break;
+            case (key::back):
+                delch(line);
+                break;
+            case (key::nl):
+                if (!isemptycurr(line)) {
+                    nocnl(line);
+                    return 0;
+                }
+                return -1;
+            case (key::del):
+                rmch(line);
+                break;
+            case (key::tab):
+                insert(line, '\t', 4);
+            case (key::shright):
+                mvright(line, 4);
+                break;
+            case (key::shleft):
+                mvleft(line, 4);
+                break;
+            case (key::f1):
+                return -1;
+            }
+        }
+        return -1;
+    }();
+    if (err == 0) {
+        cmd.resize(0);
+        fillstr(line.curr.text, cmd);
+        move(ed, 0, 0);
+        if (sscanf(cmd.data(), "open %120s", str) == 1) {
+            opensession(ed, str);
+        }
+    }
+    move(ed, ed.curr.y, ed.curr.x);
+}
 void start() {
     setattrs(true);
     need_redraw = false;
     winsize w;
     ioctl(out, TIOCGWINSZ, &w);
-    Ed fred(w.ws_col, w.ws_row - 1);
+    Ed ed;
+    init(ed);
+    rstscr();
     signal(SIGWINCH, handlesig);
     signal(SIGINT, SIG_IGN);
     int ch = 0;
     do {
         if (need_redraw) {
-            ioctl(out, TIOCGWINSZ, &w);
-            fred.cols = w.ws_col;
-            fred.rows = w.ws_row - 1;
-            fred.pgstep = fred.cols / 2;
-            fred.tstep = w.ws_col / 4 > 4 ? 4 : w.ws_col / 4;
+            init(ed);
             need_redraw = false;
             signal(SIGWINCH, handlesig);
             continue;
         }
         ch = getk();
         if (ch) {
-            switch(ch) {
-            default:            fred.insert((char)ch);
-            cb(key::up):        fred.rst(); fred.mvu();             fred.sav();
-            cb(key::down):      fred.rst(); fred.mvd();             fred.sav();
-            cb(key::left):      fred.mvl();                         fred.sav();
-            cb(key::right):     fred.mvr();                         fred.sav();
-            cb(key::shup):      fred.mvu(fred.tstep);               fred.sav();
-            cb(key::shdown):    fred.mvd(fred.tstep);               fred.sav();
-            cb(key::shright):   fred.mvr(fred.tstep);               fred.sav();
-            cb(key::shleft):    fred.mvl(fred.tstep);               fred.sav();
-            cb(key::pgup):      fred.x = 0; fred.mvu(fred.pgstep);  fred.sav();
-            cb(key::pgdown):    fred.x = 0; fred.mvd(fred.pgstep);  fred.sav();
-            cb(key::back):      fred.del();
-            cb(key::nl):;       fred.nl();                          fred.sav();
-            cb(key::del):       fred.rm();
-            cb('$'):            fred.refresh();
-            cb('@'):            fred.handlecmd();
-            cb(key::tab):       r4(fred.insert('\t'));              fred.sav();
+            switch (ch) {
+            default:
+                insert(ed, (char)ch);
+                break;
+            case (key::up):
+                rstcurs(ed);
+                mvup(ed);
+                savecurs(ed);
+                break;
+            case (key::down):
+                rstcurs(ed);
+                mvdown(ed);
+                savecurs(ed);
+                break;
+            case (key::left):
+                mvleft(ed);
+                savecurs(ed);
+                break;
+            case (key::right):
+                mvright(ed);
+                savecurs(ed);
+                break;
+            case (key::shup):
+                mvup(ed, ed.tstep);
+                savecurs(ed);
+                break;
+            case (key::shdown):
+                mvdown(ed, ed.tstep);
+                savecurs(ed);
+                break;
+            case (key::shright):
+                mvright(ed, ed.tstep);
+                savecurs(ed);
+                break;
+            case (key::shleft):
+                mvleft(ed, ed.tstep);
+                savecurs(ed);
+                break;
+            case (key::pgup):
+                ed.curr.x = 0;
+                mvup(ed, ed.pgstep);
+                savecurs(ed);
+                break;
+            case (key::pgdown):
+                ed.curr.x = 0;
+                mvdown(ed, ed.pgstep);
+                savecurs(ed);
+                break;
+            case (key::back):
+                delch(ed);
+                break;
+            case (key::nl):
+                nobreaknl(ed);
+                savecurs(ed);
+                break;
+            case (key::del):
+                rmch(ed);
+                break;
+            case ('$'):
+                exec(ed);
+                break;
+            case ('@'):
+                handlecmd(ed);
+                break;
+            case (key::tab):
+                insert(ed, '\t', 4);
+                savecurs(ed);
             }
         }
     } while (ch != key::f1);
     setattrs(false);
 }
 
-int main() {
-    start();
-}
+int main() { start(); }

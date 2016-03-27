@@ -355,8 +355,8 @@ int main(int, char *argv[]) {
     sf::Event event;
     window.clear();
     window.display();
-    auto g = Grammar("ABCD>AB.,BC.,CD.,DA.;"
-                     "AaBnnnnncnCndnnnnn>acd,Aad,aBc,dcC");
+    auto g =
+        Grammar("ABCD>AB.,BC.,CD.,DA.;AaBnnnnncnCndnnnnn>acd,Aad,aBc,dcC");
     auto first = Shapes{{{0.f + off, 0.f + off},
                          {0.f + off, wh - off},
                          {ww - off, wh - off},
