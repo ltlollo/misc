@@ -4,42 +4,36 @@
 // @version     1.0
 // @grant       none
 // ==/UserScript==
-
-var fastSpeed = 2.0;
-var fastKey = "+";
-var slowSpeed = 1.25;
-var slowKey = "-";
-var currSpeed = fastSpeed;
-
-var setSpeed = function(vEle, vSpeed) {
+var fastKey = '+';
+var slowKey = '-';
+var curr = 1;
+var vidSpeeds = [
+  1,
+  1.25,
+  1.5,
+  2,
+];
+var setSpeed = function (vEle, vSpeed) {
   currSpeed = vSpeed;
   vEle.playbackRate = vSpeed;
 }
-
-var changeSpeed = function(vSpeed) {
-  Array.prototype.forEach.call(
-    document.getElementsByTagName("video"),
-    function(vEle) {
-      setSpeed(vEle, vSpeed);
-    });
+var changeSpeed = function (vSpeed) {
+  Array.prototype.forEach.call(document.getElementsByTagName('video'), function (vEle) {
+    setSpeed(vEle, vSpeed);
+  });
 }
-
-var handleKey = function(event) {
-  if(event.key === fastKey) {
-    changeSpeed(fastSpeed);
+var handleKey = function (event) {
+  if (event.key === fastKey) {
+    changeSpeed(vidSpeeds[++curr % vidSpeeds.length]);
   } else if (event.key === slowKey) {
-    changeSpeed(slowSpeed);
+    changeSpeed(vidSpeeds[--curr % vidSpeeds.length]);
   }
 }
-
-window.addEventListener("load", function() {
-  document.addEventListener("keypress", handleKey, false);
+window.addEventListener('load', function () {
+  document.addEventListener('keypress', handleKey, false);
 }, false)
-
-window.addEventListener("canplay", function() {
-  Array.prototype.forEach.call(
-    document.getElementsByTagName("video"),
-    function(vEle) {
-        setSpeed(vEle, currSpeed);
-    });
+window.addEventListener('canplay', function () {
+  Array.prototype.forEach.call(document.getElementsByTagName('video'), function (vEle) {
+    setSpeed(vEle, vidSpeeds[curr]);
+  });
 }, true)
