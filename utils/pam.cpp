@@ -2419,36 +2419,21 @@ auto proc = mkproc(
         },
     });
 
-void utf8(unsigned wc, unsigned char (&str)[5]) {
+void utf8(unsigned wc, unsigned char* str) {
     if (wc <= 0x7F) {
         str[0] = uint8_t(wc & 0x7F);
-        str[1] = '\0';
     } else if (wc <= 0x7FF) {
+        str[0] = uint8_t(0xC0 | (wc & 0x1F) >> 6);
         str[1] = uint8_t(0x80 | (wc & 0x3F));
-        wc = uint8_t(wc >> 6);
-        str[0] = uint8_t(0xC0 | (wc & 0x1F));
-        str[2] = '\0';
     } else if (wc <= 0xFFFF) {
+        str[0] = uint8_t(0xE0 | (wc & 0x0F) >> 12);
+        str[1] = uint8_t(0x80 | (wc & 0x3F) >> 6);
         str[2] = uint8_t(0x80 | (wc & 0x3F));
-        wc = uint8_t(wc >> 6);
-        str[1] = uint8_t(0x80 | (wc & 0x3F));
-        wc = uint8_t(wc >> 6);
-        str[0] = uint8_t(0xE0 | (wc & 0xF));
-        str[3] = '\0';
-    } else if (wc <= 0x10FFFF) {
-        str[3] = uint8_t(0x80 | (wc & 0x3F));
-        wc = uint8_t(wc >> 6);
-        str[2] = uint8_t(0x80 | (wc & 0x3F));
-        wc = uint8_t(wc >> 6);
-        str[1] = uint8_t(0x80 | (wc & 0x3F));
-        wc = uint8_t(wc >> 6);
-        str[0] = uint8_t(0xF0 | (wc & 0x7));
-        str[4] = '\0';
     } else {
-        str[2] = 0xEF;
-        str[1] = 0xBF;
-        str[0] = 0xBD;
-        str[3] = '\0';
+        str[0] = uint8_t(0xF0 | (wc & 0x07) >> 18);
+        str[1] = uint8_t(0x80 | (wc & 0x3F) >> 12);
+        str[2] = uint8_t(0x80 | (wc & 0x3F) >> 6);
+        str[3] = uint8_t(0x80 | (wc & 0x3F));
     }
 }
 auto amp(const Range &r) {
