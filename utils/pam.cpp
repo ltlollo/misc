@@ -2320,7 +2320,6 @@ enum Style : unsigned {
     link = 4,
 } style = normal;
 
-
 auto proc = mkproc(
     Trans{
         [](auto r) { return starts_with(r, "p", "tr", "ul", "pre", "table"); },
@@ -2363,7 +2362,7 @@ auto proc = mkproc(
             return starts_with(r, "/p", "/div", "/li", "/ul", "/tr", "/pre",
                                "/table");
         },
-        [](auto r) {
+        [](auto) {
             if (nest-- == 0) {
                 nest = 0;
             }
@@ -2373,7 +2372,7 @@ auto proc = mkproc(
         [](auto r) {
             return starts_with(r, "/h1", "/h2", "/h3", "/h4", "/h5");
         },
-        [](auto r) {
+        [](auto) {
             style = normal;
             nl = true;
             if (nest-- == 0) {
@@ -2474,7 +2473,7 @@ auto amp(const Range &r) {
         unsigned base = 10;
         if (*it == 'x') {
             ++it;
-            if (size <= 1) {
+            if (size-- <= 1) {
                 goto FAIL;
             }
             base = 16;
