@@ -2320,6 +2320,7 @@ enum Style : unsigned {
     link = 4,
 } style = normal;
 
+
 auto proc = mkproc(
     Trans{
         [](auto r) { return starts_with(r, "p", "tr", "ul", "pre", "table"); },
@@ -2359,11 +2360,12 @@ auto proc = mkproc(
     },
     Trans{
         [](auto r) {
-            return starts_with(r, "/p", "/div", "/li", "/ul", "/tr", "/pre");
+            return starts_with(r, "/p", "/div", "/li", "/ul", "/tr", "/pre",
+                               "/table");
         },
-        [](auto) {
+        [](auto r) {
             if (nest-- == 0) {
-                throw std::runtime_error("incorrect formatting");
+                nest = 0;
             }
         },
     },
@@ -2371,11 +2373,11 @@ auto proc = mkproc(
         [](auto r) {
             return starts_with(r, "/h1", "/h2", "/h3", "/h4", "/h5");
         },
-        [](auto) {
+        [](auto r) {
             style = normal;
             nl = true;
             if (nest-- == 0) {
-                throw std::runtime_error("incorrect formatting");
+                nest = 0;
             }
         },
     },
@@ -2410,8 +2412,7 @@ auto proc = mkproc(
     },
     Trans{
         [](auto r) {
-            return starts_with(r, "/b", "/a", "/i", "/em", "/strong", "/code",
-                               "/table");
+            return starts_with(r, "/b", "/a", "/i", "/em", "/strong", "/code");
         },
         [](auto) {
             style = normal;
