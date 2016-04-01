@@ -2421,21 +2421,26 @@ auto proc = mkproc(
 
 void utf8(unsigned wc, unsigned char* str) {
     if (wc <= 0x7F) {
-        str[0] = uint8_t(wc & 0x7F);
+        str[0] = uint8_t(wc >> 0 & 0x7F);
+        str[1] = '\0';
     } else if (wc <= 0x7FF) {
-        str[0] = uint8_t(0xC0 | (wc & 0x1F) >> 6);
-        str[1] = uint8_t(0x80 | (wc & 0x3F));
+        str[0] = uint8_t(0xC0 | (wc >> 06 & 0x1F));
+        str[1] = uint8_t(0x80 | (wc >> 00 & 0x3F));
+        str[2] = '\0';
     } else if (wc <= 0xFFFF) {
-        str[0] = uint8_t(0xE0 | (wc & 0x0F) >> 12);
-        str[1] = uint8_t(0x80 | (wc & 0x3F) >> 6);
-        str[2] = uint8_t(0x80 | (wc & 0x3F));
+        str[0] = uint8_t(0xE0 | (wc >> 12 & 0x0F));
+        str[1] = uint8_t(0x80 | (wc >> 06 & 0x3F));
+        str[2] = uint8_t(0x80 | (wc >> 00 & 0x3F));
+        str[3] = '\0';
     } else {
-        str[0] = uint8_t(0xF0 | (wc & 0x07) >> 18);
-        str[1] = uint8_t(0x80 | (wc & 0x3F) >> 12);
-        str[2] = uint8_t(0x80 | (wc & 0x3F) >> 6);
-        str[3] = uint8_t(0x80 | (wc & 0x3F));
+        str[0] = uint8_t(0xF0 | (wc >> 18 & 0x07));
+        str[1] = uint8_t(0x80 | (wc >> 12 & 0x3F));
+        str[2] = uint8_t(0x80 | (wc >> 06 & 0x3F));
+        str[3] = uint8_t(0x80 | (wc >> 00 & 0x3F));
+        str[4] = '\0';
     }
 }
+
 auto amp(const Range &r) {
     unsigned char c[5] = {};
     if (r.diff() == 0) {
