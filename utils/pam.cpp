@@ -2310,9 +2310,9 @@ bool starts_with(const Range &r, const char (&... str)[Ns]) {
 }
 
 bool mute = false, s = false, nl = false, list = false, effects = true,
-     pl = false;
+     pl = false, ulink = false;
 unsigned nest = 0, linkn = 0;
-static std::string linkpro = "href=\"", commend = "-->";
+static std::string linkpro = "href=\"", commpro = "!--" , commap = "-->";
 static std::vector<Range> links;
 
 enum Style : unsigned {
@@ -2409,9 +2409,12 @@ auto proc = mkproc(
         [](auto r) { return starts_with(r, "a"); },
         [](auto r) {
             style = link;
-            s = true;
-            auto lb = std::find_first_of(r.b, r.e, std::begin(linkpro),
-                                         std::end(linkpro));
+            ulink = s = true;
+            if (!pl) {
+                return;
+            }
+            auto lb =
+                std::search(r.b, r.e, std::begin(linkpro), std::end(linkpro));
             if (lb != r.e) {
                 lb += linkpro.size();
                 links.emplace_back(Range{lb, std::find(lb, r.e, '"')});
@@ -2421,8 +2424,21 @@ auto proc = mkproc(
         },
     },
     Trans{
+        [](auto r) { return starts_with(r, "/a"); },
+        [](auto) {
+            style = normal;
+            s = true;
+            if (!pl) {
+                return;
+            }
+            if (ulink && links.size()) {
+                links.erase(std::end(links) - 1);
+            }
+        },
+    },
+    Trans{
         [](auto r) {
-            return starts_with(r, "/b", "/a", "/i", "/em", "/strong", "/code");
+            return starts_with(r, "/b", "/i", "/em", "/strong", "/code");
         },
         [](auto) {
             style = normal;
@@ -2554,6 +2570,7 @@ Effect print = [](const Range &r) {
         }
         if (pl && style == Style::link) {
             printf("[%d]", linkn++);
+            ulink = false;
         }
         It n;
         while (ib != ie) {
@@ -2566,6 +2583,10 @@ Effect print = [](const Range &r) {
         }
     }
 };
+
+auto is(Range r, const auto& s) {
+    return std::equal(r.b, r.e, std::begin(s), std::end(s));
+}
 
 int main(int args, char *argv[]) {
     if (args - 1 > 0) {
@@ -2585,15 +2606,13 @@ int main(int args, char *argv[]) {
     It ib(std::begin(in)), ie, end(std::end(in));
     while (ib != end) {
         if (*ib == '<') {
-            if (ib + 3 < end && *(ib + 1) == '!' && *(ib + 2) == '-' &&
-
-                *(ib + 3) != '-') {
+            if (ib + 3 < end && is({ib, ib + 3}, commpro)) {
                 ib += 3;
-                if ((ib = std::find_first_of(ib, end, std::begin(commend),
-                                             std::end(commend))) == end) {
+                if ((ib = std::search(ib, end, std::begin(commap),
+                                      std::end(commap))) == end) {
                     return 1;
                 }
-                ib += commend.size();
+                ib += commap.size();
             }
             if ((ie = std::find(ib, end, '>')) == end) {
                 return 1;
@@ -2614,7 +2633,7 @@ int main(int args, char *argv[]) {
         for (unsigned i = 0; i < links.size(); ++i){
             auto& l = links[i];
             unsigned diff = (unsigned)l.diff();
-            printf("[%d]: %.*s\n", i++, diff, &*l.b);
+            printf("[%d]: %.*s\n", i, diff, &*l.b);
         }
     }
     return 0;
