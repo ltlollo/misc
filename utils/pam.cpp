@@ -2310,7 +2310,7 @@ bool starts_with(const Range &r, const char (&... str)[Ns]) {
 }
 
 bool mute = false, s = false, nl = false, list = false, effects = true,
-     pl = true;
+     pl = false;
 unsigned nest = 0, linkn = 0;
 static std::string linkpro = "href=\"", commend = "-->";
 static std::vector<Range> links;
@@ -2567,24 +2567,33 @@ Effect print = [](const Range &r) {
     }
 };
 
-int main(int args, char *[]) {
+int main(int args, char *argv[]) {
     if (args - 1 > 0) {
-        effects = false;
+        auto as = std::string(argv[1]);
+        for (const auto& c: as) {
+            switch(c) {
+            case 'd':
+                effects = false;
+                break;
+            case 'l':
+                pl = true;
+                break;
+            }
+        }
     }
     std::vector<char> in(std::istreambuf_iterator<char>(std::cin), {});
     It ib(std::begin(in)), ie, end(std::end(in));
-    auto comm = std::string("-->");
     while (ib != end) {
         if (*ib == '<') {
             if (ib + 3 < end && *(ib + 1) == '!' && *(ib + 2) == '-' &&
 
                 *(ib + 3) != '-') {
                 ib += 3;
-                if ((ib = std::find_first_of(ib, end, std::begin(comm),
-                                             std::end(comm))) == end) {
+                if ((ib = std::find_first_of(ib, end, std::begin(commend),
+                                             std::end(commend))) == end) {
                     return 1;
                 }
-                ib += comm.size();
+                ib += commend.size();
             }
             if ((ie = std::find(ib, end, '>')) == end) {
                 return 1;
