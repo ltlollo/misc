@@ -2309,8 +2309,11 @@ bool starts_with(const Range &r, const char (&... str)[Ns]) {
     return (single(r, str) || ...);
 }
 
-bool mute = false, s = false, nl = false, list = false, effects = true;
-unsigned nest = 0;
+bool mute = false, s = false, nl = false, list = false, effects = true,
+     pl = true;
+unsigned nest = 0, linkn = 0;
+static std::string linkpro = "href=\"", commend = "-->";
+static std::vector<Range> links;
 
 enum Style : unsigned {
     normal = 0,
@@ -2404,9 +2407,17 @@ auto proc = mkproc(
     },
     Trans{
         [](auto r) { return starts_with(r, "a"); },
-        [](auto) {
+        [](auto r) {
             style = link;
             s = true;
+            auto lb = std::find_first_of(r.b, r.e, std::begin(linkpro),
+                                         std::end(linkpro));
+            if (lb != r.e) {
+                lb += linkpro.size();
+                links.emplace_back(Range{lb, std::find(lb, r.e, '"')});
+            } else {
+                links.emplace_back(Range{lb, r.e});
+            }
         },
     },
     Trans{
@@ -2541,6 +2552,9 @@ Effect print = [](const Range &r) {
         if (effects) {
             printf("\033[%d;37m", style);
         }
+        if (pl && style == Style::link) {
+            printf("[%d]", linkn++);
+        }
         It n;
         while (ib != ie) {
             if (ib != (n = std::find(ib, ie, '&'))) {
@@ -2559,8 +2573,19 @@ int main(int args, char *[]) {
     }
     std::vector<char> in(std::istreambuf_iterator<char>(std::cin), {});
     It ib(std::begin(in)), ie, end(std::end(in));
+    auto comm = std::string("-->");
     while (ib != end) {
         if (*ib == '<') {
+            if (ib + 3 < end && *(ib + 1) == '!' && *(ib + 2) == '-' &&
+
+                *(ib + 3) != '-') {
+                ib += 3;
+                if ((ib = std::find_first_of(ib, end, std::begin(comm),
+                                             std::end(comm))) == end) {
+                    return 1;
+                }
+                ib += comm.size();
+            }
             if ((ie = std::find(ib, end, '>')) == end) {
                 return 1;
             }
@@ -2573,10 +2598,17 @@ int main(int args, char *[]) {
         }
     }
     if (effects) {
-        printf("\033[0;37m\n");
-    } else {
-        putchar('\n');
+        printf("\033[0;37m");
     }
+    if (pl && links.size()) {
+        printf("\n\nLinks:\n");
+        for (unsigned i = 0; i < links.size(); ++i){
+            auto& l = links[i];
+            unsigned diff = (unsigned)l.diff();
+            printf("[%d]: %.*s\n", i++, diff, &*l.b);
+        }
+    }
+    putchar('\n');
     return 0;
 }
 
