@@ -2433,6 +2433,7 @@ auto proc = mkproc(
             }
             if (ulink && links.size()) {
                 links.erase(std::end(links) - 1);
+                ulink = false;
             }
         },
     },
