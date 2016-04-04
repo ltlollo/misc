@@ -2408,18 +2408,16 @@ auto proc = mkproc(
     Trans{
         [](auto r) { return starts_with(r, "a"); },
         [](auto r) {
-            style = link;
-            ulink = s = true;
-            if (!pl) {
-                return;
-            }
             auto lb =
                 std::search(r.b, r.e, std::begin(linkpro), std::end(linkpro));
             if (lb != r.e) {
+                style = link;
+                ulink = s = true;
+                if (!pl) {
+                    return;
+                }
                 lb += linkpro.size();
                 links.emplace_back(Range{lb, std::find(lb, r.e, '"')});
-            } else {
-                links.emplace_back(Range{lb, r.e});
             }
         },
     },
@@ -2427,11 +2425,11 @@ auto proc = mkproc(
         [](auto r) { return starts_with(r, "/a"); },
         [](auto) {
             style = normal;
-            s = true;
             if (!pl) {
                 return;
             }
             if (ulink && links.size()) {
+                s = true;
                 links.erase(std::end(links) - 1);
                 ulink = false;
             }
@@ -2629,8 +2627,9 @@ int main(int args, char *argv[]) {
     if (effects) {
         printf("\033[0;37m");
     }
+    putchar('\n');
     if (pl && links.size()) {
-        printf("\n\nLinks:\n");
+        printf("\nLinks:\n");
         for (unsigned i = 0; i < links.size(); ++i){
             auto& l = links[i];
             unsigned diff = (unsigned)l.diff();
