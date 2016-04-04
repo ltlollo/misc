@@ -2617,7 +2617,6 @@ int main(int args, char *argv[]) {
             printf("[%d]: %.*s\n", i++, diff, &*l.b);
         }
     }
-    putchar('\n');
     return 0;
 }
 
