@@ -161,8 +161,9 @@ bar {
 # Custom launchers
 bindsym $mod+x exec 'xombrero'
 bindsym $mod+m exec 'thunar'
-bindsym $mod+i exec 'iceweasel'
-bindsym $mod+u exec "mpv `xclip -selection clipboard -out`"
+bindsym $mod+i exec "firejail firefox"
+bindsym $mod+p exec "uxterm -e firejail --quiet"
+bindsym $mod+u exec "firejail mpv `xclip -selection clipboard -out`"
 
 set $Locker i3lock && sleep 1
 

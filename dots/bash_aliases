@@ -14,6 +14,7 @@ alias ...='cd ../..'
 alias play='AUDIODEV=sysdefault:CARD=PCH; play'
 
 # shortcuts
+alias ralias="source $HOME/.bash_aliases"
 alias sizeof='du -bh'
 alias news='tin -rg nntp.aioe.org'
 alias gcv='rm *.part'
@@ -39,6 +40,10 @@ alias rr='repeat randopen'
 alias es='(while read i; do echo "${i##*.}"; done< <(find -type f -name \*.\*))\
           | sort | uniq -c | sort -n'
 alias provides='dpkg-query -S'
+alias vimup='vim +PluginUpdate +qall'
+
+gppflags='-Ofast -mtune=native -fno-rtti -DNDEBUG -s -floop-interchange
+ -ftree-loop-distribution -floop-strip-mine -floop-block -ftree-vectorize'
 
 # functions
 repeat() { while $@; do ``; done; }
@@ -49,6 +54,8 @@ ttc() { [[ `file "$1" | grep text\$` ]] &&
 sh -c "`sed -n -e "2{s:^\/\/::;s:\sself\(\s*$\|\s\): \\\"$1\\\" :g;p;q}" \"$1\"`"; }
 mon() { L=`pidof $1`; top -p ${L// /,}; }
 dev() { [[ $1 ]] && { mkdir "$HOME/dev/$1" 2>/dev/null; cd "$HOME/dev/$1"; }; }
+xc() { echo "$@" | xclip -selection clipboard; }
+xp() { xclip -o --selection clipboard; }
 
 # typos
 alias cim='vim'
@@ -58,4 +65,3 @@ alias bim='vim'
 alias rep='{ coproc C { read L; while $L; do ``; done; } >&3; } 3>&1;\
     1>&${C[1]} echo'
 alias stop='kill $C_PID'
-
