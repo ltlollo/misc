@@ -42,8 +42,10 @@ alias es='(while read i; do echo "${i##*.}"; done< <(find -type f -name \*.\*))\
 alias provides='dpkg-query -S'
 alias vimup='vim +PluginUpdate +qall'
 
-gppflags='-Ofast -mtune=native -fno-rtti -DNDEBUG -s -floop-interchange
- -ftree-loop-distribution -floop-strip-mine -floop-block -ftree-vectorize'
+export cflags='-pthread -Ofast -mtune=native -DNDEBUG -s -ftree-vectorize
+    -mmmx  -msse  -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -mavx -mavx2
+    -mfma -mfpmath=sse -Wall -Wextra -pedantic'
+export cppflags="$cflags -fno-rtti"
 
 # functions
 repeat() { while $@; do ``; done; }
@@ -62,6 +64,5 @@ alias cim='vim'
 alias bim='vim'
 
 # silly
-alias rep='{ coproc C { read L; while $L; do ``; done; } >&3; } 3>&1;\
-    1>&${C[1]} echo'
+alias rep='{ coproc C { read L; while $L; do ``; done; } >&3; } 3>&1;1>&${C[1]} echo'
 alias stop='kill $C_PID'
