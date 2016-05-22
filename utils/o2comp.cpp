@@ -27,28 +27,22 @@ at(Model *m, unsigned pos) {
     return m->cum + 258 * m->o1 * m->o2 + 258 * m->o1 + pos;
 }
 
+void
+updatep(Model *m, unsigned pos) {
+    if (*at(m, 257) != HI) {
+        for (unsigned i = pos + 1; i < 258; ++i) {
+            ++*at(m, i);
+        }
+    }
+    m->o2 = m->o1;
+    m->o1 = pos;
+}
+
 Prob
 getp(Model *m, unsigned pos) {
     Prob res = {*at(m, pos), *at(m, pos + 1), *at(m, 257)};
-    if (*at(m, 257) != HI) {
-        for (unsigned i = pos + 1; i < 258; ++i) {
-            ++*at(m, i);
-        }
-    }
-    m->o2 = m->o1;
-    m->o1 = pos;
+    updatep(m, pos);
     return res;
-}
-
-void
-update(Model *m, unsigned pos) {
-    if (*at(m, 257) != HI) {
-        for (unsigned i = pos + 1; i < 258; ++i) {
-            ++*at(m, i);
-        }
-    }
-    m->o2 = m->o1;
-    m->o1 = pos;
 }
 
 int
@@ -72,13 +66,7 @@ getch(Model *m, num_t scale, Prob *p) {
             p->lo = *at(m, i);
             p->hi = *at(m, i + 1);
             p->count = *at(m, 257);
-            if (*at(m, 257) != HI) {
-                for (unsigned j = i + 1; j < 258; ++j) {
-                    ++*at(m, j);
-                }
-            }
-            m->o2 = m->o1;
-            m->o1 = i;
+            updatep(m, i);
             return i;
         }
     }
@@ -177,33 +165,7 @@ encode() {
             lo = ((lo << 1) | 0) & HI;
         }
     } while (c != EOM);
-    for (unsigned i = 0; i < 3; ++i) {
-        Prob p = getp(&m, c);
-        num_t range = hi - lo + 1;
-        hi = lo + (range * p.hi / p.count) - 1;
-        lo = lo + (range * p.lo / p.count);
-        while (true) {
-            if (hi < MD) {
-                if (putbs(0, &pending)) {
-                    return -1;
-                }
-            } else if (lo >= MD) {
-                if (putbs(1, &pending)) {
-                    return -1;
-                }
-            } else if (lo >= ML && hi < HM) {
-                ++pending;
-                lo -= ML;
-                hi -= ML;
-            } else {
-                break;
-            }
-            hi = ((hi << 1) | 1) & HI;
-            lo = ((lo << 1) | 0) & HI;
-        }
-
-    }
-    ++pending;
+    pending += NB * 8;
     if (lo < ML) {
         if (putbs(0, &pending)) {
             return -1;
