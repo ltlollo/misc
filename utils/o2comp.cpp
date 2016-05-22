@@ -22,12 +22,13 @@ static const num_t HI = 0xffffffffu;
 static const num_t MD = 0x80000000u;
 static const num_t HM = 0xc0000000u;
 static const num_t ML = 0x40000000u;
+static num_t cum[258 * 258 * 258];
 
 static void usage(void);
 static num_t *at(Model *, unsigned);
 static void updatep(Model *, unsigned);
 static Prob getp(Model *m, unsigned pos);
-static int init(Model *m);
+static void init(Model *m);
 static int getch(Model *m, num_t scale, Prob *p);
 static unsigned get(void);
 static int putb(bool b);
@@ -81,9 +82,7 @@ encode(void) {
     unsigned pending = 0;
     num_t hi = HI, lo = 0;
     Model m;
-    if (init(&m) == -1) {
-        return -1;
-    }
+    init(&m);
     int c;
     do {
         c = get();
@@ -131,9 +130,7 @@ decode(void) {
     Prob p;
     num_t hi = HI, lo = 0, va = 0;
     Model m;
-    if (init(&m) == -1) {
-        return -1;
-    }
+    init(&m);
     for (unsigned i = 0; i < NB; ++i) {
         if ((c = getchar()) == EOF) {
             while (i--) {
@@ -181,17 +178,14 @@ decode(void) {
     return 0;
 }
 
-static int
+static void
 init(Model *m) {
     m->o2 = EOM;
     m->o1 = EOM;
-    if ((m->cum = (num_t *)malloc(sizeof(num_t) * 258 * 258 * 258)) == NULL) {
-        return -1;
-    }
+    m->cum = cum;
     for (unsigned i = 0; i < 258 * 258 * 258; ++i) {
         m->cum[i] = i % 258;
     }
-    return 0;
 }
 
 static Prob
