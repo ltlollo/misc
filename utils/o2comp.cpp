@@ -19,7 +19,7 @@ static const num_t HI = 0xffffffffu;
 static const num_t MD = 0x80000000u;
 static const num_t HM = 0xc0000000u;
 static const num_t ML = 0x40000000u;
-static num_t cum[258 * 258 * 258];
+static num_t cum[257 * 257 * 258];
 
 static void usage(void);
 static inline num_t *at(Model *, int);
@@ -178,7 +178,7 @@ static inline void
 init(Model *m) {
     m->o2 = EOM;
     m->o1 = EOM;
-    for (int i = 0; i < 258 * 258 * 258; ++i) {
+    for (int i = 0; i < 257 * 257 * 258; ++i) {
         cum[i] = i % 258;
     }
 }
@@ -192,7 +192,7 @@ getp(Model *m, int pos) {
 
 static inline num_t *
 at(Model *m, int pos) {
-    return cum + 258 * 258 * m->o2 + 258 * m->o1 + pos;
+    return cum + 258 * 257 * m->o2 + 258 * m->o1 + pos;
 }
 
 static inline void
