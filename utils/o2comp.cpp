@@ -10,10 +10,7 @@
 
 typedef uint64_t num_t;
 typedef struct { num_t lo, hi, count; } Prob;
-typedef struct {
-    int o2, o1;
-    num_t *cum;
-} Model;
+typedef struct { int o2, o1; } Model;
 
 static const int NB = 4;
 static const int EOM = 256;
