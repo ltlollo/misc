@@ -1,3 +1,5 @@
+// gpp self $cppflags
+
 #include <string>
 #include <iostream>
 #include <stdio.h>
