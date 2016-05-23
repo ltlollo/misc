@@ -192,7 +192,7 @@ getp(Model *m, int pos) {
 
 static inline num_t *
 at(Model *m, int pos) {
-    return cum + 258 * m->o1 * m->o2 + 258 * m->o1 + pos;
+    return cum + 258 * 258 * m->o2 + 258 * m->o1 + pos;
 }
 
 static inline void
