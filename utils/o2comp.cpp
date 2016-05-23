@@ -1,4 +1,4 @@
-// gpp self $cflags
+// clangpp self $cflags
 
 #include <assert.h>
 #include <err.h>
@@ -11,12 +11,12 @@
 typedef uint64_t num_t;
 typedef struct { num_t lo, hi, count; } Prob;
 typedef struct {
-    unsigned o2, o1;
+    int o2, o1;
     num_t *cum;
 } Model;
 
-static const unsigned NB = 4;
-static const unsigned EOM = 256;
+static const int NB = 4;
+static const int EOM = 256;
 
 static const num_t HI = 0xffffffffu;
 static const num_t MD = 0x80000000u;
@@ -25,16 +25,16 @@ static const num_t ML = 0x40000000u;
 static num_t cum[258 * 258 * 258];
 
 static void usage(void);
-static num_t *at(Model *, unsigned);
-static void updatep(Model *, unsigned);
-static Prob getp(Model *m, unsigned pos);
-static void init(Model *m);
-static int getch(Model *m, num_t scale, Prob *p);
-static unsigned get(void);
-static int putb(bool b);
-static int getb(bool *bit);
-static int flushbs(void);
-static int putbs(bool bit, unsigned *pending);
+static inline num_t *at(Model *, int);
+static inline void updatep(Model *, int);
+static inline Prob getp(Model *m, int pos);
+static inline void init(Model *m);
+static inline int getch(Model *m, num_t scale, Prob *p);
+static inline int get(void);
+static inline int putb(bool b);
+static inline int getb(bool *bit);
+static inline int flushbs(void);
+static inline int putbs(bool bit, int *pending);
 
 extern char *__progname;
 
@@ -79,11 +79,10 @@ main(int argc, char *argv[]) {
 
 int
 encode(void) {
-    unsigned pending = 0;
+    int c, pending = 0;
     num_t hi = HI, lo = 0;
     Model m;
     init(&m);
-    int c;
     do {
         c = get();
         Prob p = getp(&m, c);
@@ -131,7 +130,7 @@ decode(void) {
     num_t hi = HI, lo = 0, va = 0;
     Model m;
     init(&m);
-    for (unsigned i = 0; i < NB; ++i) {
+    for (int i = 0; i < NB; ++i) {
         if ((c = getchar()) == EOF) {
             while (i--) {
                 putchar((va >> (i * 8)) & 0xff);
@@ -178,32 +177,31 @@ decode(void) {
     return 0;
 }
 
-static void
+static inline void
 init(Model *m) {
     m->o2 = EOM;
     m->o1 = EOM;
-    m->cum = cum;
-    for (unsigned i = 0; i < 258 * 258 * 258; ++i) {
-        m->cum[i] = i % 258;
+    for (int i = 0; i < 258 * 258 * 258; ++i) {
+        cum[i] = i % 258;
     }
 }
 
-static Prob
-getp(Model *m, unsigned pos) {
+static inline Prob
+getp(Model *m, int pos) {
     Prob res = {*at(m, pos), *at(m, pos + 1), *at(m, 257)};
     updatep(m, pos);
     return res;
 }
 
-static num_t *
-at(Model *m, unsigned pos) {
-    return m->cum + 258 * m->o1 * m->o2 + 258 * m->o1 + pos;
+static inline num_t *
+at(Model *m, int pos) {
+    return cum + 258 * m->o1 * m->o2 + 258 * m->o1 + pos;
 }
 
-static void
-updatep(Model *m, unsigned pos) {
+static inline void
+updatep(Model *m, int pos) {
     if (*at(m, 257) != HI) {
-        for (unsigned i = pos + 1; i < 258; ++i) {
+        for (int i = pos + 1; i < 258; ++i) {
             ++*at(m, i);
         }
     }
@@ -211,9 +209,9 @@ updatep(Model *m, unsigned pos) {
     m->o1 = pos;
 }
 
-static int
+static inline int
 getch(Model *m, num_t scale, Prob *p) {
-    for (unsigned i = 0; i < 257; ++i) {
+    for (int i = 0; i < 257; ++i) {
         if (scale < *at(m, i + 1)) {
             p->lo = *at(m, i);
             p->hi = *at(m, i + 1);
@@ -225,7 +223,7 @@ getch(Model *m, num_t scale, Prob *p) {
     return -1;
 }
 
-static unsigned
+static inline int
 get(void) {
     int c = getchar();
     if (c != EOF) {
@@ -234,20 +232,18 @@ get(void) {
     return EOM;
 }
 
-static int
+static inline int
 putb(bool b) {
-    static unsigned c = 0;
-    static unsigned count = 0;
+    static int c = 0, count = 0;
     c = (c << 1) | b;
     if ((++count) % 8 == 0) {
         return putchar(c);
     }
     return 0;
 }
-static int
+static inline int
 getb(bool *bit) {
-    static int c = 0;
-    static unsigned count = 0;
+    static int c = 0, count = 0;
     if (count % 8 == 0) {
         if ((c = getchar()) == EOF) {
             return -1;
@@ -257,9 +253,9 @@ getb(bool *bit) {
     return 0;
 }
 
-static int
+static inline int
 flushbs(void) {
-    for (unsigned i = 0; i < 7; ++i) {
+    for (int i = 0; i < 7; ++i) {
         if (putb(0) == -1) {
             return -1;
         }
@@ -267,12 +263,12 @@ flushbs(void) {
     return 0;
 }
 
-static int
-putbs(bool bit, unsigned *pending) {
+static inline int
+putbs(bool bit, int *pending) {
     if (putb(bit) == -1) {
         return -1;
     }
-    for (unsigned i = 0; i < *pending; ++i) {
+    for (int i = 0; i < *pending; ++i) {
         if (putb(!bit) == -1) {
             return -1;
         }
