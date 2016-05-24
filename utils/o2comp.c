@@ -1,4 +1,4 @@
-// clangpp self $cflags
+// musl-gcc self $cflags
 
 #include <assert.h>
 #include <err.h>
@@ -29,10 +29,10 @@ static inline Prob getp(Model *m, int pos);
 static inline void init(Model *m);
 static inline int getch(Model *m, num_t scale, Prob *p);
 static inline int get(void);
-static inline int putb(bool b);
-static inline int getb(bool *bit);
+static inline int putb(unsigned b);
+static inline int getb(unsigned *bit);
 static inline int flushbs(void);
-static inline int putbs(bool bit, int *pending);
+static inline int putbs(unsigned bit, int *pending);
 
 extern char *__progname;
 
@@ -87,7 +87,7 @@ encode(void) {
         num_t range = hi - lo + 1;
         hi = lo + (range * p.hi / p.count) - 1;
         lo = lo + (range * p.lo / p.count);
-        while (true) {
+        while (1) {
             if (hi < MD) {
                 if (putbs(0, &pending)) {
                     return -1;
@@ -123,7 +123,7 @@ encode(void) {
 int
 decode(void) {
     int c;
-    bool b;
+    unsigned b;
     Prob p;
     num_t hi = HI, lo = 0, va = 0;
     Model m;
@@ -142,7 +142,7 @@ decode(void) {
         }
         va = (va << 8) | c;
     }
-    while (true) {
+    while (1) {
         num_t range = hi - lo + 1;
         num_t scaled = ((va - lo + 1) * *at(&m, 257) - 1) / range;
         if ((c = getch(&m, scaled, &p)) == -1) {
@@ -156,7 +156,7 @@ decode(void) {
         }
         hi = lo + (range * p.hi / p.count) - 1;
         lo = lo + (range * p.lo / p.count);
-        while (true) {
+        while (1) {
             if (hi < MD) {
             } else if (lo >= MD) {
                 va -= MD;
@@ -236,7 +236,7 @@ get(void) {
 }
 
 static inline int
-putb(bool b) {
+putb(unsigned b) {
     static unsigned c = 0, count = 0, bits[8];
     bits[count++ % 8] = b;
     if (count % 8 == 0) {
@@ -250,7 +250,7 @@ putb(bool b) {
 
 
 static inline int
-getb(bool *bit) {
+getb(unsigned *bit) {
     static int c = 0, count = 0;
     if ((count & 7) == 0) {
         if ((c = getchar()) == EOF) {
@@ -272,7 +272,7 @@ flushbs(void) {
 }
 
 static inline int
-putbs(bool bit, int *pending) {
+putbs(unsigned bit, int *pending) {
     if (putb(bit) == -1) {
         return -1;
     }
