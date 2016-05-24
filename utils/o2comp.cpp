@@ -20,6 +20,7 @@ static const num_t MD = 0x80000000u;
 static const num_t HM = 0xc0000000u;
 static const num_t ML = 0x40000000u;
 static num_t cum[257 * 257 * 258];
+static unsigned bmap[258][8];
 
 static void usage(void);
 static inline num_t *at(Model *, int);
@@ -127,6 +128,11 @@ decode(void) {
     num_t hi = HI, lo = 0, va = 0;
     Model m;
     init(&m);
+    for (unsigned i = 0; i < 258; ++i) {
+        for (unsigned j = 0; j < 8; ++j) {
+            bmap[i][j] = (i >> (7 - j)) & 1;
+        }
+    }
     for (int i = 0; i < NB; ++i) {
         if ((c = getchar()) == EOF) {
             while (i--) {
@@ -231,22 +237,27 @@ get(void) {
 
 static inline int
 putb(bool b) {
-    static int c = 0, count = 0;
-    c = (c << 1) | b;
-    if ((++count) % 8 == 0) {
+    static unsigned c = 0, count = 0, bits[8];
+    bits[count++ % 8] = b;
+    if (count % 8 == 0) {
+        c = (bits[0] << 7) | (bits[1] << 6) | (bits[2] << 5) | (bits[3] << 4) |
+            (bits[4] << 3) | (bits[5] << 2) | (bits[6] << 1) | (bits[7] << 0);
         return putchar(c);
     }
     return 0;
 }
+
+
+
 static inline int
 getb(bool *bit) {
     static int c = 0, count = 0;
-    if (count % 8 == 0) {
+    if ((count & 7) == 0) {
         if ((c = getchar()) == EOF) {
             return -1;
         }
     }
-    *bit = ((c >> (7 - (count++ % 8)) & 1));
+    *bit = bmap[c][count++ & 7];
     return 0;
 }
 
