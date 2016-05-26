@@ -20,19 +20,19 @@ static const num_t MD = 0x80000000u;
 static const num_t HM = 0xc0000000u;
 static const num_t ML = 0x40000000u;
 static num_t cum[257 * 257 * 258];
-static unsigned bmap[258][8];
+static unsigned short bmap[258][8];
 
 static void usage(void);
 static inline num_t *at(Model *, int);
 static inline void updatep(Model *, int);
-static inline Prob getp(Model *m, int pos);
-static inline void init(Model *m);
-static inline int getch(Model *m, num_t scale, Prob *p);
+static inline Prob getp(Model *, int);
+static inline void init(Model *);
+static inline int getch(Model *, num_t, Prob *);
 static inline int get(void);
-static inline int putb(unsigned b);
-static inline int getb(unsigned *bit);
+static inline int putb(unsigned short);
+static inline int getb(unsigned short *);
 static inline int flushbs(void);
-static inline int putbs(unsigned bit, int *pending);
+static inline int putbs(unsigned short, int *);
 
 extern char *__progname;
 
@@ -123,7 +123,7 @@ encode(void) {
 int
 decode(void) {
     int c;
-    unsigned b;
+    unsigned short b;
     Prob p;
     num_t hi = HI, lo = 0, va = 0;
     Model m;
@@ -236,8 +236,8 @@ get(void) {
 }
 
 static inline int
-putb(unsigned b) {
-    static unsigned c = 0, count = 0, bits[8];
+putb(unsigned short b) {
+    static unsigned short c = 0, count = 0, bits[8];
     bits[count++ % 8] = b;
     if (count % 8 == 0) {
         c = (bits[0] << 7) | (bits[1] << 6) | (bits[2] << 5) | (bits[3] << 4) |
@@ -250,7 +250,7 @@ putb(unsigned b) {
 
 
 static inline int
-getb(unsigned *bit) {
+getb(unsigned short *bit) {
     static int c = 0, count = 0;
     if ((count & 7) == 0) {
         if ((c = getchar()) == EOF) {
@@ -272,7 +272,7 @@ flushbs(void) {
 }
 
 static inline int
-putbs(unsigned bit, int *pending) {
+putbs(unsigned short bit, int *pending) {
     if (putb(bit) == -1) {
         return -1;
     }
