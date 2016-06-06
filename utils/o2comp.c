@@ -247,8 +247,6 @@ putb(unsigned short b) {
     return 0;
 }
 
-
-
 static inline int
 getb(unsigned short *bit) {
     static int c = 0, count = 0;
