@@ -1,47 +1,48 @@
 // gpp self -lpng
 
-#include <vector>
-#include <iostream>
-#include <string>
 #include <algorithm>
+#include <err.h>
 #include <png++/png.hpp>
+#include <stdio.h>
+#include <string>
+#include <vector>
 
 using namespace std;
 using px_t = png::rgb_pixel;
 using png_t = png::image<px_t>;
-constexpr char lo = 32, lm = 46, hm = 58, hi = 120;
-constexpr double invr = (double(hi)-lo)/hi*255;
-double luma(const px_t& p) { return 0.299*p.red+0.587*p.green+0.114*p.blue; }
-char to_ch(double i) {return(i>=123)?hi:(i>=98&&i<123)?hm:(i>=68&&i<98)?lm:lo;}
+constexpr auto lmap = "   ..:ccccooocc:....   ";
 
-int main(int argc, char *argv[]) {
+unsigned
+lu(px_t &p) {
+    return unsigned(0.299 * p.red + 0.587 * p.green + 0.114 * p.blue) / 20;
+}
+
+int
+main(int argc, char *argv[]) {
     if (argc < 3) {
-        cerr << "Usage:\t" << argv[0] << " png size [-i]\nScope:\tprints pgm/"
-            "ascii grayscale polyglot from a png image given a size"
-            "\n\timg<string>: png input file"
-            "\n\tsize<unsigned>: width of the printed output (required > 0)"
-            "\n\t-i: inverts the output\n";
-        return 1;
+        err(1, "Usage: png size [-i]\nScope:\tprints pgm/ascii grayscale "
+               "polyglot from a png image given a size"
+               "\n\timg<string>: png input file"
+               "\n\tsize<unsigned>: width of the printed output (required > 0)"
+               "\n\t-i: inverts the output");
     }
     bool inv = false;
     if (argc > 3 && argv[3] == "-i"s) {
         inv = true;
     }
     png_t img(argv[1]);
-    double s = stol(argv[2]), w = img.get_width(), h = img.get_height();
-    if (!w || !h || !s) {
-        cerr << "[E]: " << (s ? argv[1] : "new size") << " too small\n";
-        return 1;
+    size_t s = stol(argv[2]), w = img.get_width(), h = img.get_height();
+    if (!w || !h || !(s + 1) || !(s * h / w)) {
+        err(1, "size too small");
     }
-    printf("P5 %ld %ld %d", size_t(s+1), size_t(s*(h/w)), unsigned(hi));
-    for (double i = 0; i < s*(h/w); ++i) {
-        cout << '\n';
-        for (double j = 0; j < s; ++j) {
-            cout << to_ch((!inv ? luma(img[i/s*w][j/s*w]):
-                           invr - luma(img[i/s*w][j/s*w])));
+    printf("P5 %ld %ld %d", s + 1, s * h / w, 'o');
+    for (size_t i = 0; i < s * h / w; ++i) {
+        putchar('\n');
+        for (size_t j = 0; j < s; ++j) {
+            putchar(lmap[lu(img[i * w / s][j * w / s]) + (inv ? 10 : 0)]);
         }
     }
-    cout << endl;
+    putchar('\n');
     return 0;
 }
 
