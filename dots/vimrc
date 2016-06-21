@@ -1,4 +1,5 @@
 set nocompatible
+set hidden
 filetype off
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
@@ -10,13 +11,21 @@ call vundle#end()
 let g:ycm_auto_start_csharp_server = 0
 let g:ycm_confirm_extra_conf = 0
 let g:ycm_show_diagnostics_ui = 0
+
+let g:racer_cmd    = $HOME."/.cargo/bin/racer"
+let $RUST_SRC_PATH = $HOME."/dev/rust/src/"
+
 nnoremap <leader>jd :YcmCompleter GoTo<CR>
 
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
+set laststatus=0
+
 let g:syntastic_cpp_compiler = 'g++'
+let g:syntastic_c_compiler = 'gcc'
 let g:syntastic_cpp_compiler_options = '-fconcepts -std=c++1z'
+let g:syntastic_c_compiler_options = '--std=c11'
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
@@ -30,6 +39,7 @@ au InsertEnter * call matchdelete(w:m1)
 au InsertEnter * let w:m2=matchadd('WhitespaceEOL', '\s\+\%#\@<!$', -1)
 au InsertLeave * call matchdelete(w:m2)
 au InsertLeave * let w:m1=matchadd('WhitespaceEOL', '\s\+$', -1)
+au BufRead,BufNewFile *.txt,*.tex set wrap linebreak nolist textwidth=0 wrapmargin=0
 
 augroup csrc
   au!
