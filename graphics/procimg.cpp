@@ -58,11 +58,9 @@ enum Instr {
     Sin,
     Cos,
 
-    EOI,
+    Tan,
 
     Not,
-
-    Tan,
 
     Asinh,
     Acosh,
@@ -76,6 +74,7 @@ enum Instr {
     Acos,
     Atan,
 
+    EOI,
 };
 
 template <size_t N> struct Prog {
@@ -83,10 +82,12 @@ template <size_t N> struct Prog {
     Instr icache[N];
 };
 
-template <size_t StackSize, size_t ProgSize, int nb = 1> struct Cell {
+template <size_t StackSize, size_t ProgSize, int n = 1> struct Cell {
     Stack<StackSize> stack;
     Prog<ProgSize> prog;
+    static constexpr int nb = n;
     static constexpr unsigned nbs = (2 * nb + 1) * (2 * nb + 1);
+
     uint64_t NbPos[nbs];
     Cell() {
         static_assert(StackSize && ProgSize && nb > 0);
@@ -284,6 +285,16 @@ template <size_t StackSize, size_t ProgSize, int nb = 1> struct Cell {
         }
         return stack.buf[sp].u;
     }
+    void apply(auto &fimg, const auto &simg, size_t x, size_t y,
+               unsigned times = 1) {
+        while (times--)
+            for (size_t i = nb; i < y - nb; ++i) {
+                for (size_t j = nb; j < x - nb; ++j) {
+                    auto c = Color(run(simg, i, j));
+                    fimg.setPixel(j, i, c);
+                }
+            }
+    }
 };
 
 void
@@ -308,28 +319,19 @@ wrap(auto &img) {
     }
 }
 
-void
-apply(auto &prog, auto &fimg, const auto &simg, size_t x, size_t y,
-      unsigned times = 1) {
-    while (times--)
-        for (size_t i = 1; i < y - 1; ++i) {
-            for (size_t j = 1; j < x - 1; ++j) {
-                auto c = Color(prog.run(simg, i, j));
-                fimg.setPixel(j, i, c);
-            }
-        }
-}
 
 int
 main(int argc, char *argv[]) {
     if (argc - 1 < 1) {
         err(1, "not eno args");
     }
-
     Texture texture;
+    RenderWindow window(VideoMode(800, 600), argv[0]);
+RESTART:
     if (!texture.loadFromFile(argv[1])) {
         err(1, "imga loading failed");
     }
+
     auto fimg = texture.copyToImage();
     auto simg = texture.copyToImage();
     Sprite sprite(texture);
@@ -344,9 +346,7 @@ main(int argc, char *argv[]) {
         err(1, "size too small");
     }
 
-    Cell<16, 2> prog;
-
-    RenderWindow window(VideoMode(800, 600), argv[0]);
+    Cell<9, 3> prog;
     while (window.isOpen()) {
         Event event;
         while (window.pollEvent(event)) {
@@ -356,9 +356,14 @@ main(int argc, char *argv[]) {
                   event.key.code == Keyboard::Q))) {
                 window.close();
             }
+            if (event.type == Event::KeyPressed &&
+                event.key.code == Keyboard::R) {
+                goto RESTART;
+
+            }
         }
         window.clear();
-        apply(prog, fimg, simg, x, y);
+        prog.apply(fimg, simg, x, y);
         wrap(fimg);
         texture.update(fimg);
         window.draw(sprite);
