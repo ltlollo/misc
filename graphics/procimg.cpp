@@ -45,9 +45,6 @@ enum Instr {
     USub,
     UMul,
 
-    Exp,
-    Log,
-
     FDiv,
     FMod,
     IDiv,
@@ -55,9 +52,11 @@ enum Instr {
     UDiv,
     UMod,
 
+    Exp,
+    Log,
+
     Sin,
     Cos,
-
     Tan,
 
     Not,
@@ -118,6 +117,7 @@ template <size_t StackSize, size_t ProgSize, int n = 1> struct Cell {
         unsigned u;
         int i;
         for (const auto &instr : prog.icache) {
+            stack.buf[sp].u >>= 24;
             switch (instr) {
             default:
                 break;
