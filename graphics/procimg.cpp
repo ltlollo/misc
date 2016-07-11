@@ -90,7 +90,7 @@ template <size_t StackSize, size_t ProgSize, int n = 1> struct Cell {
 
     uint64_t NbPos[nbs];
     Cell() {
-        static_assert(StackSize && ProgSize && nb > 0);
+        static_assert(StackSize && ProgSize && nb >= 0);
         std::random_device r;
         std::default_random_engine rd(r());
         std::uniform_int_distribution<unsigned> idist(0, EOI - 1);
@@ -319,17 +319,16 @@ wrap(auto &img) {
     }
 }
 
-
 int
 main(int argc, char *argv[]) {
     if (argc - 1 < 1) {
-        err(1, "not eno args");
+        err(1, "not enough arguments");
     }
     Texture texture;
     RenderWindow window(VideoMode(800, 600), argv[0]);
 RESTART:
     if (!texture.loadFromFile(argv[1])) {
-        err(1, "imga loading failed");
+        err(1, "image loading failed");
     }
 
     auto fimg = texture.copyToImage();
@@ -346,7 +345,7 @@ RESTART:
         err(1, "size too small");
     }
 
-    Cell<9, 3> prog;
+    Cell<12, 5> prog;
     while (window.isOpen()) {
         Event event;
         while (window.pollEvent(event)) {
@@ -359,7 +358,6 @@ RESTART:
             if (event.type == Event::KeyPressed &&
                 event.key.code == Keyboard::R) {
                 goto RESTART;
-
             }
         }
         window.clear();
