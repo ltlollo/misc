@@ -24,8 +24,10 @@ set laststatus=0
 
 let g:syntastic_cpp_compiler = 'g++'
 let g:syntastic_c_compiler = 'gcc'
-let g:syntastic_cpp_compiler_options = '-fconcepts -std=c++1z'
-let g:syntastic_c_compiler_options = '--std=c11'
+let g:syntastic_cpp_compiler_options = "-pthread -fopenmp
+            \ -std=c++17 -Wall -Wextra -pedantic"
+let g:syntastic_c_compiler_options = "-pthread -std=c11 -fopenmp
+            \ -Wall -Wextra -pedantic"
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
@@ -39,7 +41,8 @@ au InsertEnter * call matchdelete(w:m1)
 au InsertEnter * let w:m2=matchadd('WhitespaceEOL', '\s\+\%#\@<!$', -1)
 au InsertLeave * call matchdelete(w:m2)
 au InsertLeave * let w:m1=matchadd('WhitespaceEOL', '\s\+$', -1)
-au BufRead,BufNewFile *.txt,*.tex set wrap linebreak nolist textwidth=0 wrapmargin=0
+au BufRead,BufNewFile *.txt,*.tex
+            \ set wrap linebreak nolist textwidth=0 wrapmargin=0
 
 augroup csrc
   au!
@@ -81,7 +84,8 @@ set hidden
 map <C-K> :pyf /usr/share/vim/addons/syntax/clang-format-3.8.py<cr>
 imap <C-K> <c-o>:pyf /usr/share/vim/addons/syntax/clang-format-3.8.py<cr>
 
-vmap <C-c> y:call system("xclip -i -selection clipboard", getreg("\""))<CR>:call system("xclip -i", getreg("\""))<CR>
+vmap <C-c> y:call system("xclip -i -selection clipboard", getreg("\""))<CR>
+            \:call system("xclip -i", getreg("\""))<CR>
 nmap <C-i> :call setreg("\"",system("xclip -o -selection clipboard"))<CR>p
 
 augroup filetype
