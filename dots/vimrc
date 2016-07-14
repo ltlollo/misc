@@ -23,7 +23,7 @@ set statusline+=%*
 set laststatus=0
 
 let g:syntastic_cpp_compiler = 'g++'
-let g:syntastic_c_compiler = 'gcc'
+let g:syntastic_c_compiler = 'musl-gcc'
 let g:syntastic_cpp_compiler_options = "-pthread -fopenmp
             \ -std=c++17 -Wall -Wextra -pedantic"
 let g:syntastic_c_compiler_options = "-pthread -std=c11 -fopenmp
