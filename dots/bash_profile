@@ -1,12 +1,14 @@
 export PATH=$PATH:$HOME/dev/scripts/bash:$HOME/dev/scripts/python:\
-$HOME/dev/bin:$HOME/.cabal/bin
+$HOME/dev/bin:$HOME/.cabal/bin:/$HOME/.cargo/bin:$HOME/.local/bin
 export RUST_SRC_PATH=$HOME/dev/rust/src/
+export GOPATH=$HOME/dev/gopath/
 export PS1="\
 \[\e[00;31m\][\$?, \t]\[\e[0m\]\[\e[00;37m\]::\
 \[\e[0m\]\[\e[00;32m\]\u@\h\[\e[0m\]\[\e[00;37m\]::\
 \[\e[0m\]\[\e[01;36m\]\w\[\e[0m\]\[\e[00;37m\]\\$ \[\e[0m\]"
 
 export TERM='xterm-256color'
+export http_proxy="http://localhost:8118"
 
 export LESS_TERMCAP_mb=$(tput bold; tput setaf 2)
 export LESS_TERMCAP_md=$(tput bold; tput setaf 6)
