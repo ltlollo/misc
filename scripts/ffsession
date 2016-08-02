@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import json
+import configparser
+
+
+def dump_session(fname, dump_as, dump_titles=True):
+    with open(fname, "r") as f:
+        jf = json.load(f)
+        for i, w in enumerate(jf['windows']):
+            with open("win" + str(i) + "-" + dump_as, "w+") as wf:
+                for t in w['tabs']:
+                    for e in t['entries']:
+                        if dump_titles:
+                            if 'title' in e:
+                                wf.write("# %s\n%s\n" % (e['title'], e['url']))
+                            else:
+                                wf.write("# nil\n%s\n" % (e['url']))
+                        else:
+                            wf.write("%s\n" % (e['url']))
+
+if __name__ == "__main__":
+    ff_homepath = os.environ['HOME'] + "/.mozilla/firefox/"
+    conf_fname = ff_homepath + "profiles.ini"
+    session_sch = "/sessionstore-backups/recovery.js"
+    cf = configparser.ConfigParser()
+    cf.read(conf_fname)
+    if len(cf.sections()) < 2:
+        raise RuntimeError("missing profile sections")
+    for s in cf.sections()[1::]:
+        dump_as = cf[s]['name']
+        session_path = ff_homepath + cf[s]['path'] + session_sch
+        dump_session(session_path, dump_as)

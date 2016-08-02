@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 
-elines=3
-file="${1%.cpp}"
+elines=13
+#file="${1%.cpp}"
+out="${1%.*}"
 rest=${@:2}
 
 mainopts="-Ofast -mtune=native -fno-rtti -DNDEBUG -s"
+vecopts=" -mmmx  -msse  -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -mavx \
+    -mavx2 -mfma -mfpmath=sse"
 loopopts="-floop-interchange -ftree-loop-distribution -floop-strip-mine \
     -floop-block"
-restopts="-flto=8 -ftree-vectorize"
+restopts="-flto=8 -ftree-vectorize -mmusl"
 
 OWarn="-Wall -Wextra -Wconversion -pedantic -fno-pretty-templates"
-OOpts="${mainopts} ${loopopts} ${restopts}"
+OOpts="${mainopts} ${loopopts} ${restopts} ${vecopts}"
 OOut="-fmax-errors=$elines"
 OSec="-fstack-protector-all"
 OTmpl="-ftemplate-depth=50000"
 
-g++-5 -std=c++17 $file.cpp $OWarn $OOpts $OOut $OSec $OTmpl -pthread -o $file $rest
+g++-6 -std=c++1z "$1" $OWarn $OOpts $OOut $OSec $OTmpl -pthread -o $out $rest
