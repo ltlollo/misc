@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+elines=3
+file="${1%.cpp}"
+rest=${@:2}
+
+Ointr="-mmmx -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -mavx -mavx2 -mfma"
+OWarn="-Wall -Wextra -Wconversion -pedantic -g -O0"
+OOpts="${mainopts} ${loopopts} ${restopts} ${Ointr}"
+OOut="-fmax-errors=$elines"
+OSec="-fstack-protector-all"
+OTmpl="-fconcepts -ftemplate-depth=50000"
+
+g++-6 -std=c++17 $file.cpp $OWarn $OOpts $OOut $OSec $OTmpl -pthread -o $file $rest
