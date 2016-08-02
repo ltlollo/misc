@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+(while read i; do echo "${i##*.}"; done< <(find -type f -name '*.*')) | sort |
+    uniq -c | sort -n
+
+
