@@ -20,62 +20,41 @@
 struct Num;
 struct Hash;
 struct Range;
-
 template <typename T> struct Ring;
 template <typename T> struct RingBuf;
 
-using Map = std::unordered_map<Range, Num, Hash>;
+using map_t = std::unordered_map<Range, Num, Hash>;
+using num_t = uint16_t;
+using num_fast_t = uint_fast16_t;
+
+static constexpr auto max_num = (num_t)0xffffffffffffffff;
 
 int encode(const char *__restrict beg_orig, std::size_t,
            const char *__restrict, std::size_t, unsigned, unsigned);
 inline const char *encode_sym(const char *__restrict, const char *__restrict,
-                              uint16_t *, unsigned *, Map &);
+                              num_t *, unsigned *, map_t &);
 inline bool memeq(const void *__restrict, const void *__restrict, std::size_t);
-const char *mkdict(const char *__restrict, const char *__restrict, Map &);
+const char *mkdict(const char *__restrict, const char *__restrict, map_t &);
 template <typename T> unsigned find_min_pos(const Ring<T> &);
-
-inline bool
-memeq(const void *__restrict f, const void *__restrict s, std::size_t size) {
-    // requirements:
-    //      size must be non zero
-    //      input buffers must be 32 byte padded
-    //      little endian
-    __m256i *fp = (__m256i *)f, *sp = (__m256i *)s;
-    std::size_t times = size / 32;
-    unsigned rest = size % 32;
-    for (unsigned i = 0; i < times; ++i) {
-        __m256i fr = _mm256_lddqu_si256(fp++);
-        __m256i sr = _mm256_lddqu_si256(sp++);
-        if (_mm256_movemask_epi8(_mm256_cmpeq_epi8(fr, sr)) != ~0) {
-            return false;
-        }
-    }
-    if (rest) {
-        __m256i fr = _mm256_lddqu_si256(fp);
-        __m256i sr = _mm256_lddqu_si256(sp);
-        int res = _mm256_movemask_epi8(_mm256_cmpeq_epi8(fr, sr));
-        unsigned mask = 0xffffffff << rest;
-        return (res | mask) == 0xffffffff;
-    }
-    return true;
-}
+template <typename T> static inline void write_out(T *beg, std::size_t size);
+template <typename T> static inline void write_out(T ele);
 
 struct Num {
-    std::uint16_t data = 0xffff;
+    num_t data = max_num;
     bool operator==(Num lhs) { return data == lhs.data; }
-    operator std::uint16_t() const { return data; }
-    void operator=(std::uint_fast16_t lhs) { data = (std::uint16_t)lhs; }
+    operator num_t() const { return data; }
+    void operator=(num_fast_t lhs) { data = (num_t)lhs; }
 };
 
-static constexpr auto max_ele = Num{ 0xffff - 2 };
-static constexpr auto lit = Num{ 0xffff - 1 };
-static constexpr auto nxt = Num{ 0xffff - 0 };
+static constexpr auto max_ele = Num{ max_num - 2 };
+static constexpr auto lit = Num{ max_num - 1 };
+static constexpr auto nxt = Num{ max_num - 0 };
 
 struct Range {
     const char *beg;
-    std::uint16_t size;
-    constexpr Range(const char *beg, std::uint_fast16_t size)
-        : beg{ beg }, size{ (std::uint16_t)size } {}
+    num_t size;
+    constexpr Range(const char *beg, num_fast_t size)
+        : beg{ beg }, size{ (num_t)size } {}
     bool operator==(const Range &rhs) const {
         if (rhs.size != size) {
             return false;
@@ -91,28 +70,6 @@ struct Hash {
         return boost::hash_range(range.beg, range.beg + range.size);
     }
 };
-
-const char *
-mkdict(const char *__restrict beg, const char *__restrict end, Map &dict) {
-    if (end - beg == 0) {
-        return nullptr;
-    }
-    std::uint_fast16_t count = 0, look_ahead;
-    do {
-        look_ahead = 1;
-        while (beg + look_ahead != end) {
-            auto &dict_ele = dict[Range(beg, look_ahead)];
-            if (dict_ele == Num{}) {
-                dict_ele = count++;
-                beg += look_ahead;
-                break;
-            } else {
-                ++look_ahead;
-            }
-        }
-    } while (beg + look_ahead != end && count != max_ele);
-    return beg + look_ahead;
-}
 
 template <typename T> struct Ring {
     unsigned N;
@@ -158,54 +115,32 @@ template <typename T> struct RingBuf {
     auto advance(int n) { return beg = (*this)[n]; }
 };
 
-inline const char *
-encode_sym(const char *beg_new, const char *end_new, uint16_t *out_buf,
-           unsigned *out_size, Map &dict) {
-    std::uint_fast16_t look_ahead = 1;
-    auto end = dict.end();
-    auto it = end;
-    auto it_old = it;
-    while ((it = dict.find(Range{ beg_new, look_ahead })) != end &&
-           beg_new + look_ahead != end_new) {
-        ++look_ahead;
-        it_old = it;
+int
+main(int argc, char *argv[]) {
+    if (argc - 1 != 2) {
+        err(1, "NEA");
     }
-    if (look_ahead - 1 == 0) {
-        out_buf[*out_size] = lit;
-        out_buf[*out_size + 1] = beg_new[0];
-        *out_size += 2;
-    } else {
-        out_buf[*out_size] = it_old->second;
-        *out_size += 1;
-    }
-    return beg_new + look_ahead;
-}
+    const char *addrs[2];
+    std::size_t sizes[2];
 
-template <typename T>
-unsigned
-find_min_pos(const Ring<T> &ring) {
-    assert(ring.size != 0);
-    T curr = *ring.beg;
-    unsigned min_pos = 0;
-    for (unsigned i = 1; i < ring.size; ++i) {
-        if (ring[i] < curr) {
-            curr = ring[i];
-            min_pos = i;
+    for (unsigned i = 0; i < 2; ++i) {
+        int fd = open(argv[i + 1], O_RDONLY);
+        if (fd == -1) {
+            err(1, "open");
+        }
+        struct stat sb;
+        if (fstat(fd, &sb) == -1) {
+            err(1, "fstat");
+        }
+        sizes[i] = sb.st_size;
+        addrs[i] = (const char *)mmap(NULL, sizes[i], PROT_READ,
+                                      MAP_PRIVATE | MAP_POPULATE, fd, 0);
+        if (addrs[i] == MAP_FAILED) {
+            err(1, "mmap");
         }
     }
-    return min_pos;
-}
-
-template <typename T>
-void
-write_out(T *beg, std::size_t size) {
-    fwrite(beg, sizeof(T), size, stdout);
-}
-
-template <typename T>
-void
-write_out(T ele) {
-    fwrite(&ele, sizeof(T), 1, stdout);
+    encode(addrs[0], sizes[0], addrs[1], sizes[1], 4, 64);
+    return 0;
 }
 
 int
@@ -220,11 +155,11 @@ encode(const char *__restrict beg_orig, std::size_t size_orig,
     }
     const char *end_orig = beg_orig + size_orig - 32;
     const char *end_new = beg_new + size_new - 32;
-    Ring<Map> dicts(ndicts);
+    Ring<map_t> dicts(ndicts);
 
     auto populate_dicts = [&]() {
         while (beg_orig != end_orig && dicts.size != ndicts) {
-            Map dict;
+            map_t dict;
             if ((beg_orig = mkdict(beg_orig, end_orig, dict)) == nullptr) {
                 break;
             }
@@ -233,7 +168,7 @@ encode(const char *__restrict beg_orig, std::size_t size_orig,
     };
     populate_dicts();
 
-    RingBuf<uint16_t> buf(ndicts, stop_point * 2);
+    RingBuf<num_t> buf(ndicts, stop_point * 2);
 
     Ring<unsigned> bufsizes(ndicts, dicts.size, 0);
     Ring<const char *> needle_new(ndicts, dicts.size, beg_new);
@@ -242,7 +177,7 @@ encode(const char *__restrict beg_orig, std::size_t size_orig,
         auto &dict = dicts[di];
         auto &beg_new = needle_new[di];
         unsigned *buf_size = &bufsizes[di];
-        uint16_t *buf_beg = buf[di];
+        num_t *buf_beg = buf[di];
         for (unsigned pi = 0; pi < stop_point; ++pi) {
             if ((beg_new = encode_sym(beg_new, end_new, buf_beg, buf_size,
                                       dict)) == end_new) {
@@ -289,34 +224,102 @@ encode(const char *__restrict beg_orig, std::size_t size_orig,
     return 0;
 }
 
-
-
-int
-main(int argc, char *argv[]) {
-    if (argc - 1 != 2) {
-        err(1, "NEA");
+inline const char *
+encode_sym(const char *beg_new, const char *end_new, num_t *out_buf,
+           unsigned *out_size, map_t &dict) {
+    num_fast_t look_ahead = 1;
+    auto end = dict.end();
+    auto it = end;
+    auto it_old = it;
+    while ((it = dict.find(Range{ beg_new, look_ahead })) != end &&
+           beg_new + look_ahead != end_new) {
+        ++look_ahead;
+        it_old = it;
     }
-    const char *addrs[2];
-    std::size_t sizes[2];
+    if (look_ahead - 1 == 0) {
+        out_buf[*out_size] = lit;
+        out_buf[*out_size + 1] = beg_new[0];
+        *out_size += 2;
+    } else {
+        out_buf[*out_size] = it_old->second;
+        *out_size += 1;
+    }
+    return beg_new + look_ahead;
+}
 
-    for (unsigned i = 0; i < 2; ++i) {
-        int fd = open(argv[i + 1], O_RDONLY);
-        if (fd == -1) {
-            err(1, "open");
-        }
-        struct stat sb;
-        if (fstat(fd, &sb) == -1) {
-            err(1, "fstat");
-        }
-        sizes[i] = sb.st_size;
-        addrs[i] = (const char *)mmap(NULL, sizes[i], PROT_READ,
-                                      MAP_PRIVATE | MAP_POPULATE, fd, 0);
-        if (addrs[i] == MAP_FAILED) {
-            err(1, "mmap");
+template <typename T>
+unsigned
+find_min_pos(const Ring<T> &ring) {
+    assert(ring.size != 0);
+    T curr = *ring.beg;
+    unsigned min_pos = 0;
+    for (unsigned i = 1; i < ring.size; ++i) {
+        if (ring[i] < curr) {
+            curr = ring[i];
+            min_pos = i;
         }
     }
-    encode(addrs[0], sizes[0], addrs[1], sizes[1]);
-    return 0;
+    return min_pos;
+}
+
+template <typename T>
+static inline void
+write_out(T *beg, std::size_t size) {
+    fwrite(beg, sizeof(T), size, stdout);
+}
+
+template <typename T>
+static inline void
+write_out(T ele) {
+    fwrite(&ele, sizeof(T), 1, stdout);
+}
+
+inline bool
+memeq(const void *__restrict f, const void *__restrict s, std::size_t size) {
+    // requirements:
+    //      size must be non zero
+    //      input buffers must be 32 byte padded
+    //      little endian
+    __m256i *fp = (__m256i *)f, *sp = (__m256i *)s;
+    std::size_t times = size / 32;
+    unsigned rest = size % 32;
+    for (unsigned i = 0; i < times; ++i) {
+        __m256i fr = _mm256_lddqu_si256(fp++);
+        __m256i sr = _mm256_lddqu_si256(sp++);
+        if (_mm256_movemask_epi8(_mm256_cmpeq_epi8(fr, sr)) != ~0) {
+            return false;
+        }
+    }
+    if (rest) {
+        __m256i fr = _mm256_lddqu_si256(fp);
+        __m256i sr = _mm256_lddqu_si256(sp);
+        int res = _mm256_movemask_epi8(_mm256_cmpeq_epi8(fr, sr));
+        unsigned mask = 0xffffffff << rest;
+        return (res | mask) == 0xffffffff;
+    }
+    return true;
+}
+
+const char *
+mkdict(const char *__restrict beg, const char *__restrict end, map_t &dict) {
+    if (end - beg == 0) {
+        return nullptr;
+    }
+    num_fast_t count = 0, look_ahead;
+    do {
+        look_ahead = 1;
+        while (beg + look_ahead != end) {
+            auto &dict_ele = dict[Range(beg, look_ahead)];
+            if (dict_ele == Num{}) {
+                dict_ele = count++;
+                beg += look_ahead;
+                break;
+            } else {
+                ++look_ahead;
+            }
+        }
+    } while (beg + look_ahead != end && count != max_ele);
+    return beg + look_ahead;
 }
 
 // TODO: add out Huffman encoder
