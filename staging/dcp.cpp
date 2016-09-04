@@ -171,11 +171,11 @@ encode(const char *__restrict beg_orig, std::size_t size_orig,
     RingBuf<num_t> buf(ndicts, stop_point * 2);
 
     Ring<unsigned> bufsizes(ndicts, dicts.size, 0);
-    Ring<const char *> needle_new(ndicts, dicts.size, beg_new);
+    Ring<const char *> needles_new(ndicts, dicts.size, beg_new);
 
     auto populate_buf = [&](unsigned di) {
         auto &dict = dicts[di];
-        auto &beg_new = needle_new[di];
+        auto &beg_new = needles_new[di];
         unsigned *buf_size = &bufsizes[di];
         num_t *buf_beg = buf[di];
         for (unsigned pi = 0; pi < stop_point; ++pi) {
@@ -188,7 +188,7 @@ encode(const char *__restrict beg_orig, std::size_t size_orig,
     do {
         assert(beg_new <= end_new);
         bufsizes.populate(0, dicts.size, 0);
-        needle_new.populate(0, dicts.size, beg_new);
+        needles_new.populate(0, dicts.size, beg_new);
         for (unsigned di = 0; di < dicts.size; ++di) {
             populate_buf(di);
         }
@@ -198,7 +198,7 @@ encode(const char *__restrict beg_orig, std::size_t size_orig,
             auto orig_size = dicts.size;
             dicts.advance(min_pos, [](auto &dict) { dict.clear(); });
             bufsizes.advance(min_pos);
-            needle_new.advance(min_pos);
+            needles_new.advance(min_pos);
             buf.advance(min_pos);
             for (unsigned i = 0; i < min_pos; ++i) {
                 write_out(nxt);
@@ -207,7 +207,7 @@ encode(const char *__restrict beg_orig, std::size_t size_orig,
                 orig_size = dicts.size;
                 populate_dicts();
                 bufsizes.populate(orig_size, dicts.size, 0);
-                needle_new.populate(orig_size, dicts.size, beg_new);
+                needles_new.populate(orig_size, dicts.size, beg_new);
                 for (unsigned i = orig_size; i < dicts.size; ++i) {
                     populate_buf(i);
                 }
@@ -217,7 +217,7 @@ encode(const char *__restrict beg_orig, std::size_t size_orig,
             }
         } else {
             write_out(buf[0], bufsizes[0]);
-            beg_new = needle_new[0];
+            beg_new = needles_new[0];
         }
     } while (beg_new != end_new);
     write_out(end_new, 32);
