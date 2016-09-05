@@ -29,6 +29,7 @@ using num_fast_t = uint_fast16_t;
 
 static constexpr auto max_num = (num_t)0xffffffffffffffff;
 static constexpr auto include_base_syms = false;
+static constexpr auto advance_step_ratio = 1;
 static constexpr unsigned char alphabet[0xff + 32] = {
     0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13,  14,
     15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,
@@ -153,9 +154,12 @@ encode(const char *beg_orig, std::size_t size_orig, const char *beg_new,
                     dict[Range((const char *)alphabet + i, 1)] = i;
                 }
             }
-            if ((beg_orig = mkdict(beg_orig, end_orig, dict)) == nullptr) {
+            const char *needle_orig;
+            if ((needle_orig = mkdict(beg_orig, end_orig, dict)) == nullptr) {
+                beg_orig = needle_orig;
                 break;
             }
+            beg_orig += (needle_orig - beg_orig) / advance_step_ratio;
             dicts[dicts.size++] = std::move(dict);
         }
     };
@@ -343,7 +347,7 @@ main(int argc, char *argv[]) {
             err(1, "mmap");
         }
     }
-    encode(addrs[0], sizes[0], addrs[1], sizes[1]);
+    encode(addrs[0], sizes[0], addrs[1], sizes[1], 128, 2);
     return 0;
 }
 
