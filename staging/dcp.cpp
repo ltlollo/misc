@@ -1,16 +1,16 @@
 // gpp self $cppflags
 
 #include <err.h>
+#include <fcntl.h>
 #include <immintrin.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 // cpp
 
@@ -28,21 +28,40 @@ using num_t = uint16_t;
 using num_fast_t = uint_fast16_t;
 
 static constexpr auto max_num = (num_t)0xffffffffffffffff;
+static constexpr auto include_base_syms = false;
+static constexpr unsigned char alphabet[0xff + 32] = {
+    0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13,  14,
+    15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,
+    30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,
+    45,  46,  47,  48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,
+    60,  61,  62,  63,  64,  65,  66,  67,  68,  69,  70,  71,  72,  73,  74,
+    75,  76,  77,  78,  79,  80,  81,  82,  83,  84,  85,  86,  87,  88,  89,
+    90,  91,  92,  93,  94,  95,  96,  97,  98,  99,  100, 101, 102, 103, 104,
+    105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+    120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134,
+    135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149,
+    150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164,
+    165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179,
+    180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194,
+    195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209,
+    210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224,
+    225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
+    240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254,
+    255
+};
 
-int encode(const char *__restrict beg_orig, std::size_t,
-           const char *__restrict, std::size_t, unsigned, unsigned);
-inline const char *encode_sym(const char *__restrict, const char *__restrict,
-                              num_t *, unsigned *, map_t &);
-inline bool memeq(const void *__restrict, const void *__restrict, std::size_t);
-const char *mkdict(const char *__restrict, const char *__restrict, map_t &);
-template <typename T> unsigned find_min_pos(const Ring<T> &);
+static inline const char *encode_sym(const char *, const char *, num_t *,
+                                     unsigned *, map_t &);
+static inline bool memeq(const void *, const void *, std::size_t);
+static const char *mkdict(const char *, const char *, map_t &);
+template <typename T> static inline unsigned find_min_pos(const Ring<T> &);
 template <typename T> static inline void write_out(T *beg, std::size_t size);
 template <typename T> static inline void write_out(T ele);
 
 struct Num {
     num_t data = max_num;
-    bool operator==(Num lhs) { return data == lhs.data; }
-    operator num_t() const { return data; }
+    constexpr bool operator==(Num lhs) const { return data == lhs.data; }
+    constexpr operator num_t() const { return data; }
     void operator=(num_fast_t lhs) { data = (num_t)lhs; }
 };
 
@@ -64,9 +83,7 @@ struct Range {
 };
 
 struct Hash {
-    using argument_type = Range;
-    using result_type = std::size_t;
-    result_type operator()(const argument_type &range) const {
+    std::size_t operator()(const Range &range) const {
         return boost::hash_range(range.beg, range.beg + range.size);
     }
 };
@@ -116,37 +133,8 @@ template <typename T> struct RingBuf {
 };
 
 int
-main(int argc, char *argv[]) {
-    if (argc - 1 != 2) {
-        err(1, "NEA");
-    }
-    const char *addrs[2];
-    std::size_t sizes[2];
-
-    for (unsigned i = 0; i < 2; ++i) {
-        int fd = open(argv[i + 1], O_RDONLY);
-        if (fd == -1) {
-            err(1, "open");
-        }
-        struct stat sb;
-        if (fstat(fd, &sb) == -1) {
-            err(1, "fstat");
-        }
-        sizes[i] = sb.st_size;
-        addrs[i] = (const char *)mmap(NULL, sizes[i], PROT_READ,
-                                      MAP_PRIVATE | MAP_POPULATE, fd, 0);
-        if (addrs[i] == MAP_FAILED) {
-            err(1, "mmap");
-        }
-    }
-    encode(addrs[0], sizes[0], addrs[1], sizes[1], 4, 64);
-    return 0;
-}
-
-int
-encode(const char *__restrict beg_orig, std::size_t size_orig,
-       const char *__restrict beg_new, std::size_t size_new,
-       unsigned stop_point = 4, unsigned ndicts = 2) {
+encode(const char *beg_orig, std::size_t size_orig, const char *beg_new,
+       std::size_t size_new, unsigned stop_point = 4, unsigned ndicts = 2) {
     if (size_orig <= 32) {
         return -1;
     }
@@ -160,6 +148,11 @@ encode(const char *__restrict beg_orig, std::size_t size_orig,
     auto populate_dicts = [&]() {
         while (beg_orig != end_orig && dicts.size != ndicts) {
             map_t dict;
+            if (include_base_syms && sizeof(num_t) > 1) {
+                for (unsigned i = 0; i < 0xff; ++i) {
+                    dict[Range((const char *)alphabet + i, 1)] = i;
+                }
+            }
             if ((beg_orig = mkdict(beg_orig, end_orig, dict)) == nullptr) {
                 break;
             }
@@ -224,7 +217,7 @@ encode(const char *__restrict beg_orig, std::size_t size_orig,
     return 0;
 }
 
-inline const char *
+static inline const char *
 encode_sym(const char *beg_new, const char *end_new, num_t *out_buf,
            unsigned *out_size, map_t &dict) {
     num_fast_t look_ahead = 1;
@@ -248,7 +241,7 @@ encode_sym(const char *beg_new, const char *end_new, num_t *out_buf,
 }
 
 template <typename T>
-unsigned
+static inline unsigned
 find_min_pos(const Ring<T> &ring) {
     assert(ring.size != 0);
     T curr = *ring.beg;
@@ -274,8 +267,8 @@ write_out(T ele) {
     fwrite(&ele, sizeof(T), 1, stdout);
 }
 
-inline bool
-memeq(const void *__restrict f, const void *__restrict s, std::size_t size) {
+static inline bool
+memeq(const void *f, const void *s, std::size_t size) {
     // requirements:
     //      size must be non zero
     //      input buffers must be 32 byte padded
@@ -300,8 +293,8 @@ memeq(const void *__restrict f, const void *__restrict s, std::size_t size) {
     return true;
 }
 
-const char *
-mkdict(const char *__restrict beg, const char *__restrict end, map_t &dict) {
+static const char *
+mkdict(const char *beg, const char *end, map_t &dict) {
     if (end - beg == 0) {
         return nullptr;
     }
@@ -322,6 +315,35 @@ mkdict(const char *__restrict beg, const char *__restrict end, map_t &dict) {
     return beg + look_ahead;
 }
 
-// TODO: add out Huffman encoder
+// TODO: add BTW in? Huffman out?
 // TODO: write decode procedure
 // TODO: cache min bufsize in the encoder
+
+int
+main(int argc, char *argv[]) {
+    if (argc - 1 != 2) {
+        err(1, "NEA");
+    }
+    const char *addrs[2];
+    std::size_t sizes[2];
+
+    for (unsigned i = 0; i < 2; ++i) {
+        int fd = open(argv[i + 1], O_RDONLY);
+        if (fd == -1) {
+            err(1, "open");
+        }
+        struct stat sb;
+        if (fstat(fd, &sb) == -1) {
+            err(1, "fstat");
+        }
+        sizes[i] = sb.st_size;
+        addrs[i] = (const char *)mmap(NULL, sizes[i], PROT_READ,
+                                      MAP_PRIVATE | MAP_POPULATE, fd, 0);
+        if (addrs[i] == MAP_FAILED) {
+            err(1, "mmap");
+        }
+    }
+    encode(addrs[0], sizes[0], addrs[1], sizes[1]);
+    return 0;
+}
+
