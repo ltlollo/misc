@@ -16,6 +16,8 @@
 
 #include <boost/functional/hash.hpp>
 #include <unordered_map>
+#include <algorithm>
+#include <iterator>
 
 struct Num;
 struct Hash;
@@ -89,6 +91,15 @@ struct Hash {
     }
 };
 
+template<unsigned N> num_t from_ptr(const char *beg);
+
+template<> num_t from_ptr<2>(const char *beg) {
+    return ((*beg & 0xff) << 8) + (*(beg + 1) & 0xff);
+}
+template<> num_t from_ptr<1>(const char *beg) {
+    return *beg;
+}
+
 template <typename T> struct Ring {
     unsigned N;
     T *data, *beg;
@@ -133,6 +144,26 @@ template <typename T> struct RingBuf {
     auto advance(int n) { return beg = (*this)[n]; }
 };
 
+auto
+populate_dicts(const char *beg_orig, const char *end_orig, unsigned ndicts,
+               Ring<map_t> &dicts) {
+    while (beg_orig != end_orig && dicts.size != ndicts) {
+        map_t dict;
+        if (include_base_syms && sizeof(num_t) > 1) {
+            for (unsigned i = 0; i < 0xff; ++i) {
+                dict[Range((const char *)alphabet + i, 1)] = i;
+            }
+        }
+        const char *needle_orig;
+        if ((needle_orig = mkdict(beg_orig, end_orig, dict)) == nullptr) {
+            beg_orig = needle_orig;
+            break;
+        }
+        beg_orig += (needle_orig - beg_orig) / advance_step_ratio;
+        dicts[dicts.size++] = std::move(dict);
+    }
+}
+
 int
 encode(const char *beg_orig, std::size_t size_orig, const char *beg_new,
        std::size_t size_new, unsigned stop_point = 4, unsigned ndicts = 2) {
@@ -146,24 +177,7 @@ encode(const char *beg_orig, std::size_t size_orig, const char *beg_new,
     const char *end_new = beg_new + size_new - 32;
     Ring<map_t> dicts(ndicts);
 
-    auto populate_dicts = [&]() {
-        while (beg_orig != end_orig && dicts.size != ndicts) {
-            map_t dict;
-            if (include_base_syms && sizeof(num_t) > 1) {
-                for (unsigned i = 0; i < 0xff; ++i) {
-                    dict[Range((const char *)alphabet + i, 1)] = i;
-                }
-            }
-            const char *needle_orig;
-            if ((needle_orig = mkdict(beg_orig, end_orig, dict)) == nullptr) {
-                beg_orig = needle_orig;
-                break;
-            }
-            beg_orig += (needle_orig - beg_orig) / advance_step_ratio;
-            dicts[dicts.size++] = std::move(dict);
-        }
-    };
-    populate_dicts();
+    populate_dicts(beg_orig, end_orig, ndicts, dicts);
 
     RingBuf<num_t> buf(ndicts, stop_point * 2);
 
@@ -202,7 +216,7 @@ encode(const char *beg_orig, std::size_t size_orig, const char *beg_new,
             }
             if (orig_size == ndicts) {
                 orig_size = dicts.size;
-                populate_dicts();
+                populate_dicts(beg_orig, end_orig, ndicts, dicts);
                 bufsizes.populate(orig_size, dicts.size, 0);
                 needles_new.populate(orig_size, dicts.size, beg_new);
                 for (unsigned i = orig_size; i < dicts.size; ++i) {
@@ -213,7 +227,7 @@ encode(const char *beg_orig, std::size_t size_orig, const char *beg_new,
                 }
             }
         } else {
-            write_out(buf[0], bufsizes[0]);
+            write_out((unsigned char *)(buf[0]), bufsizes[0]);
             beg_new = needles_new[0];
         }
     } while (beg_new != end_new);
@@ -222,26 +236,84 @@ encode(const char *beg_orig, std::size_t size_orig, const char *beg_new,
 }
 
 static inline const char *
-encode_sym(const char *beg_new, const char *end_new, num_t *out_buf,
+encode_sym(const char *beg_new, const char *end_new, num_t *out_bu,
            unsigned *out_size, map_t &dict) {
-    num_fast_t look_ahead = 1;
+    if (end_new == beg_new) {
+        return end_new;
+    }
+    num_fast_t look_ahead = 0;
     auto end = dict.end();
     auto it = end;
     auto it_old = it;
-    while ((it = dict.find(Range{ beg_new, look_ahead })) != end &&
-           beg_new + look_ahead != end_new) {
+    unsigned char *out_buf = (unsigned char *)out_bu;
+    while ((it = dict.find(Range{ beg_new, look_ahead + 1 })) != end &&
+           beg_new + look_ahead + 1 != end_new) {
         ++look_ahead;
         it_old = it;
     }
-    if (look_ahead - 1 == 0) {
-        out_buf[*out_size] = lit;
-        out_buf[*out_size + 1] = beg_new[0];
-        *out_size += 2;
+    if (look_ahead == 0) {
+        for (unsigned i = 0; i < sizeof(num_t); ++i) {
+            out_buf[*out_size + i] =
+                (lit >> 8 * (sizeof(num_t) - 1 - i)) & 0xff;
+        }
+        out_buf[*out_size + sizeof(num_t)] = beg_new[0];
+        *out_size += sizeof(num_t) + 1;
+        ++look_ahead;
     } else {
-        out_buf[*out_size] = it_old->second;
-        *out_size += 1;
+        auto sym = it_old->second;
+        for (unsigned i = 0; i < sizeof(num_t); ++i) {
+            out_buf[*out_size + i] =
+                (sym >> 8 * (sizeof(num_t) - 1 - i)) & 0xff;
+        }
+        *out_size += sizeof(num_t);
     }
     return beg_new + look_ahead;
+}
+
+int
+decode(const char *beg_orig, std::size_t size_orig, const char *beg_diff,
+       std::size_t size_diff, unsigned ndicts = 2) {
+    if (size_orig <= 32 || size_diff <  32) {
+        return -1;
+    }
+    if (size_diff == 32) {
+        write_out(beg_diff, 32);
+    }
+    const char *end_orig = beg_orig + size_orig - 32;
+    size_diff -= 32;
+
+    Ring<map_t> dicts(ndicts);
+    populate_dicts(beg_orig, end_orig, ndicts, dicts);
+
+    auto &dict = dicts[0];
+    for (size_t i = 0; i < size_diff - 1;) {
+        num_t curr = from_ptr<sizeof(num_t)>(beg_diff + i);
+        if (curr == lit) {
+            i += 2;
+            if (i == size_diff) {
+                return -1;
+            }
+            write_out(beg_diff[i++]);
+            continue;
+        }
+        auto end = std::end(dict);
+        auto beg = std::begin(dict);
+        while (beg != end) {
+            if (beg->second == curr) {
+                auto ptr = beg->first.beg;
+                auto size = beg->first.size;
+                write_out(ptr, size);
+                break;
+            }
+            beg = next(beg);
+        }
+        if (beg == end) {
+            return -1;
+        }
+        i += 2;
+    }
+    write_out(beg_diff + size_diff, 32);
+    return 0;
 }
 
 template <typename T>
@@ -325,14 +397,24 @@ mkdict(const char *beg, const char *end, map_t &dict) {
 
 int
 main(int argc, char *argv[]) {
-    if (argc - 1 != 2) {
-        err(1, "NEA");
+    if (argc - 1 != 3) {
+        errx(1, "NEA");
     }
     const char *addrs[2];
     std::size_t sizes[2];
 
+    enum {E, D} mode;
+
+    if (argv[1][0] == 'e' && argv[1][1] == '\0') {
+        mode = E;
+    } else if (argv[1][0] == 'd' && argv[1][1] == '\0') {
+        mode = D;
+    } else {
+        errx(1, "wrong mode");
+    }
+
     for (unsigned i = 0; i < 2; ++i) {
-        int fd = open(argv[i + 1], O_RDONLY);
+        int fd = open(argv[i + 2], O_RDONLY);
         if (fd == -1) {
             err(1, "open");
         }
@@ -347,7 +429,11 @@ main(int argc, char *argv[]) {
             err(1, "mmap");
         }
     }
-    encode(addrs[0], sizes[0], addrs[1], sizes[1], 128, 2);
+    if (mode == E) {
+        encode(addrs[0], sizes[0], addrs[1], sizes[1], 64, 2);
+    } else {
+        decode(addrs[0], sizes[0], addrs[1], sizes[1], 2);
+    }
     return 0;
 }
 
