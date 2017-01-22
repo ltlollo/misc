@@ -8,6 +8,7 @@
 #include <boost/container/small_vector.hpp>
 #include <boost/timer/timer.hpp>
 #include <iterator>
+#include <iostream>
 
 constexpr float off{0.f};
 constexpr unsigned wh{1000}, ww{1000};
