@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 import json
 import configparser
 
@@ -10,7 +11,8 @@ def dump_session(fname, dump_as, dump_titles=True):
     with open(fname, "r") as f:
         jf = json.load(f)
         for i, w in enumerate(jf['windows']):
-            with open("win" + str(i) + "-" + dump_as, "w+") as wf:
+            now = time.strftime("-%d%m%y-%H%M%S")
+            with open("win" + str(i) + "-" + dump_as + now, "w+") as wf:
                 for t in w['tabs']:
                     for e in t['entries']:
                         if dump_titles:

@@ -1,4 +1,5 @@
 # colors
+
 alias ls='ls --color=auto'
 alias dir='dir --color=auto'
 alias grep='grep --color=auto'
@@ -21,6 +22,7 @@ alias gcv='rm *.part'
 alias grab='wget --random-wait -r -l inf -nd -A'
 alias yt='youtube-dl --prefer-ffmpeg'
 alias yta='youtube-dl -x --audio-quality 0 --audio-format mp3 --prefer-ffmpeg'
+alias yts='youtube-dl -x --audio-format mp3 --prefer-ffmpeg'
 alias sysup='su -c "apt-get update && apt-get dist-upgrade &&\
              apt-get autoremove&& apt-get autoclean"'
 alias ghh='ghc -O3 -fPIC -fforce-recomp'
@@ -41,14 +43,16 @@ alias es='(while read i; do echo "${i##*.}"; done< <(find -type f -name \*.\*))\
           | sort | uniq -c | sort -n'
 alias provides='dpkg-query -S'
 alias vimup='vim +PluginUpdate +qall'
+alias nb="newsbeuter"
 
-export cflags='-pthread -Ofast -mtune=native -DNDEBUG -s -ftree-vectorize
+export cflags='-Ofast -mtune=native -DNDEBUG -s -ftree-vectorize
     -mmmx  -msse  -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -mavx -mavx2
     -mfma -mfpmath=sse -Wall -Wextra -pedantic'
 export cppflags="$cflags -fno-rtti"
 
 # functions
 repeat() { while $@; do ``; done; }
+frepeat() { while true; do $@; done; }
 culo() { su -pc "$*"; }
 tcc() { [[ `file "$1" | grep text\$` ]] &&
 sh -c "`sed -n -e "1{s:^\/\/::;s:\sself\(\s*$\|\s\): \\\"$1\\\" :g;p;q}" \"$1\"`"; }
@@ -58,6 +62,9 @@ mon() { L=`pidof $1`; top -p ${L// /,}; }
 dev() { [[ $1 ]] && { mkdir "$HOME/dev/$1" 2>/dev/null; cd "$HOME/dev/$1"; }; }
 xc() { echo "$@" | xclip -selection clipboard; }
 xp() { xclip -o --selection clipboard; }
+valg () { echo valgrind --vgdb=yes --vgdb-error=0 --track-origins=yes ./sake; \
+    echo "gdb> set non-stop off; gdb> target remote | vgdb; gdb>monitor leak_check ";
+}
 
 # typos
 alias cim='vim'
