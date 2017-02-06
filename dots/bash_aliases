@@ -66,6 +66,8 @@ valg () { echo valgrind --vgdb=yes --vgdb-error=0 --track-origins=yes ./sake; \
     echo "gdb> set non-stop off; gdb> target remote | vgdb; gdb>monitor leak_check ";
 }
 
+sigs() { sed "$1" -re's/^[ \t].*//g;s/.*:.*//g;s/^#.*//g;s/^_.*//g;s/^typedef.*//g;s/^}.*//g;s/^\/\/.*//g;s/.*;$//g' | tr -s ' ' | tr -s '\n' | tr '\n' ' ' | tr '{' '\n' |sed -re 's/^ //g;s/\) *$/\);/g;s/.* main\(.*//g'; }
+
 # typos
 alias cim='vim'
 alias bim='vim'
