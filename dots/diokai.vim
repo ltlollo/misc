@@ -12,11 +12,11 @@ let colors_name = "diokai"
 
 hi Normal		ctermfg=252		ctermbg=none	cterm=none		guifg=#d0d0d0	guibg=#272822	gui=none
 hi NonText		ctermfg=252		ctermbg=none	cterm=none		guifg=#d0d0d0	guibg=#272822	gui=none
-hi Cursor		ctermfg=234		ctermbg=228		cterm=none		guifg=#1c1c1c	guibg=#ffff87   gui=none
+hi Cursor		ctermfg=234		ctermbg=252		cterm=none		guifg=#1c1c1c	guibg=#d0d0d0   gui=none
 hi Visual		ctermfg=250		ctermbg=238		cterm=none		guifg=#bcbcbc	guibg=#444444	gui=none
 hi VisualNOS	ctermfg=250		ctermbg=238		cterm=none		guifg=#bcbcbc	guibg=#444444	gui=none
 hi Search		ctermfg=253		ctermbg=95		cterm=none		guifg=#dadada	guibg=#875f5f	gui=none
-hi Folded		ctermfg=103		ctermbg=237		cterm=none		guifg=#8787af	guibg=#3a3a3a	gui=none
+hi Folded		ctermfg=102		ctermbg=237		cterm=none		guifg=#878787	guibg=#3a3a3a	gui=none
 hi Title		ctermfg=230						cterm=bold		guifg=#ffffd7					gui=bold
 hi StatusLine	ctermfg=230		ctermbg=238		cterm=none		guifg=#ffffd7	guibg=#444444	gui=italic
 hi VertSplit	ctermfg=236		ctermbg=236		cterm=none		guifg=#444444	guibg=#444444	gui=none
@@ -24,7 +24,7 @@ hi StatusLineNC	ctermfg=245		ctermbg=235		cterm=none		guifg=#857b6f	guibg=#44444
 hi LineNr		ctermfg=240		ctermbg=234		cterm=none		guifg=#585858	guibg=#1c1c1c	gui=none
 hi SpecialKey	ctermfg=241		ctermbg=235		cterm=none		guifg=#626262	guibg=#2b2b2b	gui=none
 hi WarningMsg	ctermfg=203										guifg=#ff5f55
-hi ErrorMsg		ctermfg=196		ctermbg=236		cterm=bold		guifg=#ff2026	guibg=#3a3a3a	gui=bold
+hi ErrorMsg		ctermfg=196		ctermbg=none	cterm=bold		guifg=#ff2026	guibg=#272822	gui=bold
 hi Directory    ctermfg=107                     cterm=none      guifg=#87af5f                   gui=none
 hi DiffAdd						ctermbg=237										guibg=#3a3a3a
 hi DiffDelete	ctermfg=241		ctermbg=236		cterm=none		guifg=#626262	guibg=#303030	gui=none
