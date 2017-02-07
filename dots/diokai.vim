@@ -10,8 +10,8 @@ endif
 let colors_name = "diokai"
 
 
-hi Normal		ctermfg=252		ctermbg=none	cterm=none		guifg=#d0d0d0	guibg=#333333	gui=none
-hi NonText		ctermfg=252		ctermbg=none	cterm=none		guifg=#d0d0d0	guibg=#333333	gui=none
+hi Normal		ctermfg=252		ctermbg=none	cterm=none		guifg=#d0d0d0	guibg=#272822	gui=none
+hi NonText		ctermfg=252		ctermbg=none	cterm=none		guifg=#d0d0d0	guibg=#272822	gui=none
 hi Cursor		ctermfg=234		ctermbg=228		cterm=none		guifg=#1c1c1c	guibg=#ffff87   gui=none
 hi Visual		ctermfg=250		ctermbg=238		cterm=none		guifg=#bcbcbc	guibg=#444444	gui=none
 hi VisualNOS	ctermfg=250		ctermbg=238		cterm=none		guifg=#bcbcbc	guibg=#444444	gui=none
@@ -21,7 +21,7 @@ hi Title		ctermfg=230						cterm=bold		guifg=#ffffd7					gui=bold
 hi StatusLine	ctermfg=230		ctermbg=238		cterm=none		guifg=#ffffd7	guibg=#444444	gui=italic
 hi VertSplit	ctermfg=236		ctermbg=236		cterm=none		guifg=#444444	guibg=#444444	gui=none
 hi StatusLineNC	ctermfg=245		ctermbg=235		cterm=none		guifg=#857b6f	guibg=#444444	gui=none
-hi LineNr		ctermfg=240		ctermbg=234		cterm=none		guifg=#585858	guibg=#444444	gui=none
+hi LineNr		ctermfg=240		ctermbg=234		cterm=none		guifg=#585858	guibg=#1c1c1c	gui=none
 hi SpecialKey	ctermfg=241		ctermbg=235		cterm=none		guifg=#626262	guibg=#2b2b2b	gui=none
 hi WarningMsg	ctermfg=203										guifg=#ff5f55
 hi ErrorMsg		ctermfg=196		ctermbg=236		cterm=bold		guifg=#ff2026	guibg=#3a3a3a	gui=bold
@@ -37,6 +37,8 @@ hi MatchParen	ctermfg=228		ctermbg=101		cterm=bold		guifg=#eae788	guibg=#857b6f	
 hi Pmenu		ctermfg=230		ctermbg=238						guifg=#ffffd7	guibg=#444444
 hi PmenuSel		ctermfg=232		ctermbg=192						guifg=#080808	guibg=#cae982
 endif
+hi Todo			ctermfg=234		ctermbg=95		cterm=none      guifg=#1c1c1c 	guibg=#875f5f 	gui=italic
+
 
 hi Keyword		ctermfg=221		cterm=none		guifg=#ffd75f	gui=none
 hi Statement	ctermfg=221		cterm=none		guifg=#ffd75f	gui=none
@@ -49,8 +51,6 @@ hi Type			ctermfg=107		cterm=none		guifg=#87af5f	gui=none
 hi Special		ctermfg=203		cterm=none		guifg=#ff5f5f	gui=none
 hi String		ctermfg=144		cterm=none		guifg=#afaf87	gui=italic
 hi Comment		ctermfg=96		cterm=none		guifg=#875f87	gui=italic
-hi Todo			ctermbg=95		cterm=none		guibg=#875f5f	gui=italic
-
 hi! link FoldColumn		Folded
 hi! link CursorColumn	CursorLine
 
