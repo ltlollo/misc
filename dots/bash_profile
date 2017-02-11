@@ -3,9 +3,9 @@ $HOME/dev/bin:$HOME/.cabal/bin:/$HOME/.cargo/bin:$HOME/.local/bin
 export RUST_SRC_PATH=$HOME/dev/rust/src/
 export GOPATH=$HOME/dev/gopath/
 export PS1="\
-\[\e[00;31m\][\$?, \t]\[\e[0m\]\[\e[00;37m\]::\
-\[\e[0m\]\[\e[00;32m\]\u@\h\[\e[0m\]\[\e[00;37m\]::\
-\[\e[0m\]\[\e[01;36m\]\w\[\e[0m\]\[\e[00;37m\]\\$ \[\e[0m\]"
+\[\e[38;5;245m\][\$?, \t]\[\e[0m\]\[\e[00;37m\]::\
+\[\e[0m\]\[\e[38;5;107m\]\u@\h\[\e[0m\]\[\e[00;37m\]::\
+\[\e[0m\]\[\e[38;5;173m\]\w\[\e[0m\]\[\e[00;37m\]\\$ \[\e[0m\]"
 export PROMPT_COMMAND='echo -ne "\033]0;${PWD##$HOME/}\007"'
 
 export TERM='xterm-256color'
