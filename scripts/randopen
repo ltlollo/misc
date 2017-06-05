@@ -15,5 +15,5 @@ file=`[[ $N -gt 1 ]] &&\
     find -type f -iname "*$S*" | sort -R | head -n1`
 
 [[ $1 = --help || $1 = -h ]] && { echo -e "$USAGE" 1>&2; exit 0; }
-echo [I]: opening $file 1>&2; poppe "$file"
+echo [I]: opening $file 1>&2; xdg-open "$file"
 
