@@ -432,7 +432,7 @@ int main(int argc, char *argv[]) {
                     break;
                 case sf::Keyboard::S:
                     texture.update(window);
-                    texture.copyToImage().saveToFile(to_str(g) + ".png");
+                    texture.copyToImage().saveToFile(std::string(gram) + ".png");
                     break;
                 default:
                     break;
