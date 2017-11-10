@@ -106,16 +106,29 @@ auto to_str(const UVec<char> &v) {
 }
 void draw(sf::RenderWindow &win, const Shape &shape) {
     sf::Vertex arr[2];
+	arr[0].color = sf::Color::White;
+	arr[1].color = sf::Color::White;
+	static float step = 0.0;
+
     for (unsigned i = 0; i < shape.size() - 1; ++i) {
         arr[0].position = shape[i];
         arr[1].position = shape[i + 1];
+#ifdef COLOR
+        arr[0].color -= sf::Color((uint8_t)step, (uint8_t)(0.5*step), (uint8_t)(0.1*step), 0);
+        arr[1].color -= sf::Color((uint8_t)step, (uint8_t)(0.5*step), (uint8_t)(0.1*step), 0);
+#endif
         win.draw(arr, 2, sf::Lines);
     }
     if (shape.size() > 2) {
         arr[0].position = shape[shape.size() - 1];
         arr[1].position = shape[0];
+#ifdef COLOR
+        arr[0].color -= sf::Color((uint8_t)step, (uint8_t)(0.5*step), (uint8_t)(0.1*step), 0);
+        arr[1].color -= sf::Color((uint8_t)step, (uint8_t)(0.5*step), (uint8_t)(0.1*step), 0);
+#endif
         win.draw(arr, 2, sf::Lines);
     }
+	step += 0.5f;
 }
 void draw(sf::RenderWindow &win, const Shapes &shapes) {
     for (const auto &shape : shapes) {
@@ -350,24 +363,49 @@ auto to_str(const Grammar &g) {
  *        ( ex: "ABC>", "AdBC>" is not allowed )
  */
 
-int main(int, char *argv[]) {
+int main(int argc, char *argv[]) {
     sf::VideoMode vmode{ww, wh};
-    sf::RenderWindow window(vmode, argv[0], sf::Style::Titlebar);
+    sf::RenderWindow window(vmode, argv[0], sf::Style::Default);
     sf::Event event;
     window.clear();
     window.display();
-    auto g =
-        Grammar("ABCD>AB.,BC.,CD.,DA.;AaBnnnnncnCndnnnnn>acd,Aad,aBc,dcC");
-    auto first = Shapes{{{0.f + off, 0.f + off},
-                         {0.f + off, wh - off},
-                         {ww - off, wh - off},
-                         {ww - off, 0.f + off}}};
 
+	int nsteps = 8;
+	const char *gram = "ABCD>AB.,BC.,CD.,DA.;AaBnnnnncnCndnnnnn>acd,Aad,aBc,dcC";
+	int poly = 4;
+
+	if (argc-1 > 0) {
+		gram = argv[1];
+	}
+	if (argc-2 > 0) {
+		nsteps = atoi(argv[2]);
+	}
+	if (argc-3 > 0) {
+		poly = atoi(argv[3]);
+	}
+
+	Vertex generator = {ww/2 * (1-0.1), 0.0};
+	float rot = 360.f / poly;
+	sf::Transform rotm = sf::Transform::Identity;
+	rotm.rotate(rot);
+    auto first = Shapes{{}};
+
+	for (int i = 0; i < poly; i++) {
+		first[0].emplace_back(generator + Vertex(ww/2.f, wh/2.f));
+		generator = rotm * generator;
+	}
+    auto g = Grammar(gram);
     {
         boost::timer::auto_cpu_timer measure(std::cerr);
-        auto shapes = g.iterate(window, first, 8);
+        auto shapes = g.iterate(window, first, nsteps);
         draw(window, shapes);
     }
+    sf::Vector2u windowSize = window.getSize();
+    sf::Texture texture;
+    texture.create(windowSize.x, windowSize.y);
+    texture.update(window);
+    sf::Image screenshot = texture.copyToImage();
+    window.display();
     while (window.isOpen()) {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
@@ -379,13 +417,13 @@ int main(int, char *argv[]) {
                     window.close();
                     break;
                 case sf::Keyboard::S:
-                    window.capture().saveToFile(to_str(g) + ".png");
+                    texture.update(window);
+                    texture.copyToImage().saveToFile(to_str(g) + ".png");
                     break;
                 default:
                     break;
                 }
         }
-        window.display();
     }
     return 0;
 }
