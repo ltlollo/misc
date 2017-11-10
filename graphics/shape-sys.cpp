@@ -9,9 +9,11 @@
 #include <boost/timer/timer.hpp>
 #include <iterator>
 #include <iostream>
+#include <unistd.h>
 
 constexpr float off{0.f};
 constexpr unsigned wh{1000}, ww{1000};
+constexpr unsigned epilepsy_factor = 2;
 
 template <typename T, typename U> using Map = boost::container::flat_map<T, U>;
 template <typename T> using UVec = boost::container::small_vector<T, 8>;
@@ -128,7 +130,7 @@ void draw(sf::RenderWindow &win, const Shape &shape) {
 #endif
         win.draw(arr, 2, sf::Lines);
     }
-	step += 0.5f;
+	step = step > epilepsy_factor * 255 ? 0 : step + 0.5f;
 }
 void draw(sf::RenderWindow &win, const Shapes &shapes) {
     for (const auto &shape : shapes) {
@@ -369,10 +371,12 @@ int main(int argc, char *argv[]) {
     sf::Event event;
     window.clear();
     window.display();
+	window.setFramerateLimit(60);
 
-	int nsteps = 8;
+	int nsteps = 7;
 	const char *gram = "ABCD>AB.,BC.,CD.,DA.;AaBnnnnncnCndnnnnn>acd,Aad,aBc,dcC";
 	int poly = 4;
+	int move_i = 0;
 
 	if (argc-1 > 0) {
 		gram = argv[1];
@@ -382,6 +386,9 @@ int main(int argc, char *argv[]) {
 	}
 	if (argc-3 > 0) {
 		poly = atoi(argv[3]);
+	}
+	if (argc-4 > 0) {
+		move_i = atoi(argv[4]);
 	}
 
 	Vertex generator = {ww/2 * (1-0.1), 0.0};
@@ -395,10 +402,10 @@ int main(int argc, char *argv[]) {
 		generator = rotm * generator;
 	}
     auto g = Grammar(gram);
+	Shapes shapes;
     {
         boost::timer::auto_cpu_timer measure(std::cerr);
-        auto shapes = g.iterate(window, first, nsteps);
-        draw(window, shapes);
+        shapes = g.iterate(window, first, nsteps);
     }
     sf::Vector2u windowSize = window.getSize();
     sf::Texture texture;
@@ -406,7 +413,14 @@ int main(int argc, char *argv[]) {
     texture.update(window);
     sf::Image screenshot = texture.copyToImage();
     window.display();
+
+
+	sf::Transform tm = sf::Transform::Identity;
+	tm.rotate(1, ww/2, wh/2);
+
     while (window.isOpen()) {
+		window.clear();
+        draw(window, shapes);
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 window.close();
@@ -424,6 +438,19 @@ int main(int argc, char *argv[]) {
                     break;
                 }
         }
+		for (auto &s : shapes) {
+			auto c = Vertex(0, 0);
+			for (const auto &p : s) {
+				c += p;
+			}
+			c.x /= s.size();
+			c.y /= s.size();
+			for (int i = move_i; i < s.size(); i++) {
+				sf::Transform id = sf::Transform::Identity;
+				s[i] = id.rotate(1, c) * s[i];
+			}
+		}
+	    window.display();
     }
     return 0;
 }
