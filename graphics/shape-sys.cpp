@@ -115,7 +115,7 @@ void draw(sf::RenderWindow &win, const Shape &shape) {
     for (unsigned i = 0; i < shape.size() - 1; ++i) {
         arr[0].position = shape[i];
         arr[1].position = shape[i + 1];
-#ifdef COLOR
+#ifndef NCOLOR
         arr[0].color -= sf::Color((uint8_t)step, (uint8_t)(0.5*step), (uint8_t)(0.1*step), 0);
         arr[1].color -= sf::Color((uint8_t)step, (uint8_t)(0.5*step), (uint8_t)(0.1*step), 0);
 #endif
@@ -124,7 +124,7 @@ void draw(sf::RenderWindow &win, const Shape &shape) {
     if (shape.size() > 2) {
         arr[0].position = shape[shape.size() - 1];
         arr[1].position = shape[0];
-#ifdef COLOR
+#ifndef NCOLOR
         arr[0].color -= sf::Color((uint8_t)step, (uint8_t)(0.5*step), (uint8_t)(0.1*step), 0);
         arr[1].color -= sf::Color((uint8_t)step, (uint8_t)(0.5*step), (uint8_t)(0.1*step), 0);
 #endif
@@ -390,7 +390,6 @@ int main(int argc, char *argv[]) {
 	if (argc-4 > 0) {
 		move_i = atoi(argv[4]);
 	}
-
 	Vertex generator = {ww/2 * (1-0.1), 0.0};
 	float rot = 360.f / poly;
 	sf::Transform rotm = sf::Transform::Identity;
@@ -413,10 +412,6 @@ int main(int argc, char *argv[]) {
     texture.update(window);
     sf::Image screenshot = texture.copyToImage();
     window.display();
-
-
-	sf::Transform tm = sf::Transform::Identity;
-	tm.rotate(1, ww/2, wh/2);
 
     while (window.isOpen()) {
 		window.clear();
@@ -447,7 +442,7 @@ int main(int argc, char *argv[]) {
 			c.y /= s.size();
 			for (int i = move_i; i < s.size(); i++) {
 				sf::Transform id = sf::Transform::Identity;
-				s[i] = id.rotate(1, c) * s[i];
+				s[i] = id.rotate(1.5, c) * s[i];
 			}
 		}
 	    window.display();
