@@ -10,7 +10,7 @@ vecopts=" -mmmx  -msse  -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -mavx \
     -mavx2 -mfma -mfpmath=sse"
 loopopts="-floop-interchange -ftree-loop-distribution -floop-strip-mine \
     -floop-block"
-restopts="-flto=8 -ftree-vectorize -mmusl"
+restopts="-flto=8 -ftree-vectorize"
 
 OWarn="-Wall -Wextra -Wconversion -pedantic -fno-pretty-templates"
 OOpts="${mainopts} ${loopopts} ${restopts} ${vecopts}"
@@ -18,4 +18,4 @@ OOut="-fmax-errors=$elines"
 OSec="-fstack-protector-all"
 OTmpl="-ftemplate-depth=50000"
 
-g++-6 -std=c++1z "$1" $OWarn $OOpts $OOut $OSec $OTmpl -pthread -o $out $rest
+g++ -std=c++1z "$1" $OWarn $OOpts $OOut $OSec $OTmpl -pthread -o $out $rest
