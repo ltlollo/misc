@@ -109,28 +109,23 @@ void draw(sf::RenderWindow &win, const Shape &shape) {
 	for (size_t i = 0; i < shape.size() - 1; ++i) {
 		arr[0].position = shape[i];
 		arr[1].position = shape[i + 1];
-#ifndef NCOLOR
 		arr[0].color -= sf::Color((uint8_t)(cnf.val.rp*step),
 								  (uint8_t)(cnf.val.gp*step),
 								  (uint8_t)(cnf.val.bp*step), 0);
 		arr[1].color -= sf::Color((uint8_t)(cnf.val.rp*step),
 								  (uint8_t)(cnf.val.gp*step),
 								  (uint8_t)(cnf.val.bp*step), 0);
-#endif
 		win.draw(arr, 2, sf::Lines);
 	}
 	if (shape.size() > 2) {
 		arr[0].position = shape[shape.size() - 1];
 		arr[1].position = shape[0];
-#ifndef NCOLOR
 		arr[0].color -= sf::Color((uint8_t)(cnf.val.rp*step),
 								  (uint8_t)(cnf.val.gp*step),
 								  (uint8_t)(cnf.val.bp*step), 0);
 		arr[1].color -= sf::Color((uint8_t)(cnf.val.rp*step),
 								  (uint8_t)(cnf.val.gp*step),
 								  (uint8_t)(cnf.val.bp*step), 0);
-
-#endif
 		win.draw(arr, 2, sf::Lines);
 	}
 	step = step > cnf.val.epilepsy * 255 ? 0 : step + 0.5f;
