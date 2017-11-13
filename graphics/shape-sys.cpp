@@ -43,7 +43,7 @@ static struct Conf {
 	struct Incr {
 		float r = 1, g = 1, b = 1;
 		float rp = .1, gp = .1, bp = .1;
-		float epilepsy = 1;
+		float epilepsy = .1;
 		float rot = .1, rev = .1;
 	} inc;
 	char *names[size] = {
@@ -441,11 +441,13 @@ int main(int argc, char *argv[]) {
 					break;
 				case sf::Keyboard::Left:
 					(&cnf.val.r)[field] = std::clamp((&cnf.val.r)[field] -
+						(event.key.shift ? 10 : 1) *
 						(&cnf.inc.r)[field], (&cnf.min.r)[field], (&cnf.max.r)[field]);
 					printf("%s: %f\n", cnf.names[field], (&cnf.val.r)[field]);
 					break;
 				case sf::Keyboard::Right:
 					(&cnf.val.r)[field] = std::clamp((&cnf.val.r)[field] +
+						(event.key.shift ? 10 : 1) *
 						(&cnf.inc.r)[field], (&cnf.min.r)[field], (&cnf.max.r)[field]);
 					printf("%s: %f\n", cnf.names[field], (&cnf.val.r)[field]);
 					break;
