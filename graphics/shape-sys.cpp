@@ -25,50 +25,6 @@ auto mid(const Vertex &f, const Vertex &s) { return (s - f) / 2.f; }
 auto div(const Vertex &f, const Vertex &s, float p = 1.f, float n = 2.f) {
     return (s - f) * (p / n) + f;
 }
-auto join_seq(auto &&s, auto &&ele, auto p) {
-    auto seq = std::move(s);
-    using Res = decltype(p(std::begin(seq)));
-    Res res;
-    if (std::size(seq) == 0) {
-        return res;
-    }
-    auto ei = std::begin(seq);
-    for (size_t i = 0; i < std::size(seq) - 1; ++i, ++ei) {
-        auto te = p(ei);
-        res.insert(std::end(res), std::make_move_iterator(std::begin(te)),
-                   std::make_move_iterator(std::end(te)));
-        std::copy(std::cbegin(ele), std::cend(ele), std::back_inserter(res));
-    }
-    auto te = p(ei);
-    res.insert(std::end(res), std::make_move_iterator(std::begin(te)),
-               std::make_move_iterator(std::end(te)));
-    return res;
-}
-auto join_seq(auto &&seq, auto &&ele) {
-    return join_seq(seq, ele, [](auto it) { return *it; });
-}
-auto join(auto &&s, auto &&ele, auto p) {
-    auto seq = std::move(s);
-    using Res = decltype(p(std::begin(seq)));
-    Res res;
-    if (std::size(seq) == 0) {
-        return res;
-    }
-    auto ei = std::begin(seq);
-    for (size_t i = 0; i < std::size(seq) - 1; ++i, ++ei) {
-        auto te = p(ei);
-        res.insert(std::end(res), std::make_move_iterator(std::begin(te)),
-                   std::make_move_iterator(std::end(te)));
-        res.push_back(ele);
-    }
-    auto te = p(ei);
-    res.insert(std::end(res), std::make_move_iterator(std::begin(te)),
-               std::make_move_iterator(std::end(te)));
-    return res;
-}
-auto join(auto &&seq, auto &&ele) {
-    return join(seq, ele, [](auto it) { return *it; });
-}
 auto split(auto &&v, auto &&at, auto p) {
     auto seq = std::move(v);
     using It = decltype(std::begin(seq));
@@ -175,9 +131,7 @@ struct Rule {
     Shapes apply(sf::RenderWindow &win, const Shape &shape);
     void calc_mids();
 };
-auto to_str(const Rule &r) {
-    return to_str(r.lhs) + '>' + to_str(join(r.vrhs, ','));
-}
+
 Rule::Rule(const std::string &rule_copy) {
     std::string rule = remove_spaces(rule_copy);
     auto it = std::find(std::begin(rule), std::end(rule), '>');
@@ -291,11 +245,13 @@ Shapes Rule::apply(sf::RenderWindow &win, const Shape &shape) {
         for (const auto &sv : vrhs[i]) {
             curr_shape.push_back(vmap[sv]);
         }
-        if (i != self_cycle) {
-            res.push_back(std::move(curr_shape));
-        } else {
-            draw(win, curr_shape);
-        }
+        res.push_back(std::move(curr_shape));
+		// this is only useful when not animating
+        //if (i != self_cycle) {
+        //    res.push_back(std::move(curr_shape));
+        //} else {
+        //    draw(win, curr_shape);
+        //}
     }
     return res;
 }
@@ -343,9 +299,6 @@ struct Grammar {
         return res;
     }
 };
-auto to_str(const Grammar &g) {
-    return join(g.pmap, ';', [](auto r) { return to_str(r->second); });
-}
 
 /* grammar explanation
  * def: RULE := LHS '>' RHS
@@ -377,6 +330,7 @@ int main(int argc, char *argv[]) {
 	const char *gram = "ABCD>AB.,BC.,CD.,DA.;AaBnnnnncnCndnnnnn>acd,Aad,aBc,dcC";
 	int poly = 4;
 	int move_i = 0;
+	float srev;
 
 	if (argc-1 > 0) {
 		gram = argv[1];
@@ -389,6 +343,11 @@ int main(int argc, char *argv[]) {
 	}
 	if (argc-4 > 0) {
 		move_i = atoi(argv[4]);
+	}
+	if (argc-5 > 0) {
+		srev = 1.0 * atoi(argv[5]);
+	} else {
+		srev = 0.0;
 	}
 	Vertex generator = {ww/2 * (1-0.1), 0.0};
 	float rot = 360.f / poly;
@@ -413,6 +372,19 @@ int main(int argc, char *argv[]) {
     sf::Image screenshot = texture.copyToImage();
     window.display();
 
+	sf::Transform rm = sf::Transform::Identity;
+	rm.rotate(-0.2 * srev, {ww/2, wh/2});
+	auto tfms = std::vector<sf::Transform>(shapes.size(), rm);
+	for (size_t i = 0; i < shapes.size(); i++) {
+		auto c = Vertex(0, 0);
+		for (const auto &p : shapes[i]) {
+			c += p;
+		}
+		c.x /= shapes[i].size();
+		c.y /= shapes[i].size();
+		tfms[i].rotate(1.5, c);
+	}
+
     while (window.isOpen()) {
 		window.clear();
         draw(window, shapes);
@@ -433,16 +405,13 @@ int main(int argc, char *argv[]) {
                     break;
                 }
         }
-		for (auto &s : shapes) {
-			auto c = Vertex(0, 0);
-			for (const auto &p : s) {
-				c += p;
+		for (size_t j = 0; j < shapes.size(); j++) {
+			auto &s = shapes[j];
+			for (int i = 0; i < move_i && i < s.size(); i++) {
+				s[i] = rm * s[i];
 			}
-			c.x /= s.size();
-			c.y /= s.size();
 			for (int i = move_i; i < s.size(); i++) {
-				sf::Transform id = sf::Transform::Identity;
-				s[i] = id.rotate(1.5, c) * s[i];
+				s[i] = tfms[j] * s[i];
 			}
 		}
 	    window.display();
