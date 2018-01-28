@@ -1,0 +1,172 @@
+http://undeadly.org/cgi?action=rss journal nix
+http://lwn.net/headlines/newrss journal nix
+https://www.dragonflydigest.com/feed journal nix
+https://planet.haskell.org/rss20.xml journal func
+http://chneukirchen.org/trivium/index.atom journal nix misc
+https://newsletter.nixers.net/feed.xml journal nix
+
+http://scottaaronson.com/blog/?feed=rss2 math
+https://johncarlosbaez.wordpress.com/feed/ math
+https://lucatrevisan.wordpress.com/feed/ "~in theory" math
+https://rjlipton.wordpress.com/feed/ math
+https://golem.ph.utexas.edu/category/atom10.xml math
+http://bartoszmilewski.com/feed/ "~Bartosz Milewski's Programming Café" math func
+https://derekelkins.github.io/rss.xml math
+https://www.schoolofhaskell.com/recent-content/feed math func
+http://loup-vaillant.fr/updates math
+http://datagenetics.com/feed/rss.xml math
+http://jeremykun.com/feed/ math
+http://bit-player.org/feed math
+http://blog.wolfram.com/feed/ math
+http://prl.ccs.neu.edu/blog/feeds/all.rss.xml math
+#http://alejandroerickson.com/j/feed.xml math
+#http://isomorphism.es/rss math
+http://www.michaelburge.us/feed.xml math
+https://keccak.team/news.atom math
+https://galoisrepresentations.wordpress.com/feed/ math
+https://gowers.wordpress.com/feed/ math
+https://blog.filippo.io/rss/ math
+
+http://blog.wesleyac.com/feed.xml math nix
+https://blog.plover.com/index.rss math nix
+http://www.gnuplotting.org/feed/ math nix
+
+http://eli.thegreenplace.net/feeds/all.atom.xml cpp
+http://pfultz2.com/blog/feed.xml cpp
+https://akrzemi1.wordpress.com/feed/ cpp
+https://www.justsoftwaresolutions.co.uk/index.rss cpp
+https://herbsutter.com/feed/ cpp
+http://www.elbeno.com/blog/?feed=rss2 cpp
+https://randomascii.wordpress.com/feed/ cpp
+http://blog.regehr.org/feed cpp
+
+https://norasandler.com/feed.xml misc
+
+https://fgiesen.wordpress.com/feed/ dop compr
+http://preshing.com/feed dop compr
+http://nullprogram.com/feed/ dop
+http://zeuxcg.org/feed/ dop
+https://www.strchr.com/?feed=/ dop
+http://feeds.feedburner.com/KristerWalfridssonsBlog dop
+http://tukan.farm/atom.xml dop
+http://feed43.com/agners_cpu_blog.xml dop
+https://asmbits.blogspot.com/feeds/posts/default dop
+http://zipcpu.com/feed.xml dop ee
+
+http://laforge.gnumonks.org/blog/rss.xml misc
+http://www.tedunangst.com/flak/rss misc nix
+http://blog.erratasec.com/feeds/posts/default?alt=rss misc hack
+http://www.macton.ninja/home/posts.xml misc dop
+http://www.alexkyte.me/feeds/posts/default misc
+http://rusty.ozlabs.org/?feed=rss2 misc nix
+http://landley.net/rss.xml misc nix
+http://brendangregg.com/blog/rss.xml bench nix
+https://gavv.github.io/index.xml nix
+http://andrewkelley.me/rss.xml misc dop
+
+https://grugq.tumblr.com/rss hack
+https://medium.com/feed/@thegrugq hack
+https://int80.wordpress.com/feed/ hack
+https://travisgoodspeed.blogspot.com/feeds/posts/default?alt=rss hack
+
+https://0fps.net/feed/ gamedev
+http://www.sebastiansylvan.com/index.xml gamedev
+http://deplinenoise.wordpress.com/feed/ gamedev
+http://c0de517e.blogspot.com/feeds/posts/default gamedev
+http://aras-p.info/atom.xml
+http://voxelium.wordpress.com/feed/
+http://www.enkisoftware.com/rss gamedev
+http://bartwronski.com/feed/ gamedev
+http://bitsquid.blogspot.com/feeds/posts/default gamedev
+http://stephaniehurlburt.com/blog?format=RSS gamedev
+http://graphicrants.blogspot.com/feeds/posts/default gamedev
+http://briansharpe.wordpress.com/feed/ gamedev
+http://cppsecrets.blogspot.com/feeds/posts/default gamedev
+http://mollyrocket.com/casey/stream_atom.rss gamedev
+http://blog.xyzw.us/feeds/posts/default?alt=rss gamedev
+http://casual-effects.blogspot.com/feeds/posts/default gamedev
+http://cbloomrants.blogspot.com/feeds/posts/default gamedev
+http://www.thetenthplanet.de/feed gamedev
+http://blog.icare3d.org/feeds/posts/default gamedev
+http://danluu.com/atom.xml gamedev
+https://blog.forrestthewoods.com/feed gamedev
+https://flashypixels.wordpress.com/feed/ gamedev
+http://blog.duangle.com/feeds/posts/default gamedev
+http://emshort.wordpress.com/feed/ gamedev
+http://fabiensanglard.net/rss.xml gamedev
+http://donw.io/index.xml gamedev
+http://www.decarpentier.nl/feed gamedev
+http://ginsweater.com/blog/feed/ gamedev
+http://gpupro.blogspot.com/feeds/posts/default gamedev
+http://imdoingitwrong.wordpress.com/feed/ gamedev
+http://castano.ludicon.com/blog/feed/ gamedev
+http://industrialarithmetic.blogspot.com/feeds/posts/default gamedev
+http://ir-ltd.net/feed/ gamedev
+http://jamesdolan.blogspot.com/feeds/posts/default gamedev
+http://playtechs.blogspot.com/feeds/posts/default gamedev
+http://www.forceflow.be/feed/ gamedev
+http://joeduffyblog.com/feed.xml gamedev
+http://repi.blogspot.com/feeds/posts/default gamedev
+http://john-ahlgren.blogspot.com/feeds/posts/default gamedev
+http://www.johncalsbeek.com/feed.xml gamedev
+http://johnwhite3d.blogspot.com/feeds/posts/default gamedev
+http://olickspulpit.blogspot.com/feeds/posts/default ~olickspulpit gamedev
+http://joostdevblog.blogspot.com/feeds/posts/default gamedev
+http://www.iryoku.com/feed gamedev
+http://jvns.ca/atom.xml gamedev
+http://daugaard.org/blog/?feed=rss2 gamedev
+http://kosmokleaner.wordpress.com/feed/ gamedev
+http://interplayoflight.wordpress.com/feed/ gamedev
+http://leighalexander.net/feed/ gamedev
+http://lousodrome.net/blog/light/feed/ gamedev
+http://mynameismjp.wordpress.com/feed/ gamedev
+http://directtovideo.wordpress.com/feed/ gamedev
+http://www.dimension3.sk/feed/ gamedev
+http://blog.mmacklin.com/feed/ gamedev
+http://allenchou.net/feed/ gamedev
+http://molecularmusings.wordpress.com/feed/ gamedev
+http://mmikkelsen3d.blogspot.com/feeds/posts/default gamedev
+http://www.reedbeta.com/blog/feed/ gamedev
+http://www.openglsuperbible.com/feed/ gamedev
+http://outerra.blogspot.com/feeds/posts/default gamedev
+http://pzurita.wordpress.com/feed/ gamedev
+http://petersikachev.blogspot.com/feeds/posts/default?alt=rss gamedev
+http://pixeljetstream.blogspot.com/feeds/posts/default gamedev
+http://prog21.dadgum.com/atom.xml gamedev
+http://ventspace.wordpress.com/feed/ gamedev
+http://chainedchaos31.tumblr.com/rss gamedev
+http://raytracey.blogspot.com/feeds/posts/default gamedev
+http://www.realtimerendering.com/blog/feed/ gamedev
+http://realtimevoxels.blogspot.com/feeds/posts/default gamedev
+http://richg42.blogspot.com/feeds/posts/default gamedev
+http://msm.grumpybumpers.com/?feed=rss2 gamedev
+http://seblagarde.wordpress.com/feed/ gamedev
+http://www.palgorithm.co.uk/feed/ gamedev
+http://vec3.ca/feed/ gamedev
+http://simonschreibt.blogspot.com/feeds/posts/default gamedev
+http://www.sophiehoulden.com/feed/ gamedev
+http://blog.selfshadow.com/feed/ gamedev
+http://blog.stevemcauley.com/feed/ gamedev
+http://steve-yegge.blogspot.com/feeds/posts/default gamedev
+https://medium.com/feed/@Esquiring gamedev
+http://blog.hvidtfeldts.net/index.php/feed/ gamedev
+http://evincarofautumn.blogspot.com/feeds/posts/default gamedev
+http://www.joshbarczak.com/blog/?feed=rss2 gamedev
+http://david.fancyfishgames.com/feeds/posts/default gamedev
+http://tomforsyth1000.github.io/blog.wiki.xml gamedev
+http://tomhammersley.blogspot.com/feeds/posts/default gamedev
+http://seven-degrees-of-freedom.blogspot.com/feeds/posts/default gamedev
+http://diaryofagraphicsprogrammer.blogspot.com/feeds/posts/default gamedev
+http://zrusin.blogspot.com/feeds/posts/default gamedev
+http://zigguratvertigo.com/feed/ gamedev
+
+http://4gravitons.wordpress.com/feed/ physics
+http://backreaction.blogspot.com/feeds/posts/default physics
+http://cqgplus.com/feed/ physics
+https://ensnaredinvacuum.wordpress.com/feed/ physics
+http://blog.jessriedel.com/feed/ physics
+http://gravityandlevity.wordpress.com/feed/ physics
+http://www.math.columbia.edu/~woit/wordpress/?feed=rss2 physics
+http://www.preposterousuniverse.com/blog/feed/ physics
+
+http://what-if.xkcd.com/feed.atom misc

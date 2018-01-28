@@ -1,3 +1,5 @@
+#include "/etc/X11/Xresources/x11-common"
+
 Xft.dpi: 96
 Xft.antialias: 1
 Xft.rgba: rgb
@@ -8,6 +10,7 @@ Xft.hintstyle: hintfull
 xterm*faceName: xft:monospace:size=12:antialias=true:autohint=true
 xterm*faceNameDoublesize: xft:Droid Sans Japanese:style=Regular
 xterm*background: rgb:27/28/22
+xterm*foreground: white
 xterm*locale: true
 xterm*selectToClipboard: true
 xterm*vt100.translations: #override \

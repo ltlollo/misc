@@ -1,19 +1,6 @@
 set nocompatible
 set hidden
 filetype off
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
-Plugin 'gmarik/Vundle.vim'
-Plugin 'racer-rust/vim-racer'
-Plugin 'rust-lang/rust.vim'
-call vundle#end()
-
-let g:ycm_auto_start_csharp_server = 0
-let g:ycm_confirm_extra_conf = 0
-let g:ycm_show_diagnostics_ui = 0
-
-let g:racer_cmd    = $HOME."/.cargo/bin/racer"
-let $RUST_SRC_PATH = $HOME."/dev/rust/src/"
 
 nnoremap <leader>jd :YcmCompleter GoTo<CR>
 
@@ -21,19 +8,6 @@ set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 set laststatus=0
-
-let g:syntastic_cpp_compiler = 'g++'
-let g:syntastic_c_compiler = 'gcc'
-let g:syntastic_cpp_compiler_options = "-pthread -fopenmp -std=c++17
-            \ -Wall -Wextra -pedantic"
-let g:syntastic_c_compiler_options = "-pthread -std=gnu11 -fopenmp
-            \ -Wall -Wextra -pedantic"
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-"let g:syntastic_cpp_no_default_include_dirs = 1
-"let g:syntastic_cpp_remove_include_errors = 1
 
 highlight LongLine ctermbg=DarkYellow guibg=DarkYellow
 highlight WhitespaceEOL ctermbg=DarkYellow guibg=DarkYellow
@@ -47,9 +21,9 @@ au BufRead,BufNewFile *.txt,*.tex
             \ set wrap linebreak nolist textwidth=0 wrapmargin=0
 
 augroup csrc
-  au!
-  autocmd FileType *      set nocindent smartindent
-  autocmd FileType c,cpp  set cindent
+	au!
+	autocmd FileType *      set nocindent smartindent
+	autocmd FileType c,cpp  set cindent
 augroup END
 
 set cinoptions=:0,g0,(0,Ws,l1
@@ -57,18 +31,27 @@ set cinoptions=:0,g0,(0,Ws,l1
 command! DeleteTrailingWs :%s/\s\+$//
 command! Untab :%s/\t/  /g
 
-filetype indent plugin on
+"filetype indent plugin on
 syntax on
 set smartcase
 set wildmenu
 set showcmd
 set confirm
+
 set backspace=indent,eol,start
-set autoindent
-set expandtab
-set smarttab
+"set autoindent
+"set expandtab
+"set smarttab
+"set sw=8 ts=8 sts=0
+
+set softtabstop=0
 set shiftwidth=4
-set softtabstop=4
+set tabstop=4
+set noexpandtab
+set copyindent
+set preserveindent
+setl cinoptions=(4,m1,10)
+
 
 set showmatch
 set mat=2
@@ -76,26 +59,22 @@ set noerrorbells
 
 set t_Co=256
 
-color elflord
+color diokai
 
 set colorcolumn=80
 "set textwidth=80
 "set tw=80
 set whichwrap+=<,>,h,l,[,]
 
-set hidden
-
-map <C-K> :pyf /usr/share/vim/addons/syntax/clang-format-3.8.py<cr>
-imap <C-K> <c-o>:pyf /usr/share/vim/addons/syntax/clang-format-3.8.py<cr>
+map <C-K> :pyf /usr/share/vim/addons/syntax/clang-format.py<cr>
+imap <C-K> <c-o>:pyf /usr/share/vim/addons/syntax/clang-format.py<cr>
 
 vmap <C-c> y:call system("xclip -i -selection clipboard", getreg("\""))<CR>
             \:call system("xclip -i", getreg("\""))<CR>
 nmap <C-i> :call setreg("\"",system("xclip -o -selection clipboard"))<CR>p
 
 augroup filetype
-  au! BufRead,BufNewFile *.ll     set filetype=llvm
+	au! BufRead,BufNewFile *.ll set filetype=llvm
+	au! BufRead,BufNewFile *.td set filetype=tablegen
+	au! BufRead,BufNewFile *.jl set filetype=julia
 augroup END
-augroup filetype
-  au! BufRead,BufNewFile *.td     set filetype=tablegen
-augroup END
-

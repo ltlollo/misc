@@ -15,3 +15,4 @@ cp "$HOME/dev/experiments/misc/dots/client.conf" "$HOME/.config/pulse/client.con
 cp "$HOME/dev/experiments/misc/dots/logind.conf" "/etc/systemd/logind.conf"
 cp "$HOME/dev/experiments/misc/dots/inputrc" "$HOME/.inputrc"
 cp "$HOME/dev/experiments/misc/dots/diokai.vim" "$HOME/.vim/colors/diokai.vim"
+cp "$HOME/dev/misc/dots/urls" "$HOME/.newsbeuter/urls"

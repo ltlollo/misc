@@ -11,4 +11,4 @@ template_cpp="$template_dir/template.cpp"
 template_h="$template_dir/template.h"
 template_rs="$template_dir/template.rs"
 
-dots_dir="$experiments_dir/misc/dots"
+dots_dir="$HOME/dev/misc/dots"
