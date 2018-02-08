@@ -1,0 +1,47 @@
+Sta : # = {
+	some : Int
+	some : StaNo
+}
+
+some : (n : Int) -> # {
+	if n {
+		return Int
+	}
+}
+
+vec : (ele : #) -> # {
+	Vec : # = {
+		data : ele[]
+		size : Int
+	}
+	a = fn(
+		some,
+		s,
+	)
+	return Vec
+}
+
+tntoo : (
+	fn : Int -> Int
+	soe : Qud
+) -> Int {
+	a := fn()
+}
+
+var : (a : Sta) -> Sta = {
+	
+}
+
+
+Sta : # = {
+	ele : Int
+	next : *t
+	t : # = Sta
+}
+
+
+
+next : (a : Sta) -> *Sta {
+}
+
+a = fn()

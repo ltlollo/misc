@@ -1,0 +1,60 @@
+01
+23
+
+00 01 10 11
+02 03 12 13
+20 21 30 31
+22 23 32 33
+
+
+
+
+
+
+12345678abcdefgh
+1234abcd5678efgh
+12ab34cd56ef78gh
+1a2b3c4d5e6f7g8h
+
+
+
+
+q(x):
+	exp = 127 - (x >> 23)
+	quadrant = (1 << (31-exp)) | ((x & 0x7fffffu) >> (exp + 1))
+
+h16(x, y):
+
+
+
+
+0 -> 4
+1 -> 8
+2	12
+3	16
+4	20
+5	24
+6	28
+7	32
+
+
+
+
+
+
+1234567800000000abcdefgh00000000
+1234567810305070a0c0e0g00b0d0f0h
+
+ABCDEFGH10101010abcdefgh01010101
+ABCDEFGHA0C0E0G0a0c0e0g00b0d0f0h
+
+ABCDEFGHA0C0E0G0a0c0e0g00b0d0f0h
+
+ABCDEFGHA0C0E0G0a0c0e0g00b0d0f0h
+
+cum = a & 0xff000000
+	| b & 0xff000000 >> 16
+	| 0x00aa0055
+
+cum = cum 
+
