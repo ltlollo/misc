@@ -14,7 +14,7 @@
 #include "elf.h"
 #include "strelf.h"
 
-extern const char *__progname;
+extern const char *__progname
 
 #define xensurem(cond, ...)\
 	do {\
@@ -225,8 +225,7 @@ parse_dynamic_section(struct elf64_dyn *dyn_beg
 				break;
 		}
 	}
-DYN_END:
-	return;
+	DYN_END: return;
 }
 
 
