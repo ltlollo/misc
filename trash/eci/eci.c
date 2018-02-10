@@ -60,7 +60,7 @@ parse_section_header(struct elf64_ehdr *eh
 	int i;
 
 	xinboundm(sheader_beg, "section header too long");
-	xinboundm(sheader_end, "entry section not present");
+	xensure(sheader_end <= program_end, "entry section not present");
 
 	if (eh->e_shnum == SHN_UNDEF) {
 		sheader_end = sheader_beg + es->sh_size * eh->e_shentsize;
