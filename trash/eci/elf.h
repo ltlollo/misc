@@ -318,6 +318,47 @@
 #define EHVERS	6
 #define EHOSABI	7
 
+#define DT_NULL         0
+#define DT_NEEDED       1
+#define DT_PLTRELSZ     2
+#define DT_PLTGOT       3
+#define DT_HASH         4
+#define DT_STRTAB       5
+#define DT_SYMTAB       6
+#define DT_RELA         7
+#define DT_RELASZ       8
+#define DT_RELAENT      9
+#define DT_STRSZ        10
+#define DT_SYMENT       11
+#define DT_INIT         12
+#define DT_FINI         13
+#define DT_SONAME       14
+#define DT_RPATH        15
+#define DT_SYMBOLIC     16
+#define DT_REL          17
+#define DT_RELSZ        18
+#define DT_RELENT       19
+#define DT_PLTREL       20
+#define DT_DEBUG        21
+#define DT_TEXTREL      22
+#define DT_JMPREL       23
+#define DT_BIND_NOW     24
+#define DT_INIT_ARRAY   25
+#define DT_FINI_ARRAY   26
+#define DT_INIT_ARRAYSZ 27
+#define DT_FINI_ARRAYSZ 28
+#define DT_RUNPATH      29
+#define DT_FLAGS        30
+#define DT_ENCODING     32
+#define DT_PREINIT_ARRAY 32
+#define DT_PREINIT_ARRAYSZ 33
+#define DT_NUM          34
+#define DT_LOOS         0x6000000d
+#define DT_HIOS         0x6ffff000
+#define DT_LOPROC       0x70000000
+#define DT_HIPROC       0x7fffffff
+#define DT_PROCNUM      DT_MIPS_NUM
+
 typedef uintptr_t		__elf64_addr	__align(8);
 typedef unsigned long	__elf64_off		__align(8);
 typedef unsigned short	__elf64_half	__align(2);
@@ -373,6 +414,14 @@ struct elf64_shdr {
 	__elf64_word	sh_info;
 	__elf64_xword	sh_addralign;
 	__elf64_xword	sh_entsize;
+};
+
+struct elf64_dyn {
+	__elf64_sxword	d_tag;
+	union {
+		__elf64_xword	d_val;
+	__elf64_addr	d_ptr;
+	} d_un;
 };
 
 #endif // ELF_H

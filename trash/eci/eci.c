@@ -16,35 +16,47 @@
 
 extern const char *__progname;
 
-static const char *usage = "USAGE: %s in\nPARAMS:\n\tin: The input elf file\n";
-
-
-#define xinboundpm(ptr, end, ...)\
+#define xensurem(cond, ...)\
 	do {\
-		if ((void *)ptr > end) {\
+		if ((cond) == 0) {\
 			errx(1, __VA_ARGS__);\
 		}\
 	} while (0)
 
-#define xinboundp(ptr, end)\
-		xinboundpm(ptr, end, "malformed ELF, FILE : \"%s\", LINE : \"%d\""\
+#define xensure(cond)\
+		xensurem(cond, "malformed ELF, FILE : \"%s\", LINE : \"%d\""\
 			, __FILE__\
 			, __LINE__\
 		)
+
+#define xinboundpm(ptr, end, ...) xensurem((void *)ptr < end, __VA_ARGS__)
+#define xinboundp(ptr, end) xensure((void *)ptr < end)
 #define xinboundm(ptr, ...) xinboundpm(ptr, program_end, __VA_ARGS__)
 #define xinbound(ptr) xinboundp(ptr, program_end)
 
-void parse_section_header(struct elf64_ehdr *eh
+static void parse_dynamic_section(struct elf64_dyn *, struct elf64_dyn *, void *, void *);
+static void parse_section_header(struct elf64_ehdr *, void *, void *);
+static void parse_program_header(struct elf64_ehdr *, void *, void *);
+static void parse_elf_header(struct elf64_ehdr *, void *, void *);
+
+static const char *usage = "USAGE: %s in\nPARAMS:\n\tin: The input elf file\n";
+
+static void
+parse_section_header(struct elf64_ehdr *eh
 	, void *program_beg
 	, void *program_end
 	) {
 	void *sheader_beg = program_beg + eh->e_shoff;
 	void *sheader_end = sheader_beg + eh->e_shentsize;
+	void *dyn_beg = NULL;
+	void *dyn_end = NULL;
 	struct elf64_shdr *es = sheader_beg;
 	struct elf64_shdr *shstr;
 	void *sheader;
 	char *sh_names_beg;
 	char *sh_names_end;
+	char *sh_name;
+
 	int i;
 
 	xinboundm(sheader_beg, "section header too long");
@@ -55,7 +67,7 @@ void parse_section_header(struct elf64_ehdr *eh
 	} else {
 		sheader_end = sheader_beg + eh->e_shnum * eh->e_shentsize;
 	}
-	xinboundm(sheader_end, "section header offset out of range");
+	xensurem(sheader_end <= program_end, "section header offset out of range");
 
 	shstr = sheader_beg + eh->e_shstrndx * eh->e_shentsize;
 	xinbound(shstr);
@@ -65,10 +77,16 @@ void parse_section_header(struct elf64_ehdr *eh
 
 	while (sheader != sheader_end) {
 		es = sheader;
+		sh_name = sh_names_beg + es->sh_name;
+		xinboundp(sh_name, sheader_end);
 
-		xinboundp(sh_names_beg + es->sh_name, sheader_end);
 		printf("\n\tshname : %s", sh_names_beg + es->sh_name);
 		printf("\n\tshtype : ");
+
+		if (strcmp(sh_name, ".dynamic") == 0) {
+			dyn_beg = program_beg + es->sh_offset;
+			dyn_end = dyn_beg + es->sh_size;
+		}
 		if (es->sh_type < SHT_NUM) {
 			printf("%s", shtype[es->sh_type]);
 		} else {
@@ -143,9 +161,78 @@ void parse_section_header(struct elf64_ehdr *eh
 #endif
 		sheader += eh->e_shentsize;
 	}
+	if (dyn_beg != NULL) {
+		parse_dynamic_section(dyn_beg, dyn_end, program_beg, program_end);
+	}
 }
 
-void parse_program_header(struct elf64_ehdr *eh
+static void
+parse_dynamic_section(struct elf64_dyn *dyn_beg
+	, struct elf64_dyn *dyn_end
+	, void *program_beg
+	, void *program_end
+	) {
+	struct elf64_dyn *dyn_curr;
+	char *dyn_info;
+	void *dst_beg = NULL;
+	void *dst_end = NULL;
+	uintptr_t section_bytes = (uintptr_t)dyn_end - (uintptr_t)dyn_beg;
+	struct elf64_dyn *strtab = NULL;
+	struct elf64_dyn *strsz = NULL;
+
+	if (section_bytes % sizeof(struct elf64_dyn) != 0) {
+		errx(1, "malformed dynamic section");
+	}
+	xensure(dst_end <= program_end);
+	for (dyn_curr = dyn_beg; dyn_curr != dyn_end; dyn_curr++) {
+		if (dyn_curr->d_tag == DT_STRTAB) {
+			strtab = dyn_curr;
+		} else if (dyn_curr->d_tag == DT_STRSZ) {
+			strsz = dyn_curr;
+		} else if (dyn_curr == DT_NULL) {
+			break;
+		}
+	}
+	xensure(strtab != NULL && strsz != NULL);
+
+	dst_beg = program_beg + strtab->d_un.d_ptr;
+	dst_end = program_beg + strtab->d_un.d_ptr;
+
+	printf("\n\t.dynamic section info :\n");
+
+	for (dyn_curr = dyn_beg; dyn_curr != dyn_end; dyn_curr++) {
+		dyn_info = dst_beg + dyn_curr->d_un.d_ptr;
+		switch(dyn_curr->d_tag) {
+			case DT_SONAME:
+				xinbound(dyn_info);
+				printf("\t\tSONAME : %s\n", dyn_info);
+				break;
+			case DT_RPATH:
+				xinbound(dyn_info);
+				printf("\t\tRPATH : %s\n", dyn_info);
+				break;
+			case DT_RUNPATH:
+				xinbound(dyn_info);
+				printf("\t\tRUNPATH : %s\n", dyn_info);
+				break;
+			case DT_NEEDED:
+				xinbound(dyn_info);
+				printf("\t\tNEEDED : %s\n", dyn_info);
+				break;
+			case DT_NULL:
+				goto DYN_END;
+			default:
+				break;
+		}
+	}
+DYN_END:
+	return;
+}
+
+
+
+static void
+parse_program_header(struct elf64_ehdr *eh
 	, void *program_beg
 	, void *program_end
 	) {
@@ -159,7 +246,7 @@ void parse_program_header(struct elf64_ehdr *eh
 	int i;
 
 	xinboundm(pheader_beg, "program header too long");
-	xinboundm(pheader_end, "program header offset out of range");
+	xensurem(pheader_end <= program_end, "program header offset out of range");
 
 	while (pheader != pheader_end) {
 		ep = pheader;
@@ -245,7 +332,9 @@ void parse_program_header(struct elf64_ehdr *eh
 	}
 }
 
-void parse_elf_header(struct elf64_ehdr *eh
+
+static void
+parse_elf_header(struct elf64_ehdr *eh
 	, void *program_beg
 	, void *program_end) {
 	__elf64_addr entry;
@@ -298,7 +387,8 @@ void parse_elf_header(struct elf64_ehdr *eh
 	);
 }
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
 	char *fn;
 	int fd;
 	off_t len;
