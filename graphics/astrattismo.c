@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-# if 0 && An extract from octave history
+# if 0
+    % An extract from octave history
     a = imread ("2018-04-08-115223_1920x1080_scrot.png");
     r = a(:,:, 1);
     imshow (r)
