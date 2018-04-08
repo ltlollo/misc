@@ -1,3 +1,5 @@
+// gcc `pkg-config --libs glew freeglut` -lm astrattismo.c
+
 #include <GL/glut.h>
 #include <stdlib.h>
 #include <math.h>
