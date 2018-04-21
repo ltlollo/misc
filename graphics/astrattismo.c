@@ -72,7 +72,7 @@ display(void) {
     float t, l;
     int i, j;
     
-    glClearColor(1. ,1. ,1. ,0.);
+    glClearColor(1., 1., 1., 0.);
     glClear(GL_COLOR_BUFFER_BIT);
     glBegin(GL_TRIANGLES);
     glColor3f(0, 0, 0.65);
@@ -83,14 +83,14 @@ display(void) {
             float nr = (l - dl) * (l - dl) * p2 + (l - dl) * p1 + p0;
             float dr = nr - r;
             
-            float x0 = (r + 0.) * cos((t + 0.) * M_PI);
-            float y0 = (r + 0.) * sin((t + 0.) * M_PI);
-            float x1 = (r + dr) * cos((t + 0.) * M_PI);
-            float y1 = (r + dr) * sin((t + 0.) * M_PI);
-            float x2 = (r + dr) * cos((t + dt) * M_PI);
-            float y2 = (r + dr) * sin((t + dt) * M_PI);
-            float x3 = (r + 0.) * cos((t + dt) * M_PI);
-            float y3 = (r + 0.) * sin((t + dt) * M_PI);
+            float x0  = (r + 0.) * cos((t + 0.  ) * M_PI);
+            float y0  = (r + 0.) * sin((t + 0.  ) * M_PI);
+            float x1  = (r + dr) * cos((t + 0.  ) * M_PI);
+            float y1  = (r + dr) * sin((t + 0.  ) * M_PI);
+            float x2  = (r + dr) * cos((t + dt  ) * M_PI);
+            float y2  = (r + dr) * sin((t + dt  ) * M_PI);
+            float x3  = (r + 0.) * cos((t + dt  ) * M_PI);
+            float y3  = (r + 0.) * sin((t + dt  ) * M_PI);
             float x2h = (r + dr) * cos((t + dt/2) * M_PI);
             float y2h = (r + dr) * sin((t + dt/2) * M_PI);
             float x3h = (r + 0.) * cos((t + dt/2) * M_PI);
@@ -136,7 +136,6 @@ display(void) {
         float y2 = (r + .5) * sin((t + dt) * M_PI);
         float x3 = (r + 0.) * cos((t + dt) * M_PI);
         float y3 = (r + 0.) * sin((t + dt) * M_PI);
-        glColor3f(0, 0, 0.65);
         if (i % 2) {
             continue;
         }
